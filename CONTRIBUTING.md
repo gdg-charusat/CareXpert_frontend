@@ -79,8 +79,8 @@ Some issues may require environment variables (API keys, secrets, credentials, e
 
 If you need environment variables to work on an assigned issue, please contact the organizers privately:
 
-- 📱 **WhatsApp:** +91-8347036131
-- 📧 **Email:** jadejakrishnapal04@gmail.com
+- 📱 **WhatsApp:** +91-8347036131 || +91-9227448882
+- 📧 **Email:** jadejakrishnapal04@gmail.com || aaleya2604@gmail.com
 
 Environment details will be shared **only after the issue is officially assigned to you**.
 
