@@ -184,7 +184,7 @@ export default function DoctorsPage() {
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Failed to ppiunppointment");
+        toast.error(err.response.data?.message || "Failed to book appointment");
       } else {
         toast.error("An unexpected error occurred");
       }
