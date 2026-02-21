@@ -30,14 +30,13 @@ import {
   BarChart3,
   Activity,
 } from "lucide-react";
-import { Navbar } from "../components/navbar";
-import { useAuth } from "../components/auth-context";
+import { useAuth } from "../context/auth-context";
 
 export default function AdminPage() {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  // const [_searchQuery, _setSearchQuery] = useState(""); // unused
+  // const [_filterStatus, _setFilterStatus] = useState("all"); // unused
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "admin")) {
@@ -171,10 +170,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-
-      <div className="container mx-auto px-4 pt-20 pb-12">
+    <div className="p-6 md:p-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -608,7 +604,6 @@ export default function AdminPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }

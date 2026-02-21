@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+// import tailwindcss from '@tailwindcss/vite'
+// this import is unnecessary and will cause a linting error
 import path from "path"
 
 // https://vite.dev/config/

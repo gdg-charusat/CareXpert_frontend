@@ -113,7 +113,7 @@ export default function AboutPage() {
           </div>
           <div className="relative">
             <img
-              src="/placeholder.svg"
+              src="/image.png"
               alt="Healthcare team"
               className="rounded-2xl shadow-xl"
             />
