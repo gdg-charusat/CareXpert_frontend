@@ -16,7 +16,10 @@ import {
   CheckCircle,
   XCircle,
   Mail,
+  Inbox,
+  CalendarCheck,
 } from "lucide-react";
+import EmptyState from "../components/EmptyState";
 import { useAuthStore } from "@/store/authstore";
 import axios from "axios";
 import { toast } from "sonner";
@@ -350,21 +353,19 @@ export default function DoctorAppointmentsPage() {
         <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
           <button
             onClick={() => setActiveTab("requests")}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "requests"
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "requests"
                 ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            }`}
+              }`}
           >
             Pending Requests ({pendingRequests.length})
           </button>
           <button
             onClick={() => setActiveTab("all")}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "all"
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "all"
                 ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            }`}
+              }`}
           >
             All Appointments ({appointments.length})
           </button>
@@ -387,17 +388,11 @@ export default function DoctorAppointmentsPage() {
           </div>
 
           {pendingRequests.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Calendar className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No pending requests
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-center">
-                  You don't have any pending appointment requests at the moment.
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={<Inbox />}
+              title="No pending requests"
+              description="New appointment requests from patients will appear here."
+            />
           ) : (
             <div className="grid gap-6">
               {pendingRequests.map((appointment) => (
@@ -579,17 +574,11 @@ export default function DoctorAppointmentsPage() {
           </div>
 
           {appointments.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Calendar className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No appointments found
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-center">
-                  You don't have any appointments scheduled yet.
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={<CalendarCheck />}
+              title="No appointments yet"
+              description="Your scheduled appointments with patients will show up here."
+            />
           ) : (
             <div className="grid gap-4">
               {appointments.map((appointment) => (

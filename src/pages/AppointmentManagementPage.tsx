@@ -21,6 +21,7 @@ import { useAuthStore } from "@/store/authstore";
 import axios from "axios";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import EmptyState from "../components/EmptyState";
 
 type Appointment = {
   id: string;
@@ -73,8 +74,8 @@ export default function AppointmentManagementPage() {
         if (res.data.success) {
           const allAppointments = res.data.data;
           const now = new Date();
-          
-          
+
+
           function parseAppointmentDateTime(dateStr: string, timeStr: string) {
             // If dateStr already contains 'T', assume it's ISO and just return new Date(dateStr)
             if (dateStr.includes('T')) {
@@ -96,7 +97,7 @@ export default function AppointmentManagementPage() {
             const appointmentDateTime = parseAppointmentDateTime(apt.date, apt.time);
             return appointmentDateTime < now;
           });
-          
+
           setUpcomingAppointments(upcoming);
           setPastAppointments(past);
         }
@@ -146,7 +147,7 @@ export default function AppointmentManagementPage() {
               Manage your upcoming and past appointments
             </p>
           </div>
-          <Button 
+          <Button
             onClick={() => navigate("/doctors")}
             className="bg-blue-600 hover:bg-blue-700 dark:text-white "
           >
@@ -214,9 +215,9 @@ export default function AppointmentManagementPage() {
                           </Badge>
                           <Badge variant={
                             appointment.status === "PENDING" ? "outline" :
-                            appointment.status === "CONFIRMED" ? "default" :
-                            appointment.status === "COMPLETED" ? "secondary" :
-                            appointment.status === "REJECTED" ? "destructive" : "secondary"
+                              appointment.status === "CONFIRMED" ? "default" :
+                                appointment.status === "COMPLETED" ? "secondary" :
+                                  appointment.status === "REJECTED" ? "destructive" : "secondary"
                           }>
                             {appointment.status === "PENDING" ? "Request Sent" : appointment.status}
                           </Badge>
@@ -238,19 +239,16 @@ export default function AppointmentManagementPage() {
                   </motion.div>
                 ))
               ) : (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">
-                    No upcoming appointments
-                  </p>
-                  <Button 
-                    onClick={() => navigate("/doctors")}
-                    variant="outline"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Book an Appointment
-                  </Button>
-                </div>
+                <EmptyState
+                  icon={<Calendar />}
+                  title="No upcoming appointments"
+                  description="You have no appointments scheduled. Book one with a doctor today."
+                  action={{
+                    label: "Book an Appointment",
+                    icon: <Plus />,
+                    onClick: () => navigate("/doctors"),
+                  }}
+                />
               )}
             </CardContent>
           </Card>
@@ -313,9 +311,9 @@ export default function AppointmentManagementPage() {
                           </Badge>
                           <Badge variant={
                             appointment.status === "PENDING" ? "outline" :
-                            appointment.status === "CONFIRMED" ? "default" :
-                            appointment.status === "COMPLETED" ? "secondary" :
-                            appointment.status === "REJECTED" ? "destructive" : "secondary"
+                              appointment.status === "CONFIRMED" ? "default" :
+                                appointment.status === "COMPLETED" ? "secondary" :
+                                  appointment.status === "REJECTED" ? "destructive" : "secondary"
                           }>
                             {appointment.status === "PENDING" ? "Request Sent" : appointment.status}
                           </Badge>
@@ -335,12 +333,16 @@ export default function AppointmentManagementPage() {
                   </motion.div>
                 ))
               ) : (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">
-                    No past appointments
-                  </p>
-                </div>
+                <EmptyState
+                  icon={<Calendar />}
+                  title="No past appointments"
+                  description="Your completed appointments will appear here."
+                  action={{
+                    label: "Book your first appointment",
+                    icon: <Plus />,
+                    onClick: () => navigate("/doctors"),
+                  }}
+                />
               )}
             </CardContent>
           </Card>
