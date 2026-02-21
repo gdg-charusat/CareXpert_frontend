@@ -24,6 +24,7 @@ import StartCall from "./pages/StartCall";
 import UploadReportPage from "./pages/UploadReportPage";
 import AppointmentHistoryPage from "./pages/AppointmentHistoryPage";
 import PharmacyPage from "./pages/PharmacyPage";
+import NotFound from "./pages/NotFound";
 
 export default function AppRoutes() {
   return (
@@ -92,8 +93,8 @@ export default function AppRoutes() {
         <Route index element={<StartCall />} />
       </Route>
       
-      {/* 404 route */}
-      <Route path="*" element={<div>404 - Page Not Found</div>} />
+      {/* 404 Route */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
