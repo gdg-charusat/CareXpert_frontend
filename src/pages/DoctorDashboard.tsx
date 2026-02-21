@@ -26,8 +26,8 @@ import {
   Send as _Send,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { Input as _Input } from "../components/ui/input";
-import { Label as _Label } from "../components/ui/label";
+// import { Input as _Input } from "../components/ui/input"; // unused
+// import { Label as _Label } from "../components/ui/label"; // unused
 import {
   Select as _Select,
   SelectContent as _SelectContent,

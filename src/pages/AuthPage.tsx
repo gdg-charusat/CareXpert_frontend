@@ -1,5 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import { Navbar } from "../components/Navbar";  
+
+// import { Navbar } from "../components/Navbar"; // name conflict could crash vercel build
+import { Navbar } from "@/components/navbar"; // fixed 'N' --> 'n'
+
 import { Footer } from "../components/footer";
 import LoginSignup from "./auth/LoginSignup";
 

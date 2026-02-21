@@ -35,8 +35,8 @@ import { useAuth } from "../context/auth-context";
 export default function AdminPage() {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
-  const [_searchQuery, _setSearchQuery] = useState("");
-  const [_filterStatus, _setFilterStatus] = useState("all");
+  // const [_searchQuery, _setSearchQuery] = useState(""); // unused
+  // const [_filterStatus, _setFilterStatus] = useState("all"); // unused
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "admin")) {

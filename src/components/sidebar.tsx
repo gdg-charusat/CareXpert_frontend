@@ -1,18 +1,18 @@
 import { NavLink } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { 
-  Home, 
-  Calendar, 
-  Search, 
-  FileText, 
-  Pill, 
-  MapPin, 
-  Clock, 
-  User, 
+import {
+  Home,
+  Calendar,
+  Search,
+  FileText,
+  Pill,
+  MapPin,
+  Clock,
+  User,
   X,
   Bell,
-  MessageCircle
+  MessageCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,7 +35,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         try {
           const response = await axios.get(
             `${import.meta.env.VITE_BASE_URL}/api/user/notifications/unread-count`,
-            { withCredentials: true }
+            { withCredentials: true },
           );
           if (response.data.success) {
             setUnreadCount(response.data.data.unreadCount);
@@ -61,10 +61,23 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     if (user.role === "DOCTOR") {
       return [
         { href: "/dashboard/doctor", label: "Home", icon: Home },
-        { href: "/doctor/appointments", label: "Appointment Requests", icon: Calendar },
-        { href: "/doctor/appointment-history", label: "Appointment History", icon: Clock },
+        {
+          href: "/doctor/appointments",
+          label: "Appointment Requests",
+          icon: Calendar,
+        },
+        {
+          href: "/doctor/appointment-history",
+          label: "Appointment History",
+          icon: Clock,
+        },
         { href: "/chat", label: "Chat", icon: MessageCircle },
-        { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount },
+        {
+          href: "/notifications",
+          label: "Notifications",
+          icon: Bell,
+          badge: unreadCount,
+        },
         { href: "/profile", label: "Profile", icon: User },
       ];
     } else {
@@ -76,9 +89,18 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         { href: "/chat", label: "Chat", icon: MessageCircle },
         { href: "/upload-report", label: "Analyze Report", icon: FileText },
         { href: "/prescriptions", label: "Prescriptions", icon: Pill },
-        { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount },
+        {
+          href: "/notifications",
+          label: "Notifications",
+          icon: Bell,
+          badge: unreadCount,
+        },
         { href: "/pharmacy", label: "Pharmacy Near Me", icon: MapPin },
-        { href: "/appointment-history", label: "Appointment History", icon: Clock },
+        {
+          href: "/appointment-history",
+          label: "Appointment History",
+          icon: Clock,
+        },
         { href: "/profile", label: "Profile", icon: User },
       ];
     }
@@ -112,7 +134,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            
+
             return (
               <motion.div
                 key={item.href}
@@ -123,9 +145,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   to={item.href}
                   className={({ isActive }) =>
                     `flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${
-                      isActive 
-                        ? 'bg-blue-100/70 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300' 
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/70'
+                      isActive
+                        ? "bg-blue-100/70 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300"
+                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/70"
                     }`
                   }
                 >
@@ -133,9 +155,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     <Icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
                   </div>
-                  {item.badge && item.badge > 0 && (
-                    <Badge variant="destructive" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                      {item.badge > 99 ? '99+' : item.badge}
+                  {item.label === "Notifications" && unreadCount > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                    >
+                      {unreadCount > 99 ? "99+" : unreadCount}
                     </Badge>
                   )}
                 </NavLink>
@@ -148,19 +173,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Mobile Sidebar */}
       <motion.aside
         initial={false}
-        animate={{ 
+        animate={{
           x: isOpen ? 0 : "-100%",
-          transition: { type: "spring", damping: 25, stiffness: 200 }
+          transition: { type: "spring", damping: 25, stiffness: 200 },
         }}
         className="md:hidden fixed top-16 left-0 h-full w-64 bg-white/70 dark:bg-zinc-900/40 backdrop-blur-sm border-r border-slate-200/60 dark:border-zinc-700/60 z-50 flex flex-col shadow-lg"
       >
         {/* Mobile close button */}
         <div className="flex items-center justify-end p-4 border-b border-gray-200 dark:border-gray-700">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggle}
-          >
+          <Button variant="ghost" size="sm" onClick={onToggle}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -169,7 +190,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            
+
             return (
               <motion.div
                 key={item.href}
@@ -180,9 +201,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   to={item.href}
                   className={({ isActive }) =>
                     `flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${
-                      isActive 
-                        ? 'bg-blue-100/70 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300' 
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/70'
+                      isActive
+                        ? "bg-blue-100/70 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300"
+                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/70"
                     }`
                   }
                   onClick={() => {
@@ -197,8 +218,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     <span className="font-medium">{item.label}</span>
                   </div>
                   {item.badge && item.badge > 0 && (
-                    <Badge variant="destructive" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                      {item.badge > 99 ? '99+' : item.badge}
+                    <Badge
+                      variant="destructive"
+                      className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                    >
+                      {item.badge > 99 ? "99+" : item.badge}
                     </Badge>
                   )}
                 </NavLink>

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Info, X } from "lucide-react";
+// import { Info, X } from "lucide-react"; // unused X
+import { Info } from "lucide-react";
 
 export function SampleCredentials() {
   const [isVisible, setIsVisible] = useState(true);
 
   if (!isVisible) return null;
-
+  {/*sample credentials are given below*/}
   return (
     <div >
       {/* <div className="flex items-start justify-between">
