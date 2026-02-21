@@ -44,6 +44,7 @@ import {
   loadRoomChatHistory as _loadRoomChatHistory,
 } from "@/sockets/socket";
 import { useAuthStore } from "@/store/authstore";
+import { relativeTime } from "@/lib/utils";
 
 type DoctorData = {
   id: string;
@@ -263,19 +264,13 @@ export default function ChatPage() {
                 id: `${chat.id}-user`,
                 type: "user",
                 message: chat.userMessage,
-                time: new Date(chat.createdAt).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
+                time: relativeTime(chat.createdAt),
               },
               {
                 id: `${chat.id}-ai`,
                 type: "ai",
                 message: formatAiResponse(chat),
-                time: new Date(chat.createdAt).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
+                time: relativeTime(chat.createdAt),
                 aiData: chat,
               },
             ])
@@ -320,16 +315,13 @@ export default function ChatPage() {
   const handleClearAiChat = async () => {
     try {
       await axios.delete(`${url}/ai-chat/history`, { withCredentials: true });
-      setAiMessages([
+        setAiMessages([
         {
           id: "welcome",
           type: "ai",
           message:
             "Chat cleared. Hello! I'm CareXpert AI. Describe your symptoms and I'll help analyze them for you.",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          time: relativeTime(new Date()),
         },
       ]);
       toast.success("AI chat cleared");
@@ -348,10 +340,7 @@ export default function ChatPage() {
         id: `user-${Date.now()}`,
         type: "user",
         message: userMessage,
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        time: relativeTime(new Date()),
       };
       setAiMessages((prev) => [...prev, userMsg]);
 
@@ -375,10 +364,7 @@ export default function ChatPage() {
           id: `ai-${Date.now()}`,
           type: "ai",
           message: formatAiResponse(aiData),
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          time: relativeTime(new Date()),
           aiData: aiData,
         };
         setAiMessages((prev) => [...prev, aiMsg]);
@@ -393,10 +379,7 @@ export default function ChatPage() {
         type: "ai",
         message:
           "Sorry, I'm having trouble processing your request. Please try again.",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        time: relativeTime(new Date()),
       };
       setAiMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -457,10 +440,7 @@ export default function ChatPage() {
           receiverId: msg.receiverId,
           username: msg.sender.name,
           text: msg.message,
-          time: new Date(msg.timestamp).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          time: relativeTime(msg.timestamp),
           messageType: msg.messageType,
           imageUrl: msg.imageUrl,
         }));
@@ -520,10 +500,7 @@ export default function ChatPage() {
                 receiverId: msg.receiverId,
                 username: msg.sender.name,
                 text: msg.message,
-                time: new Date(msg.timestamp).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
+                time: relativeTime(msg.timestamp),
                 messageType: msg.messageType,
                 imageUrl: msg.imageUrl,
               })
@@ -567,10 +544,7 @@ export default function ChatPage() {
                 receiverId: null,
                 username: msg.sender.name,
                 text: msg.message,
-                time: new Date(msg.timestamp).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
+                time: relativeTime(msg.timestamp),
                 messageType: msg.messageType,
                 imageUrl: msg.imageUrl,
               })
@@ -599,17 +573,14 @@ export default function ChatPage() {
     if (typeof selectedChat === "object" && selectedChat.type === "doctor") {
       const roomId = generateRoomId(user.id, selectedChat.data.userId);
 
-      const payload = {
+        const payload = {
         roomId,
         senderId: user.id,
         receiverId: selectedChat.data.userId,
         username: user.name,
         text: message.trim(),
         messageType: "TEXT",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        time: relativeTime(new Date()),
       };
 
       sendMessage(payload);
@@ -634,10 +605,7 @@ export default function ChatPage() {
         username: user.name,
         text: message.trim(),
         messageType: "TEXT",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        time: relativeTime(new Date()),
       };
       SendMessageToRoom(payload);
       setMessages((prev) => [...prev, { ...payload, type: "user" }]);
@@ -893,9 +861,7 @@ export default function ChatPage() {
                                   {conversation.lastMessage.message}
                                 </p>
                                 <p className="text-xs text-gray-400 dark:text-gray-500">
-                                  {new Date(
-                                    conversation.lastMessage.timestamp
-                                  ).toLocaleDateString()}
+                                  {relativeTime(conversation.lastMessage.timestamp)}
                                 </p>
                               </div>
                               {conversation.unreadCount > 0 && (
