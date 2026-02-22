@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Button } from "./ui/button";
-import { Info, X } from "lucide-react";
 
 export function SampleCredentials() {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible] = useState(true);
 
   if (!isVisible) return null;
 
@@ -43,7 +41,7 @@ export function SampleCredentials() {
         >
           <X className="h-4 w-4" />
         </Button>
-      </div> */}  
+      </div> */}
     </div>
   );
 }

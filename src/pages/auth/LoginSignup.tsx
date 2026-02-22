@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Badge } from "../../components/ui/badge";
 import { Heart, User, Stethoscope, MapPin, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../../store/authstore";
 import axios from "axios";
@@ -17,13 +16,13 @@ export default function LoginSignup() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"PATIENT" | "DOCTOR" | null>(null);
-  
+
   // Form states
   const [loginData, setLoginData] = useState({
     data: "",
     password: "",
   });
-  
+
   const [signupData, setSignupData] = useState({
     firstName: "",
     lastName: "",
@@ -53,7 +52,7 @@ export default function LoginSignup() {
       if (response.data.success) {
         setUser(response.data.data);
         toast.success("Login successful!");
-        
+
         // Navigate based on role
         const role = response.data.data.role;
         if (role === "DOCTOR") {
@@ -73,7 +72,7 @@ export default function LoginSignup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (signupData.password !== signupData.confirmPassword) {
       toast.error("Passwords do not match");
       return;

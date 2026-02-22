@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Bell, Check, CheckCheck, Calendar, User, Stethoscope } from "lucide-react";
+import { Bell, Check, CheckCheck, Calendar, Stethoscope } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -31,7 +31,7 @@ export default function NotificationsPage() {
         `${import.meta.env.VITE_BASE_URL}/api/user/notifications`,
         { withCredentials: true }
       );
-      
+
       if (response.data.success) {
         setNotifications(response.data.data.notifications);
       }
@@ -51,10 +51,10 @@ export default function NotificationsPage() {
         {},
         { withCredentials: true }
       );
-      
-      setNotifications(prev => 
-        prev.map(notif => 
-          notif.id === notificationId 
+
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.id === notificationId
             ? { ...notif, isRead: true }
             : notif
         )
@@ -75,8 +75,8 @@ export default function NotificationsPage() {
         {},
         { withCredentials: true }
       );
-      
-      setNotifications(prev => 
+
+      setNotifications(prev =>
         prev.map(notif => ({ ...notif, isRead: true }))
       );
       toast.success("All notifications marked as read");
@@ -162,13 +162,12 @@ export default function NotificationsPage() {
           </Card>
         ) : (
           notifications.map((notification) => (
-            <Card 
-              key={notification.id} 
-              className={`transition-all duration-200 ${
-                !notification.isRead 
-                  ? 'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10' 
+            <Card
+              key={notification.id}
+              className={`transition-all duration-200 ${!notification.isRead
+                  ? 'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
                   : 'opacity-75'
-              }`}
+                }`}
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -176,7 +175,7 @@ export default function NotificationsPage() {
                     <div className={`p-2 rounded-full ${getNotificationColor(notification.type)}`}>
                       {getNotificationIcon(notification.type)}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -188,11 +187,11 @@ export default function NotificationsPage() {
                           </Badge>
                         )}
                       </div>
-                      
+
                       <p className="text-gray-600 dark:text-gray-400 mb-2">
                         {notification.message}
                       </p>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                         <span>
                           {new Date(notification.createdAt).toLocaleDateString()}
@@ -206,7 +205,7 @@ export default function NotificationsPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {!notification.isRead && (
                     <Button
                       variant="ghost"
