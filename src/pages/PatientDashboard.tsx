@@ -16,32 +16,27 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion } from "framer-motion";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 
 
 export default function PatientDashboard() {
+  const { user, isHydrated } = useAuthStore();
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
 
  
-  const isLoading = false; 
+  // const isLoading = false; // not required since i added enhancement
 
   
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "PATIENT")) {
-      navigate("/auth/login"); 
+    // only redirect once we are sure the store has finished loading from storage
+    if (isHydrated && (!user || user.role !== "PATIENT")) {
+      navigate("/auth/login");
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isHydrated, navigate]);
 
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  if (!isHydrated) return <LoadingSpinner />; // enhancement: showing a spinning loader
+  // removed the isLoading conditions due to enhancement
 
   return (
     <div className="p-6 md:p-8">

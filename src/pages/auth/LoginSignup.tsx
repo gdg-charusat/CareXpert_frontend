@@ -3,12 +3,32 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { Badge } from "../../components/ui/badge";
 import { Heart, User, Stethoscope, MapPin, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../../store/authstore";
+{
+  /*fix for zustand*/
+}
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -16,14 +36,16 @@ export default function LoginSignup() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<"PATIENT" | "DOCTOR" | null>(null);
-  
+  const [selectedRole, setSelectedRole] = useState<"PATIENT" | "DOCTOR" | null>(
+    null,
+  );
+
   // Form states
   const [loginData, setLoginData] = useState({
     data: "",
     password: "",
   });
-  
+
   const [signupData, setSignupData] = useState({
     firstName: "",
     lastName: "",
@@ -36,8 +58,8 @@ export default function LoginSignup() {
     location: "",
   });
 
+  const setUser = useAuthStore((state) => state.setUser); // get setter from Zustand
   const navigate = useNavigate();
-  const { setUser } = useAuthStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,22 +69,24 @@ export default function LoginSignup() {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/user/login`,
         loginData,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.data.success) {
-        setUser(response.data.data);
-        toast.success("Login successful!");
-        
-        // Navigate based on role
+        setUser({
+          id: response.data.data.id,
+          name: response.data.data.name,
+          email: response.data.data.email,
+          role: response.data.data.role, // backend returns "PATIENT", "DOCTOR", etc.
+          profilePicture: response.data.data.profilePicture,
+        });
+        toast.success("Welcome Back!!");
+
+        // Dynamic redirection
         const role = response.data.data.role;
-        if (role === "DOCTOR") {
-          navigate("/dashboard/doctor");
-        } else if (role === "PATIENT") {
-          navigate("/dashboard/patient");
-        } else if (role === "ADMIN") {
-          navigate("/admin");
-        }
+        if (role === "ADMIN") navigate("/admin");
+        else if (role === "DOCTOR") navigate("/dashboard/doctor");
+        else navigate("/dashboard/patient");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Login failed");
@@ -73,7 +97,7 @@ export default function LoginSignup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (signupData.password !== signupData.confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -104,7 +128,7 @@ export default function LoginSignup() {
 
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/user/signup`,
-        payload
+        payload,
       );
 
       if (response.data.success) {
@@ -132,7 +156,7 @@ export default function LoginSignup() {
 
   const handleRoleSelect = (role: "PATIENT" | "DOCTOR") => {
     setSelectedRole(role);
-    setSignupData(prev => ({ ...prev, role }));
+    setSignupData((prev) => ({ ...prev, role }));
   };
 
   return (
@@ -155,7 +179,10 @@ export default function LoginSignup() {
 
         <Card className="shadow-xl">
           <CardHeader>
-            <Tabs value={isLogin ? "login" : "signup"} onValueChange={(value) => setIsLogin(value === "login")}>
+            <Tabs
+              value={isLogin ? "login" : "signup"}
+              onValueChange={(value) => setIsLogin(value === "login")}
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -174,7 +201,12 @@ export default function LoginSignup() {
                       id="login-data"
                       type="text"
                       value={loginData.data}
-                      onChange={(e) => setLoginData(prev => ({ ...prev, data: e.target.value }))}
+                      onChange={(e) =>
+                        setLoginData((prev) => ({
+                          ...prev,
+                          data: e.target.value,
+                        }))
+                      }
                       placeholder="Enter your email or username"
                       required
                     />
@@ -187,7 +219,12 @@ export default function LoginSignup() {
                         id="login-password"
                         type={showPassword ? "text" : "password"}
                         value={loginData.password}
-                        onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) =>
+                          setLoginData((prev) => ({
+                            ...prev,
+                            password: e.target.value,
+                          }))
+                        }
                         placeholder="Enter your password"
                         required
                       />
@@ -198,7 +235,11 @@ export default function LoginSignup() {
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -218,7 +259,9 @@ export default function LoginSignup() {
                     <div className="grid grid-cols-2 gap-4 mt-2">
                       <Button
                         type="button"
-                        variant={selectedRole === "PATIENT" ? "default" : "outline"}
+                        variant={
+                          selectedRole === "PATIENT" ? "default" : "outline"
+                        }
                         className="h-20 flex flex-col items-center justify-center space-y-2"
                         onClick={() => handleRoleSelect("PATIENT")}
                       >
@@ -227,7 +270,9 @@ export default function LoginSignup() {
                       </Button>
                       <Button
                         type="button"
-                        variant={selectedRole === "DOCTOR" ? "default" : "outline"}
+                        variant={
+                          selectedRole === "DOCTOR" ? "default" : "outline"
+                        }
                         className="h-20 flex flex-col items-center justify-center space-y-2"
                         onClick={() => handleRoleSelect("DOCTOR")}
                       >
@@ -244,7 +289,12 @@ export default function LoginSignup() {
                       <Input
                         id="firstName"
                         value={signupData.firstName}
-                        onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                        onChange={(e) =>
+                          setSignupData((prev) => ({
+                            ...prev,
+                            firstName: e.target.value,
+                          }))
+                        }
                         placeholder="John"
                         required
                       />
@@ -254,7 +304,12 @@ export default function LoginSignup() {
                       <Input
                         id="lastName"
                         value={signupData.lastName}
-                        onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                        onChange={(e) =>
+                          setSignupData((prev) => ({
+                            ...prev,
+                            lastName: e.target.value,
+                          }))
+                        }
                         placeholder="Doe"
                         required
                       />
@@ -267,7 +322,12 @@ export default function LoginSignup() {
                       id="email"
                       type="email"
                       value={signupData.email}
-                      onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) =>
+                        setSignupData((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
                       placeholder="john@example.com"
                       required
                     />
@@ -280,19 +340,36 @@ export default function LoginSignup() {
                         <Label htmlFor="specialty">Specialty</Label>
                         <Select
                           value={signupData.specialty}
-                          onValueChange={(value) => setSignupData(prev => ({ ...prev, specialty: value }))}
+                          onValueChange={(value) =>
+                            setSignupData((prev) => ({
+                              ...prev,
+                              specialty: value,
+                            }))
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select your specialty" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Cardiology">Cardiology</SelectItem>
-                            <SelectItem value="Dermatology">Dermatology</SelectItem>
+                            <SelectItem value="Cardiology">
+                              Cardiology
+                            </SelectItem>
+                            <SelectItem value="Dermatology">
+                              Dermatology
+                            </SelectItem>
                             <SelectItem value="Neurology">Neurology</SelectItem>
-                            <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                            <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                            <SelectItem value="Psychiatry">Psychiatry</SelectItem>
-                            <SelectItem value="General Medicine">General Medicine</SelectItem>
+                            <SelectItem value="Orthopedics">
+                              Orthopedics
+                            </SelectItem>
+                            <SelectItem value="Pediatrics">
+                              Pediatrics
+                            </SelectItem>
+                            <SelectItem value="Psychiatry">
+                              Psychiatry
+                            </SelectItem>
+                            <SelectItem value="General Medicine">
+                              General Medicine
+                            </SelectItem>
                             <SelectItem value="Other">Other</SelectItem>
                           </SelectContent>
                         </Select>
@@ -305,7 +382,12 @@ export default function LoginSignup() {
                           <Input
                             id="clinicLocation"
                             value={signupData.clinicLocation}
-                            onChange={(e) => setSignupData(prev => ({ ...prev, clinicLocation: e.target.value }))}
+                            onChange={(e) =>
+                              setSignupData((prev) => ({
+                                ...prev,
+                                clinicLocation: e.target.value,
+                              }))
+                            }
                             placeholder="City, State, Country"
                             className="pl-10"
                             required
@@ -324,7 +406,12 @@ export default function LoginSignup() {
                         <Input
                           id="location"
                           value={signupData.location}
-                          onChange={(e) => setSignupData(prev => ({ ...prev, location: e.target.value }))}
+                          onChange={(e) =>
+                            setSignupData((prev) => ({
+                              ...prev,
+                              location: e.target.value,
+                            }))
+                          }
                           placeholder="City, State, Country"
                           className="pl-10"
                           required
@@ -341,7 +428,12 @@ export default function LoginSignup() {
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={signupData.password}
-                        onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) =>
+                          setSignupData((prev) => ({
+                            ...prev,
+                            password: e.target.value,
+                          }))
+                        }
                         placeholder="Create a password"
                         required
                       />
@@ -352,7 +444,11 @@ export default function LoginSignup() {
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -363,13 +459,22 @@ export default function LoginSignup() {
                       id="confirmPassword"
                       type="password"
                       value={signupData.confirmPassword}
-                      onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      onChange={(e) =>
+                        setSignupData((prev) => ({
+                          ...prev,
+                          confirmPassword: e.target.value,
+                        }))
+                      }
                       placeholder="Confirm your password"
                       required
                     />
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading || !selectedRole}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading || !selectedRole}
+                  >
                     {isLoading ? "Creating account..." : "Create Account"}
                   </Button>
                 </form>
@@ -380,7 +485,9 @@ export default function LoginSignup() {
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>By continuing, you agree to our Terms of Service and Privacy Policy</p>
+          <p>
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
         </div>
       </div>
     </div>

@@ -30,19 +30,19 @@ import {
   BarChart3,
   Activity,
 } from "lucide-react";
-import { useAuth } from "../context/auth-context";
+import { useAuthStore } from "@/store/authstore"; // zustand fix import
 
 export default function AdminPage() {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, isHydrated } = useAuthStore(); // switched to Zustand
   const [_searchQuery, _setSearchQuery] = useState("");
   const [_filterStatus, _setFilterStatus] = useState("all");
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "admin")) {
+    if (!isHydrated && (!user || user.role !== "ADMIN")) {
       navigate("/auth/login");
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isHydrated, navigate]);
 
   // Mock data with enhanced analytics
   const stats = {
@@ -161,7 +161,7 @@ export default function AdminPage() {
     alert("Doctor application rejected.");
   };
 
-  if (isLoading) {
+  if (isHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
