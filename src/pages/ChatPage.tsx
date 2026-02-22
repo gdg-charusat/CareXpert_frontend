@@ -108,15 +108,19 @@ export default function ChatPage() {
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchAllDoctors() {
       try {
         const res = await axios.get(`${url}/patient/fetchAllDoctors`, {
           withCredentials: true,
+          signal: controller.signal,
         });
-        if (res.data.success) {
+        if (!controller.signal.aborted && res.data.success) {
           setDoctors(res.data.data);
         }
       } catch (err) {
+        if (controller.signal.aborted) return;
         if (axios.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
         } else {
@@ -125,9 +129,14 @@ export default function ChatPage() {
       }
     }
     fetchAllDoctors();
+    return () => {
+      controller.abort();
+    };
   }, [url]);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchCity() {
       if (!user) return;
 
@@ -139,13 +148,15 @@ export default function ChatPage() {
 
         const res = await axios.get<CityRoomApiResponse>(endpoint, {
           withCredentials: true,
+          signal: controller.signal,
         });
 
-        if (res.data.success) {
+        if (!controller.signal.aborted && res.data.success) {
           const data = res.data.data;
           setCityRoom(Array.isArray(data) ? data : [data]);
         }
       } catch (err) {
+        if (controller.signal.aborted) return;
         if (axios.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
         } else {
@@ -154,6 +165,9 @@ export default function ChatPage() {
       }
     }
     fetchCity();
+    return () => {
+      controller.abort();
+    };
   }, [user]);
 
   // AI Chat state
@@ -209,41 +223,57 @@ export default function ChatPage() {
 
   // Fetch DM conversations for doctors
   useEffect(() => {
+    const controller = new AbortController();
+
     if (user?.role === "DOCTOR") {
-      fetchDmConversations();
+      fetchDmConversations(controller.signal);
     }
+
+    return () => {
+      controller.abort();
+    };
   }, [user]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
     // Skip scroll on initial load
+    let shouldScroll = true;
     if (isInitialLoad) {
       setIsInitialLoad(false);
-      return;
+      shouldScroll = false;
     }
 
     // Only scroll if there are messages to scroll to
     if (
+      shouldScroll &&
       (messages.length > 0 || aiMessages.length > 0) &&
       messagesEndRef.current
     ) {
       messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
     }
+    return () => {};
   }, [messages, aiMessages, isInitialLoad]); // Added isInitialLoad to dependencies
 
   // Load AI chat history when AI tab is selected
   useEffect(() => {
+    const controller = new AbortController();
+
     if (selectedChat === "ai") {
-      loadAiChatHistory();
+      loadAiChatHistory(controller.signal);
     }
+    return () => {
+      controller.abort();
+    };
   }, [selectedChat]);
 
   // Function to load AI chat history
-  const loadAiChatHistory = async () => {
+  const loadAiChatHistory = async (signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${url}/ai-chat/history`, {
         withCredentials: true,
+        signal,
       });
+      if (signal?.aborted) return;
       if (response.data.success) {
         const chats = response.data.data.chats || [];
         if (chats.length === 0) {
@@ -284,6 +314,7 @@ export default function ChatPage() {
         }
       }
     } catch (error) {
+      if (signal?.aborted) return;
       console.error("Error loading AI chat history:", error);
       // Show welcome message if no history
       setAiMessages([
@@ -409,15 +440,18 @@ export default function ChatPage() {
   }
 
   // Function to fetch DM conversations for doctors
-  const fetchDmConversations = async () => {
+  const fetchDmConversations = async (signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${url}/chat/doctor/conversations`, {
         withCredentials: true,
+        signal,
       });
+      if (signal?.aborted) return;
       if (response.data.success) {
         setDmConversations(response.data.data.conversations);
       }
     } catch (error) {
+      if (signal?.aborted) return;
       console.error("Error fetching DM conversations:", error);
     }
   };
@@ -472,28 +506,31 @@ export default function ChatPage() {
   };
 
   // Function to fetch community members
-  const fetchCommunityMembers = async (roomId: string) => {
+  const fetchCommunityMembers = async (
+    roomId: string,
+    signal?: AbortSignal
+  ) => {
     try {
       const response = await axios.get(
         `${
           import.meta.env.VITE_BASE_URL
         }/api/user/communities/${roomId}/members`,
-        { withCredentials: true }
+        { withCredentials: true, signal }
       );
+      if (signal?.aborted) return;
       if (response.data.success) {
         setCommunityMembers(response.data.data.members);
       }
     } catch (error) {
+      if (signal?.aborted) return;
       console.error("Error fetching community members:", error);
     }
   };
 
   // Load chat history and join room when selected chat changes
   useEffect(() => {
+    const controller = new AbortController();
     const loadChatHistory = async () => {
-      console.log("ChatPage - User:", user);
-      console.log("ChatPage - Selected Chat:", selectedChat);
-
       if (
         user &&
         typeof selectedChat === "object" &&
@@ -504,15 +541,11 @@ export default function ChatPage() {
 
         try {
           // Load 1-on-1 chat history
-          console.log(
-            "Loading chat history for doctor:",
-            selectedChat.data.userId
-          );
           const historyResponse = await loadOneOnOneChatHistory(
             selectedChat.data.userId
           );
-          console.log("Chat history response:", historyResponse);
           if (historyResponse.success) {
+            if (controller.signal.aborted) return;
             const formattedMessages = historyResponse.data.messages.map(
               (msg: any) => ({
                 roomId: roomId,
@@ -531,6 +564,7 @@ export default function ChatPage() {
             setMessages(formattedMessages);
           }
         } catch (error) {
+          if (controller.signal.aborted) return;
           console.error("Error loading doctor chat history:", error);
           setMessages([]);
         }
@@ -560,6 +594,7 @@ export default function ChatPage() {
                 joinCommunityRoom(selectedChat.id, user.id, user.name);
               }
             }
+            if (controller.signal.aborted) return;
             const formattedMessages = historyResponse.data.messages.map(
               (msg: any) => ({
                 roomId: historyResponse.data?.room?.id || selectedChat.id,
@@ -579,8 +614,9 @@ export default function ChatPage() {
           }
 
           // Fetch community members
-          await fetchCommunityMembers(selectedChat.id);
+          await fetchCommunityMembers(selectedChat.id, controller.signal);
         } catch (error) {
+          if (controller.signal.aborted) return;
           console.error("Error loading city chat history:", error);
           setMessages([]);
         }
@@ -591,6 +627,9 @@ export default function ChatPage() {
     };
 
     loadChatHistory();
+    return () => {
+      controller.abort();
+    };
   }, [selectedChat, user]);
 
   const handleSendMessage = async () => {
@@ -663,7 +702,7 @@ export default function ChatPage() {
         setMessages((prev) => [...prev, msg]);
       }
     };
-
+    offMessage();
     onMessage(handleIncomingMessage);
 
     return () => {
