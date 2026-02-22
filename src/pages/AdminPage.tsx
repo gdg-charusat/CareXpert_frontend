@@ -30,20 +30,19 @@ import {
   BarChart3,
   Activity,
 } from "lucide-react";
-import { Navbar } from "../components/navbar";
-import { useAuth } from "../components/auth-context";
+import { useAuthStore } from "@/store/authstore"; // zustand fix import
 
 export default function AdminPage() {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const { user, isHydrated } = useAuthStore(); // switched to Zustand
+  const [_searchQuery, _setSearchQuery] = useState("");
+  const [_filterStatus, _setFilterStatus] = useState("all");
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "admin")) {
+    if (!isHydrated && (!user || user.role !== "ADMIN")) {
       navigate("/auth/login");
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isHydrated, navigate]);
 
   // Mock data with enhanced analytics
   const stats = {
@@ -162,7 +161,7 @@ export default function AdminPage() {
     alert("Doctor application rejected.");
   };
 
-  if (isLoading) {
+  if (isHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
@@ -171,10 +170,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-
-      <div className="container mx-auto px-4 pt-20 pb-12">
+    <div className="p-6 md:p-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -608,7 +604,6 @@ export default function AdminPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }

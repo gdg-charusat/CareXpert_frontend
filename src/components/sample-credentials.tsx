@@ -8,8 +8,8 @@ export function SampleCredentials() {
   if (!isVisible) return null;
 
   return (
-    <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-      <div className="flex items-start justify-between">
+    <div >
+      {/* <div className="flex items-start justify-between">
         <div className="flex items-start space-x-3">
           <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
           <div>
@@ -43,7 +43,7 @@ export function SampleCredentials() {
         >
           <X className="h-4 w-4" />
         </Button>
-      </div>
+      </div> */}  
     </div>
   );
 }

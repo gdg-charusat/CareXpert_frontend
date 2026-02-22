@@ -11,6 +11,9 @@ import { InputWithIcon } from "../../components/ui/input-with-icon";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import * as React from "react";
+import { toast } from "sonner"; // ✅ Import toast
+import axios from "axios"; // ✅ Import axios
+import { useAuthStore } from "@/store/authstore"; // ✅ Import auth store if needed
 
 export default function PatientSignup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,21 +25,61 @@ export default function PatientSignup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      toast.error("Passwords do not match");
       return;
     }
 
-    // Simulate successful signup and redirect to patient dashboard
-    alert("Patient account created!");
-    navigate("/dashboard/patient");
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/user/signup`,
+        {
+          firstName,
+          lastName,
+          email,
+          password,
+        },
+        {
+          withCredentials: true, // ✅ If your backend sets cookies, use this
+        }
+      );
+
+      if (res.data.success) {
+        toast.success("Account created successfully!");
+
+        // Optionally, set user data if you want to auto-login after signup
+        useAuthStore.getState().setUser({
+          id: res.data.data.id,
+          name: res.data.data.name,
+          email: res.data.data.email,
+          profilePicture: res.data.data.profilePicture,
+          role: res.data.data.role,
+          refreshToken: res.data.data.refreshToken,
+        });
+
+        // Navigate based on role
+        if (res.data.data.role === "PATIENT") {
+          navigate("/dashboard/patient");
+        } else {
+          navigate("/dashboard/doctor");
+        }
+      } else {
+        toast.error(res.data.message || "Signup failed");
+      }
+    } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response) {
+        toast.error(err.response.data?.message || "Something went wrong");
+      } else {
+        toast.error("Unknown error occurred");
+      }
+    }
   };
 
   return (
-    <div className="flex justify-center items-center ">
+    <div className="flex justify-center items-center min-h-[80vh]">
       <Card className="w-full max-w-md">
         <CardHeader className="flex flex-col items-center space-y-2">
           <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
@@ -51,10 +94,7 @@ export default function PatientSignup() {
           <form className="space-y-6" onSubmit={handleSignup}>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label
-                  htmlFor="firstName"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
+                <label htmlFor="firstName" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                   First Name
                 </label>
                 <InputWithIcon
@@ -67,10 +107,7 @@ export default function PatientSignup() {
                 />
               </div>
               <div className="space-y-2">
-                <label
-                  htmlFor="lastName"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
+                <label htmlFor="lastName" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                   Last Name
                 </label>
                 <InputWithIcon
@@ -85,10 +122,7 @@ export default function PatientSignup() {
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
+              <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Email Address
               </label>
               <InputWithIcon
@@ -102,10 +136,7 @@ export default function PatientSignup() {
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
+              <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Password
               </label>
               <div className="relative">
@@ -122,20 +153,13 @@ export default function PatientSignup() {
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="confirmPassword"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
+              <label htmlFor="confirmPassword" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Confirm Password
               </label>
               <div className="relative">
@@ -152,11 +176,7 @@ export default function PatientSignup() {
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
@@ -167,10 +187,7 @@ export default function PatientSignup() {
           </form>
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
             Already have an account?{" "}
-            <Link
-              to="/auth/login"
-              className="font-medium text-blue-600 hover:underline dark:text-blue-400"
-            >
+            <Link to="/auth/login" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
               Sign in
             </Link>
           </div>

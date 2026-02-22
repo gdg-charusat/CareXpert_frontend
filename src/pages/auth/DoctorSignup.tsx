@@ -28,6 +28,8 @@ import { InputWithIcon } from "../../components/ui/input-with-icon";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import * as React from "react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export default function DoctorSignup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -54,11 +56,41 @@ export default function DoctorSignup() {
     "Other",
   ];
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate successful signup and redirect to doctor dashboard
-    alert("Doctor account created!");
-    navigate("/dashboard/doctor");
+  
+    if (!firstName || !lastName || !email || !specialty || !location || !password) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+  
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/signup`, {
+        firstName,
+        lastName,
+        email,
+        password,
+        role: "DOCTOR",
+        specialty,
+        clinicLocation: location,
+      }, {
+        withCredentials: true,
+      });
+  
+      if (res.data.success) {
+        toast.success("Doctor account created successfully!");
+        navigate("/dashboard/doctor");
+      } else {
+        toast.error(res.data.message || "Signup failed");
+      }
+    } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response) {
+        toast.error(err.response.data?.message || "Something went wrong");
+      } else {
+        toast.error("Unknown error occurred.");
+      }
+      console.error(err);
+    }
   };
 
   return (

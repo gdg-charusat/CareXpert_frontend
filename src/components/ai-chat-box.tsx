@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Send } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export function AIChatBox() {
   const [message, setMessage] = useState("");
@@ -35,8 +37,37 @@ export function AIChatBox() {
     setMessage("");
   };
 
+  const handleClearChat = async () => {
+    try {
+      // Optimistically clear UI
+      setChatHistory([
+        {
+          type: "ai",
+          content: "Chat cleared. How can I assist you now?",
+        },
+      ]);
+
+      const baseUrl = `${import.meta.env.VITE_BASE_URL}/api/ai-chat`;
+      await axios.delete(`${baseUrl}/history`, { withCredentials: true });
+      toast.success("Chat history cleared");
+    } catch (error) {
+      toast.error("Failed to clear chat");
+    }
+  };
+
   return (
     <div className="flex flex-col h-[400px]">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          AI Assistant
+        </span>
+        <Button variant="outline" size="sm" onClick={handleClearChat}>
+          <Trash2 className="h-4 w-4 mr-2" />
+          Clear chat
+        </Button>
+      </div>
+
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {chatHistory.map((msg, index) => (
