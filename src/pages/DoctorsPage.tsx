@@ -4,10 +4,14 @@ import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+<<<<<<< feature/Performance-Optimization
 import { LazyAvatar } from "../components/ui/lazy-image";
 import { DoctorCardSkeleton } from "../components/ui/skeleton";
 import { useDebounce } from "../lib/hooks";
 import { cache, CACHE_KEYS, CACHE_TTL } from "../lib/cache";
+=======
+import { SearchX } from "lucide-react";
+>>>>>>> main
 import {
   Select,
   SelectContent,
@@ -68,11 +72,17 @@ export default function DoctorsPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
+<<<<<<< feature/Performance-Optimization
   const [doctors, setDoctors] = useState<FindDoctors[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   // Performance: Use custom debounce hook
   const debouncedSearch = useDebounce(searchQuery, 400);
+=======
+  const [doctors , setDoctors] = useState<FindDoctors[]>([]);
+  
+
+>>>>>>> main
   // Booking dialog state
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<FindDoctors | null>(null);
@@ -87,6 +97,7 @@ export default function DoctorsPage() {
 
   const user = useAuthStore((state) => state.user);
   const url = `${import.meta.env.VITE_BASE_URL}/api/patient`;
+<<<<<<< feature/Performance-Optimization
 
   // Performance: Fetch with caching
   useEffect(() => {
@@ -102,6 +113,26 @@ export default function DoctorsPage() {
           setDoctors(cachedData);
           setIsSearching(false);
           return;
+=======
+//fix2
+useEffect(() => {
+  setIsSearching(true);
+
+  const timer = setTimeout(() => {
+    setDebouncedSearchQuery(searchQuery);
+  }, 400);
+
+  return () => clearTimeout(timer);
+}, [searchQuery]);
+useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      const res = await axios.get<FindDoctorsApiResponse>(
+        `${url}/fetchAllDoctors`,
+        {
+          params: { search: debouncedSearchQuery },
+          withCredentials: true,
+>>>>>>> main
         }
 
         const res = await axios.get<FindDoctorsApiResponse>(
@@ -131,8 +162,14 @@ export default function DoctorsPage() {
       }
     };
 
+<<<<<<< feature/Performance-Optimization
     fetchDoctors();
   }, [debouncedSearch, url]);
+=======
+  fetchDoctors();
+}, [debouncedSearchQuery]);
+  
+>>>>>>> main
   const specialties = [
     "Cardiology",
     "Dermatology",
@@ -152,6 +189,7 @@ export default function DoctorsPage() {
     "Miami, FL",
     "Seattle, WA",
   ];
+<<<<<<< feature/Performance-Optimization
   // Performance: Memoize filtered results to avoid unnecessary recalculations
   const filteredDoctors = useMemo(() => {
     return doctors.filter((doctor) => {
@@ -164,6 +202,22 @@ export default function DoctorsPage() {
     });
   }, [doctors, selectedSpecialty, selectedLocation]);
 
+=======
+
+  const filteredDoctors = doctors.filter((doctor) => {
+  const matchesSearch =
+    doctor.user.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+    doctor.specialty.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+
+  const matchesSpecialty =
+    selectedSpecialty === "all" || doctor.specialty === selectedSpecialty;
+
+  const matchesLocation =
+    selectedLocation === "all" || doctor.clinicLocation === selectedLocation;
+
+  return matchesSearch && matchesSpecialty && matchesLocation;
+});
+>>>>>>> main
 
   // Performance: Memoize callback functions to prevent unnecessary re-renders
   const openBookingDialog = useCallback((doctor: FindDoctors) => {
@@ -218,7 +272,7 @@ export default function DoctorsPage() {
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Failed to ppiunppointment");
+        toast.error(err.response.data?.message || "Failed to book an appointment");
       } else {
         toast.error("An unexpected error occurred");
       }
@@ -314,6 +368,7 @@ export default function DoctorsPage() {
           </CardContent>
         </Card>
 
+<<<<<<< feature/Performance-Optimization
         {/* Results with Loading State */}
         {isSearching ? (
           <div className="grid gap-6">
@@ -435,6 +490,44 @@ export default function DoctorsPage() {
             </div>
           </>
         )}
+=======
+        {/* Results */}
+       
+        <div className="mb-6 flex items-center justify-between">
+  <p className="text-gray-600 dark:text-gray-300">
+    Showing {filteredDoctors.length} doctors
+  </p>
+  {isSearching && (
+    <span className="text-sm text-blue-600">
+      Searching...
+    </span>
+  )}
+</div>
+
+        {/* Doctor Cards */}
+        
+          {filteredDoctors.length === 0 ? (
+  <div className="flex flex-col items-center justify-center py-20 text-center">
+    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+      No doctors found
+    </h3>
+    <p className="text-gray-600 dark:text-gray-300">
+      Try adjusting filters or modifying your search.
+    </p>
+  </div>
+) : (
+  <div className="grid gap-6">
+    {filteredDoctors.map((doctor) => (
+      <Card
+        key={doctor.id}
+        className="overflow-hidden hover:shadow-lg transition-shadow"
+      >
+        {/* paste your original card content here */}
+      </Card>
+    ))}
+  </div>
+)}
+>>>>>>> main
       </div>
 
       {/* Booking Dialog */}
