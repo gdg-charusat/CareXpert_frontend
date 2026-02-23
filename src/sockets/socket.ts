@@ -68,8 +68,12 @@ export const onMessage = (callback: (msg: FormattedMessage) => void) => {
   });
 };
 
-export const offMessage = () => {
-  socket.off("message");
+export const offMessage = (callback?: (msg: FormattedMessage) => void) => {
+  if (callback) {
+    socket.off("message", callback);
+  } else {
+    socket.off("message");
+  }
 };
 
 export const SendMessageToRoom = (message: RoomMessageData) => {
