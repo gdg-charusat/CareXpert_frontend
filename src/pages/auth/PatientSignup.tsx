@@ -6,14 +6,35 @@ import {
   CardTitle,
   CardDescription,
 } from "../../components/ui/card";
-import { Mail, Lock, Eye, EyeOff, Heart, User } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Heart, User, Loader2 } from "lucide-react";
 import { InputWithIcon } from "../../components/ui/input-with-icon";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import * as React from "react";
-import { toast } from "sonner"; // ✅ Import toast
-import axios from "axios"; // ✅ Import axios
-import { useAuthStore } from "@/store/authstore"; // ✅ Import auth store if needed
+import { toast } from "sonner";
+import axios from "axios";
+import { useAuthStore } from "@/store/authstore";
+
+interface FieldErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+function getPasswordStrength(password: string): { label: string; color: string; width: string } {
+  if (!password) return { label: "", color: "", width: "0%" };
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  if (score <= 2) return { label: "Weak", color: "bg-red-500", width: "33%" };
+  if (score <= 3) return { label: "Moderate", color: "bg-yellow-500", width: "66%" };
+  return { label: "Strong", color: "bg-green-500", width: "100%" };
+}
 
 export default function PatientSignup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,34 +44,44 @@ export default function PatientSignup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const navigate = useNavigate();
+
+  const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+
+  const clearError = (field: keyof FieldErrors) => {
+    if (fieldErrors[field]) setFieldErrors((p) => ({ ...p, [field]: undefined }));
+  };
+
+  const validateForm = (): boolean => {
+    const errors: FieldErrors = {};
+    if (!firstName.trim()) errors.firstName = "First name is required";
+    if (!lastName.trim()) errors.lastName = "Last name is required";
+    if (!email.trim()) errors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Invalid email format";
+    if (!password) errors.password = "Password is required";
+    else if (password.length < 8) errors.password = "Password must be at least 8 characters";
+    if (!confirmPassword) errors.confirmPassword = "Please confirm your password";
+    else if (password !== confirmPassword) errors.confirmPassword = "Passwords do not match";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
+    setIsLoading(true);
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/user/signup`,
-        {
-          firstName,
-          lastName,
-          email,
-          password,
-        },
-        {
-          withCredentials: true, // ✅ If your backend sets cookies, use this
-        }
+        { firstName, lastName, email, password },
+        { withCredentials: true }
       );
 
       if (res.data.success) {
         toast.success("Account created successfully!");
-
-        // Optionally, set user data if you want to auto-login after signup
         useAuthStore.getState().setUser({
           id: res.data.data.id,
           name: res.data.data.name,
@@ -59,8 +90,6 @@ export default function PatientSignup() {
           role: res.data.data.role,
           refreshToken: res.data.data.refreshToken,
         });
-
-        // Navigate based on role
         if (res.data.data.role === "PATIENT") {
           navigate("/dashboard/patient");
         } else {
@@ -71,10 +100,22 @@ export default function PatientSignup() {
       }
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Something went wrong");
+        const data = err.response.data;
+        if (data?.errors && typeof data.errors === "object") {
+          const be: FieldErrors = {};
+          for (const key of Object.keys(data.errors)) {
+            if (key in fieldErrors || ["firstName", "lastName", "email", "password", "confirmPassword"].includes(key)) {
+              (be as any)[key] = data.errors[key];
+            }
+          }
+          if (Object.keys(be).length > 0) setFieldErrors(be);
+        }
+        toast.error(data?.message || "Something went wrong");
       } else {
         toast.error("Unknown error occurred");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,9 +143,10 @@ export default function PatientSignup() {
                   type="text"
                   placeholder="John"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => { setFirstName(e.target.value); clearError("firstName"); }}
                   icon={<User className="h-4 w-4 text-gray-400" />}
                 />
+                {fieldErrors.firstName && <p className="text-sm text-red-500">{fieldErrors.firstName}</p>}
               </div>
               <div className="space-y-2">
                 <label htmlFor="lastName" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -115,9 +157,10 @@ export default function PatientSignup() {
                   type="text"
                   placeholder="Doe"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => { setLastName(e.target.value); clearError("lastName"); }}
                   icon={<User className="h-4 w-4 text-gray-400" />}
                 />
+                {fieldErrors.lastName && <p className="text-sm text-red-500">{fieldErrors.lastName}</p>}
               </div>
             </div>
 
@@ -130,9 +173,10 @@ export default function PatientSignup() {
                 type="email"
                 placeholder="john.doe@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); clearError("email"); }}
                 icon={<Mail className="h-4 w-4 text-gray-400" />}
               />
+              {fieldErrors.email && <p className="text-sm text-red-500">{fieldErrors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -145,7 +189,7 @@ export default function PatientSignup() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
                   icon={<Lock className="h-4 w-4 text-gray-400" />}
                 />
                 <button
@@ -156,6 +200,20 @@ export default function PatientSignup() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {password && (
+                <div className="space-y-1">
+                  <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{ width: passwordStrength.width }}
+                    />
+                  </div>
+                  <p className={`text-xs ${passwordStrength.color.replace("bg-", "text-")}`}>
+                    {passwordStrength.label}
+                  </p>
+                </div>
+              )}
+              {fieldErrors.password && <p className="text-sm text-red-500">{fieldErrors.password}</p>}
             </div>
 
             <div className="space-y-2">
@@ -168,7 +226,7 @@ export default function PatientSignup() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => { setConfirmPassword(e.target.value); clearError("confirmPassword"); }}
                   icon={<Lock className="h-4 w-4 text-gray-400" />}
                 />
                 <button
@@ -179,10 +237,18 @@ export default function PatientSignup() {
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {fieldErrors.confirmPassword && <p className="text-sm text-red-500">{fieldErrors.confirmPassword}</p>}
             </div>
 
-            <Button type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">

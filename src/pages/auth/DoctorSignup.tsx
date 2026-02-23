@@ -23,13 +23,36 @@ import {
   CreditCard,
   MapPin,
   User,
+  Loader2,
 } from "lucide-react";
 import { InputWithIcon } from "../../components/ui/input-with-icon";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import * as React from "react";
 import axios from "axios";
 import { toast } from "sonner";
+
+interface FieldErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  specialty?: string;
+  location?: string;
+  password?: string;
+}
+
+function getPasswordStrength(password: string): { label: string; color: string; width: string } {
+  if (!password) return { label: "", color: "", width: "0%" };
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  if (score <= 2) return { label: "Weak", color: "bg-red-500", width: "33%" };
+  if (score <= 3) return { label: "Moderate", color: "bg-yellow-500", width: "66%" };
+  return { label: "Strong", color: "bg-green-500", width: "100%" };
+}
 
 export default function DoctorSignup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -41,9 +64,16 @@ export default function DoctorSignup() {
   const [license, setLicense] = useState("");
   const [location, setLocation] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const navigate = useNavigate();
 
-  // Mock data for specialties
+  const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+
+  const clearError = (field: keyof FieldErrors) => {
+    if (fieldErrors[field]) setFieldErrors((p) => ({ ...p, [field]: undefined }));
+  };
+
   const specialties = [
     "Cardiology",
     "Dermatology",
@@ -56,14 +86,25 @@ export default function DoctorSignup() {
     "Other",
   ];
 
+  const validateForm = (): boolean => {
+    const errors: FieldErrors = {};
+    if (!firstName.trim()) errors.firstName = "First name is required";
+    if (!lastName.trim()) errors.lastName = "Last name is required";
+    if (!email.trim()) errors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Invalid email format";
+    if (!specialty) errors.specialty = "Specialty is required";
+    if (!location.trim()) errors.location = "Location is required";
+    if (!password) errors.password = "Password is required";
+    else if (password.length < 8) errors.password = "Password must be at least 8 characters";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    if (!firstName || !lastName || !email || !specialty || !location || !password) {
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-  
+    if (!validateForm()) return;
+
+    setIsLoading(true);
     try {
       const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/signup`, {
         firstName,
@@ -76,7 +117,7 @@ export default function DoctorSignup() {
       }, {
         withCredentials: true,
       });
-  
+
       if (res.data.success) {
         toast.success("Doctor account created successfully!");
         navigate("/dashboard/doctor");
@@ -85,11 +126,23 @@ export default function DoctorSignup() {
       }
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Something went wrong");
+        const data = err.response.data;
+        if (data?.errors && typeof data.errors === "object") {
+          const be: FieldErrors = {};
+          for (const key of Object.keys(data.errors)) {
+            if (["firstName", "lastName", "email", "specialty", "location", "password"].includes(key)) {
+              (be as any)[key] = data.errors[key];
+            }
+          }
+          if (Object.keys(be).length > 0) setFieldErrors(be);
+        }
+        toast.error(data?.message || "Something went wrong");
       } else {
         toast.error("Unknown error occurred.");
       }
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -120,9 +173,10 @@ export default function DoctorSignup() {
                   type="text"
                   placeholder="Dr. John"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => { setFirstName(e.target.value); clearError("firstName"); }}
                   icon={<User className="h-4 w-4 text-gray-400" />}
                 />
+                {fieldErrors.firstName && <p className="text-sm text-red-500">{fieldErrors.firstName}</p>}
               </div>
               <div className="space-y-2">
                 <label
@@ -136,9 +190,10 @@ export default function DoctorSignup() {
                   type="text"
                   placeholder="Smith"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => { setLastName(e.target.value); clearError("lastName"); }}
                   icon={<User className="h-4 w-4 text-gray-400" />}
                 />
+                {fieldErrors.lastName && <p className="text-sm text-red-500">{fieldErrors.lastName}</p>}
               </div>
             </div>
 
@@ -154,9 +209,10 @@ export default function DoctorSignup() {
                 type="email"
                 placeholder="dr.smith@hospital.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); clearError("email"); }}
                 icon={<Mail className="h-4 w-4 text-gray-400" />}
               />
+              {fieldErrors.email && <p className="text-sm text-red-500">{fieldErrors.email}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -167,18 +223,19 @@ export default function DoctorSignup() {
                 >
                   Specialty
                 </label>
-                <Select value={specialty} onValueChange={setSpecialty}>
+                <Select value={specialty} onValueChange={(val) => { setSpecialty(val); clearError("specialty"); }}>
                   <SelectTrigger id="specialty">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
                   <SelectContent>
-                    {specialties.map((specialty) => (
-                      <SelectItem key={specialty} value={specialty}>
-                        {specialty}
+                    {specialties.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {fieldErrors.specialty && <p className="text-sm text-red-500">{fieldErrors.specialty}</p>}
               </div>
               <div className="space-y-2">
                 <label
@@ -227,9 +284,10 @@ export default function DoctorSignup() {
                   type="text"
                   placeholder="New York, NY"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e) => { setLocation(e.target.value); clearError("location"); }}
                   icon={<MapPin className="h-4 w-4 text-gray-400" />}
                 />
+                {fieldErrors.location && <p className="text-sm text-red-500">{fieldErrors.location}</p>}
               </div>
             </div>
 
@@ -246,7 +304,7 @@ export default function DoctorSignup() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
                   icon={<Lock className="h-4 w-4 text-gray-400" />}
                 />
                 <button
@@ -261,13 +319,35 @@ export default function DoctorSignup() {
                   )}
                 </button>
               </div>
+              {password && (
+                <div className="space-y-1">
+                  <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{ width: passwordStrength.width }}
+                    />
+                  </div>
+                  <p className={`text-xs ${passwordStrength.color.replace("bg-", "text-")}`}>
+                    {passwordStrength.label}
+                  </p>
+                </div>
+              )}
+              {fieldErrors.password && <p className="text-sm text-red-500">{fieldErrors.password}</p>}
             </div>
 
             <Button
               type="submit"
               className="w-full bg-green-600 hover:bg-green-700"
+              disabled={isLoading}
             >
-              Create Doctor Account
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                "Create Doctor Account"
+              )}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">

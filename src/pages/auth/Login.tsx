@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription,
 } from "../../components/ui/card";
-import { Mail, Lock, Eye, EyeOff, Heart } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Heart, Loader2 } from "lucide-react";
 import { InputWithIcon } from "../../components/ui/input-with-icon";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -15,55 +15,71 @@ import { toast } from "sonner";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
 
+interface FieldErrors {
+  email?: string;
+  password?: string;
+}
+
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const navigate = useNavigate();
+
+  const validateForm = (): boolean => {
+    const errors: FieldErrors = {};
+    if (!email.trim()) errors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Invalid email format";
+    if (!password) errors.password = "Password is required";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    try{
-      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/login` ,{data : email , password} , {
-        withCredentials : true
-      });
-      if(res.data.success){
+    setIsLoading(true);
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/user/login`,
+        { data: email, password },
+        { withCredentials: true }
+      );
+      if (res.data.success) {
         useAuthStore.getState().setUser({
-          id : res.data.data.id,
-          name : res.data.data.name,
-          email : res.data.data.email,
-          profilePicture : res.data.data.profilePicture,
-          role : res.data.data.role,
-          refreshToken : res.data.data.refreshToken
-        })
+          id: res.data.data.id,
+          name: res.data.data.name,
+          email: res.data.data.email,
+          profilePicture: res.data.data.profilePicture,
+          role: res.data.data.role,
+          refreshToken: res.data.data.refreshToken,
+        });
 
-        if(res.data.data.role === "PATIENT"){
+        if (res.data.data.role === "PATIENT") {
           navigate("/dashboard/patient");
-        }else{
-          navigate("/dashboard/doctor")
+        } else {
+          navigate("/dashboard/doctor");
         }
       }
-      // console.log(res.data.data)
-    }catch(err){
-      if(axios.isAxiosError(err) && err.response){
-        toast.error(err.response.data?.message || "Something went wrong");
-      }else{
-        toast.error("Unknown error occured..")
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        const data = err.response.data;
+        if (data?.errors && typeof data.errors === "object") {
+          const be: FieldErrors = {};
+          if (data.errors.email) be.email = data.errors.email;
+          if (data.errors.password) be.password = data.errors.password;
+          if (Object.keys(be).length > 0) setFieldErrors(be);
+        }
+        toast.error(data?.message || "Something went wrong");
+      } else {
+        toast.error("Unknown error occurred");
       }
+    } finally {
+      setIsLoading(false);
     }
-    // Simulate login based on demo emails
-    // if (email === "patient@demo.com" && password === "password") {
-    //   navigate("/dashboard/patient");
-    // } else if (email === "doctor@demo.com" && password === "password") {
-    //   navigate("/dashboard/doctor");
-    // } else if (email === "admin@demo.com" && password === "password") {
-    //   navigate("/admin");
-    // } else {
-    //   alert(
-    //     "Invalid credentials. Use demo@demo.com/password for patient, doctor@demo.com/password for doctor, or admin@demo.com/password for admin"
-    //   );
-    // }
   };
 
   return (
@@ -92,9 +108,15 @@ export default function Login() {
                 type="text"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }));
+                }}
                 icon={<Mail className="h-4 w-4 text-gray-400" />}
               />
+              {fieldErrors.email && (
+                <p className="text-sm text-red-500">{fieldErrors.email}</p>
+              )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -117,7 +139,10 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }));
+                  }}
                   icon={<Lock className="h-4 w-4 text-gray-400" />}
                 />
                 <button
@@ -132,9 +157,19 @@ export default function Login() {
                   )}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="text-sm text-red-500">{fieldErrors.password}</p>
+              )}
             </div>
-            <Button type="submit" className="w-full">
-              Sign In
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
