@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { LazyAvatar } from "../components/ui/lazy-image";
+import { DoctorCardSkeleton } from "../components/ui/skeleton";
+import { useDebounce } from "../lib/hooks";
+import { cache, CACHE_KEYS, CACHE_TTL } from "../lib/cache";
 import {
   Select,
   SelectContent,
@@ -28,26 +32,26 @@ import { useAuthStore } from "@/store/authstore";
 
 type FindDoctors = {
   id: string,
-  userId : string,
+  userId: string,
   specialty: string,
   clinicLocation: string,
   experience: string,
-  education : string,
-  bio : string,
+  education: string,
+  bio: string,
   languages: string[];
-  consultationFee : number,
-  user : {
+  consultationFee: number,
+  user: {
     name: string,
-    profilePicture : string
+    profilePicture: string
   },
-  nextAvailable : string
+  nextAvailable: string
 }
 
 type FindDoctorsApiResponse = {
-  statusCode : number,
-  message : string,
-  success : boolean,
-  data : FindDoctors[];
+  statusCode: number,
+  message: string,
+  success: boolean,
+  data: FindDoctors[];
 }
 
 type AppointmentBookingData = {
@@ -62,11 +66,11 @@ export default function DoctorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
-  const [doctors , setDoctors] = useState<FindDoctors[]>([]);
-  
-//fix1
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-const [isSearching, setIsSearching] = useState(false);
+  const [doctors, setDoctors] = useState<FindDoctors[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Performance: Use custom debounce hook
+  const debouncedSearch = useDebounce(searchQuery, 400);
   // Booking dialog state
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<FindDoctors | null>(null);
@@ -81,44 +85,52 @@ const [isSearching, setIsSearching] = useState(false);
 
   const user = useAuthStore((state) => state.user);
   const url = `${import.meta.env.VITE_BASE_URL}/api/patient`;
-//fix2
- useEffect(() => {
-  const timer = setTimeout(() => {
-    setDebouncedSearch(searchQuery);
-  }, 400);
 
-  return () => clearTimeout(timer);
-}, [searchQuery]);
+  // Performance: Fetch with caching
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setIsSearching(true);
 
-useEffect(() => {
-  const fetchDoctors = async () => {
-    try {
-      setIsSearching(true);
+        // Check cache first
+        const cacheKey = `${CACHE_KEYS.DOCTORS_LIST}_${debouncedSearch}`;
+        const cachedData = cache.get<FindDoctors[]>(cacheKey);
 
-      const res = await axios.get<FindDoctorsApiResponse>(
-        `${url}/fetchAllDoctors`,
-        {
-          params: { search: debouncedSearch },
-          withCredentials: true,
+        if (cachedData) {
+          setDoctors(cachedData);
+          setIsSearching(false);
+          return;
         }
-      );
 
-      if (res.data.success) {
-        setDoctors(res.data.data);
-      }
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Something went wrong");
-      } else {
-        toast.error("An unexpected error occurred.");
-      }
-    } finally {
-      setIsSearching(false);
-    }
-  };
+        const res = await axios.get<FindDoctorsApiResponse>(
+          `${url}/fetchAllDoctors`,
+          {
+            params: { search: debouncedSearch },
+            withCredentials: true,
+          }
+        );
 
-  fetchDoctors();
-}, [debouncedSearch]);
+        if (res.data.success) {
+          setDoctors(res.data.data);
+          // Cache the results
+          cache.set(cacheKey, res.data.data, {
+            ttl: CACHE_TTL.MEDIUM,
+            storage: 'session',
+          });
+        }
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response) {
+          toast.error(err.response.data?.message || "Something went wrong");
+        } else {
+          toast.error("An unexpected error occurred.");
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    fetchDoctors();
+  }, [debouncedSearch, url]);
   const specialties = [
     "Cardiology",
     "Dermatology",
@@ -138,22 +150,25 @@ useEffect(() => {
     "Miami, FL",
     "Seattle, WA",
   ];
-//fix 3
-  const filteredDoctors = doctors.filter((doctor) => {
-  const matchesSpecialty =
-    selectedSpecialty === "all" || doctor.specialty === selectedSpecialty;
-  const matchesLocation =
-    selectedLocation === "all" || doctor.clinicLocation === selectedLocation;
+  // Performance: Memoize filtered results to avoid unnecessary recalculations
+  const filteredDoctors = useMemo(() => {
+    return doctors.filter((doctor) => {
+      const matchesSpecialty =
+        selectedSpecialty === "all" || doctor.specialty === selectedSpecialty;
+      const matchesLocation =
+        selectedLocation === "all" || doctor.clinicLocation === selectedLocation;
 
-  return matchesSpecialty && matchesLocation;
-});
+      return matchesSpecialty && matchesLocation;
+    });
+  }, [doctors, selectedSpecialty, selectedLocation]);
 
-  const openBookingDialog = (doctor: FindDoctors) => {
+  // Performance: Memoize callback functions to prevent unnecessary re-renders
+  const openBookingDialog = useCallback((doctor: FindDoctors) => {
     if (!user || user.role !== "PATIENT") {
       toast.error("Please login as a patient to book appointments");
       return;
     }
-    
+
     setSelectedDoctor(doctor);
     setBookingData({
       doctorId: doctor.id,
@@ -163,9 +178,9 @@ useEffect(() => {
       notes: "",
     });
     setIsBookingDialogOpen(true);
-  };
+  }, [user]);
 
-  const closeBookingDialog = () => {
+  const closeBookingDialog = useCallback(() => {
     setIsBookingDialogOpen(false);
     setSelectedDoctor(null);
     setBookingData({
@@ -175,18 +190,18 @@ useEffect(() => {
       appointmentType: "OFFLINE",
       notes: "",
     });
-  };
+  }, []);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!bookingData.date || !bookingData.time) {
       toast.error("Please select both date and time");
       return;
     }
 
     setIsBooking(true);
-    
+
     try {
       const res = await axios.post(
         `${url}/book-direct-appointment`,
@@ -209,7 +224,8 @@ useEffect(() => {
     }
   };
 
-  const generateTimeSlots = () => {
+  // Performance: Memoize time slots generation
+  const timeSlots = useMemo(() => {
     const slots = [];
     for (let hour = 9; hour <= 17; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
@@ -218,7 +234,7 @@ useEffect(() => {
       }
     }
     return slots;
-  };
+  }, []);
 
   return (
     <div className="p-6 md:p-8">
@@ -292,129 +308,127 @@ useEffect(() => {
           </CardContent>
         </Card>
 
-        {/* Results */}
-       
-        <div className="mb-6 flex items-center justify-between">
-  <p className="text-gray-600 dark:text-gray-300">
-    Showing {filteredDoctors.length} doctors
-  </p>
-  {isSearching && (
-    <span className="text-sm text-blue-600">
-      Searching...
-    </span>
-  )}
-</div>
+        {/* Results with Loading State */}
+        {isSearching ? (
+          <div className="grid gap-6">
+            <DoctorCardSkeleton />
+            <DoctorCardSkeleton />
+            <DoctorCardSkeleton />
+          </div>
+        ) : (
+          <>
+            <div className="mb-6 flex items-center justify-between">
+              <p className="text-gray-600 dark:text-gray-300">
+                Showing {filteredDoctors.length} doctors
+              </p>
+            </div>
 
-        {/* Doctor Cards */}
-        <div className="grid gap-6">
-          {filteredDoctors.map((doctor) => (
-            <Card
-              key={doctor.id}
-              className="overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <CardContent className="p-6">
-                <div className="grid lg:grid-cols-12 gap-6 items-start">
-                  {/* Doctor Info - Takes 8 columns */}
-                  <div className="lg:col-span-8">
-                    <div className="flex gap-4">
-                      <Avatar className="h-20 w-20 flex-shrink-0">
-                        <AvatarImage
-                          src={doctor.user.profilePicture || "/placeholder.svg"}
-                        />
-                        <AvatarFallback>
-                          {doctor.user.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
+            {/* Doctor Cards */}
+            <div className="grid gap-6">
+              {filteredDoctors.map((doctor) => (
+                <Card
+                  key={doctor.id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="p-6">
+                    <div className="grid lg:grid-cols-12 gap-6 items-start">
+                      {/* Doctor Info - Takes 8 columns */}
+                      <div className="lg:col-span-8">
+                        <div className="flex gap-4">
+                          <LazyAvatar
+                            src={doctor.user.profilePicture}
+                            alt={doctor.user.name}
+                            className="h-20 w-20 flex-shrink-0"
+                          />
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white truncate">
-                            {doctor.user.name}
-                          </h3>
-                          {/* {doctor.verified && (
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-xl font-semibold text-gray-900 dark:text-white truncate">
+                                {doctor.user.name}
+                              </h3>
+                              {/* {doctor.verified && (
                             <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 flex-shrink-0">
                               Verified
                             </Badge>
                           )} */}
-                        </div>
+                            </div>
 
-                        <p className="text-blue-600 dark:text-blue-400 font-medium mb-2">
-                          {doctor.specialty}
-                        </p>
+                            <p className="text-blue-600 dark:text-blue-400 font-medium mb-2">
+                              {doctor.specialty}
+                            </p>
 
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-300 mb-2">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{doctor.clinicLocation}</span>
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-300 mb-2">
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">{doctor.clinicLocation}</span>
+                              </div>
+
+                              <span className="whitespace-nowrap">
+                                {doctor.experience} experience
+                              </span>
+                            </div>
+
+                            <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                              {doctor.bio}
+                            </p>
+
+                            <div className="flex flex-col gap-2">
+                              {doctor.education && (
+                                <div className="flex flex-wrap gap-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {doctor.education}
+                                  </Badge>
+                                </div>
+                              )}
+                              <div className="flex flex-wrap gap-2">
+                                {doctor.languages.map((lang) => (
+                                  <Badge key={lang} variant="outline" className="text-xs">
+                                    {lang}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                          
-                          <span className="whitespace-nowrap">
-                            {doctor.experience} experience
-                          </span>
                         </div>
+                      </div>
 
-                        <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-                          {doctor.bio}
-                        </p>
-
-                        <div className="flex flex-col gap-2">
-                        {doctor.education && (
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {doctor.education}
-                            </Badge>
+                      {/* Booking Info - Takes 4 columns */}
+                      <div className="lg:col-span-4">
+                        <div className="flex flex-col h-full">
+                          <div className="text-center mb-4">
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                              ${doctor.consultationFee || " 0 "}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              Consultation fee
+                            </p>
                           </div>
-                        )}
-                        <div className="flex flex-wrap gap-2">
-                          {doctor.languages.map((lang) => (
-                            <Badge key={lang} variant="outline" className="text-xs">
-                              {lang}
-                            </Badge>
-                          ))}
-                        </div>
+
+                          <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
+                            <Clock className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <span>Available for booking</span>
+                          </div>
+
+                          <Button
+                            className="w-full"
+                            onClick={() => openBookingDialog(doctor)}
+                          >
+                            <Heart className="h-4 w-4 mr-2" />
+                            Book Appointment
+                          </Button>
+
+
+
+
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Booking Info - Takes 4 columns */}
-                  <div className="lg:col-span-4">
-                    <div className="flex flex-col h-full">
-                      <div className="text-center mb-4">
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                          ${doctor.consultationFee || " 0 "}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          Consultation fee
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
-                        <Clock className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <span>Available for booking</span>
-                      </div>
-
-                      <Button
-                        className="w-full"
-                        onClick={() => openBookingDialog(doctor)}
-                      >
-                        <Heart className="h-4 w-4 mr-2" />
-                        Book Appointment
-                      </Button>
-
-                      
-
-
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Booking Dialog */}
@@ -423,7 +437,7 @@ useEffect(() => {
           <DialogHeader>
             <DialogTitle>Book Appointment</DialogTitle>
           </DialogHeader>
-          
+
           {selectedDoctor && (
             <>
               {/* Doctor Info */}
@@ -472,7 +486,7 @@ useEffect(() => {
                         <SelectValue placeholder="Select time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {generateTimeSlots().map((time) => (
+                        {timeSlots.map((time) => (
                           <SelectItem key={time} value={time}>
                             {time}
                           </SelectItem>
@@ -486,7 +500,7 @@ useEffect(() => {
                   <Label htmlFor="appointmentType">Appointment Type</Label>
                   <Select
                     value={bookingData.appointmentType}
-                    onValueChange={(value: "ONLINE" | "OFFLINE") => 
+                    onValueChange={(value: "ONLINE" | "OFFLINE") =>
                       setBookingData(prev => ({ ...prev, appointmentType: value }))
                     }
                   >
