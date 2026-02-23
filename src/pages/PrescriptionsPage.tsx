@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import {
   Pill,
   Calendar,
@@ -20,6 +20,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
+import { relativeTime } from "@/lib/utils";
 import axios from "axios";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -181,18 +182,7 @@ export default function PrescriptionsPage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                         <Calendar className="h-4 w-4" />
-                        <span>Prescribed on: {new Date(prescription.date).toLocaleDateString("en-US", {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                        <Clock className="h-4 w-4" />
-                        <span>Time: {new Date(prescription.date).toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit'
-                        })}</span>
+                        <span>Prescribed: {relativeTime(prescription.date)}</span>
                       </div>
                     </div>
 
