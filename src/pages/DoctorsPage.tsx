@@ -24,7 +24,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../components/ui/dialog";
-import { Search, MapPin, Clock, Filter, Heart, Video, User } from "lucide-react";
+import { Search, MapPin, Clock, Filter, Heart, Video, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
@@ -64,6 +64,8 @@ type AppointmentBookingData = {
 
 export default function DoctorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [doctors, setDoctors] = useState<FindDoctors[]>([]);
@@ -161,6 +163,7 @@ export default function DoctorsPage() {
       return matchesSpecialty && matchesLocation;
     });
   }, [doctors, selectedSpecialty, selectedLocation]);
+
 
   // Performance: Memoize callback functions to prevent unnecessary re-renders
   const openBookingDialog = useCallback((doctor: FindDoctors) => {
@@ -262,8 +265,11 @@ export default function DoctorsPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setSearchQuery(e.target.value)
                   }
-                  className="pl-10"
+                  className="pl-10 pr-10"
                 />
+                {isSearching && (
+                  <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
+                )}
               </div>
 
               <Select
@@ -480,7 +486,7 @@ export default function DoctorsPage() {
                     <Label htmlFor="time">Time</Label>
                     <Select
                       value={bookingData.time}
-                      onValueChange={(value) => setBookingData(prev => ({ ...prev, time: value }))}
+                      onValueChange={(value: string) => setBookingData(prev => ({ ...prev, time: value }))}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select time" />

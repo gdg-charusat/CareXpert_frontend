@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layout";
 import DashboardLayout from "./components/DashboardLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy load pages for code splitting
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -109,5 +110,6 @@ export default function AppRoutes() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
+
   );
 }
