@@ -62,13 +62,15 @@ export const sendMessage = (message: DmMessageData) => {
 };
 
 export const onMessage = (callback: (msg: FormattedMessage) => void) => {
-  socket.on("message", (msg) => {
-    // console.log(msg);
-    callback(msg);
-  });
+  socket.on("message", callback);
+  return () => socket.off("message", callback);
 };
 
-export const offMessage = () => {
+export const offMessage = (callback?: (msg: FormattedMessage) => void) => {
+  if (callback) {
+    socket.off("message", callback);
+    return;
+  }
   socket.off("message");
 };
 

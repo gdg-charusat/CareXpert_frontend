@@ -702,11 +702,10 @@ export default function ChatPage() {
         setMessages((prev) => [...prev, msg]);
       }
     };
-    offMessage();
-    onMessage(handleIncomingMessage);
+    const cleanup = onMessage(handleIncomingMessage);
 
     return () => {
-      offMessage();
+      cleanup();
     };
   }, [selectedChat, user]);
 
