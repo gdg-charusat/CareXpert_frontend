@@ -22,15 +22,14 @@ import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import {
   Clock,
-  User,
   Calendar,
-  MapPin,
   CheckCircle,
   XCircle,
   MessageSquare,
   AlertCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
+import { relativeTime } from "@/lib/utils";
 import axios from "axios";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -222,7 +221,7 @@ export default function DoctorPendingRequestsPage() {
                           {request.appointmentType}
                         </Badge>
                         <Badge variant="secondary" className="text-xs">
-                          {new Date(request.createdAt).toLocaleDateString()}
+                          {relativeTime(request.createdAt)}
                         </Badge>
                       </div>
                     </div>
