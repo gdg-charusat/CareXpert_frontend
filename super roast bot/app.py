@@ -12,9 +12,14 @@ from dotenv import load_dotenv
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
+from database import init_database
+
 
 # ── Load environment variables from the .env file next to this script ──
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
+
+# ── Ensure database is initialized before use ──
+init_database()
 
 # ── Validate the API key is present and not a placeholder ──
 _api_key = os.getenv("GROQ_KEY")
@@ -42,7 +47,7 @@ MAX_TOKENS = int(os.getenv("MAX_TOKENS", 512))
 MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
 
 
-def chat(user_input: str) -> str:
+def chat(user_input: str, session_id: str = "default") -> str:
     """Generate a roast response for the user's input using structured messages."""
 
     # used .strip to remove whitespaces 
@@ -54,7 +59,7 @@ def chat(user_input: str) -> str:
         context = retrieve_context(user_input)
 
         # Get conversation history
-        history = format_memory()
+        history = format_memory(session_id)
 
         # Build structured messages to avoid prompt injection and instruction mixing
         messages = [
@@ -82,7 +87,7 @@ def chat(user_input: str) -> str:
         reply = response.choices[0].message.content
 
         # Store in memory
-        add_to_memory(user_input, reply)
+        add_to_memory(user_input, reply, session_id)
 
         return reply
 
@@ -98,10 +103,12 @@ st.caption("I roast harder than your code roasts your CPU")
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Controls")
+    session_id = st.text_input("Session ID", value=st.session_state.get("session_id", "default"))
+    st.session_state["session_id"] = session_id
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
-        clear_memory()
-        st.success("Chat cleared!")
+        clear_memory(session_id)
+        st.success(f"Chat cleared for session '{session_id}'!")
         st.rerun()
     st.divider()
     st.markdown(
@@ -130,7 +137,7 @@ for msg in st.session_state.messages:
 
 # Chat input
 if user_input := st.chat_input("Say something... if you dare 🔥"):
-    # Show user message
+    session_id = st.session_state.get("session_id", "default")
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user", avatar="🤡"):
         st.markdown(user_input)
@@ -138,7 +145,7 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
     # Generate roast
     with st.chat_message("assistant", avatar="😈"):
         with st.spinner("Cooking up a roast... 🍳"):
-            reply = chat(user_input)
+            reply = chat(user_input, session_id=session_id)
             st.markdown(reply)
 
     st.session_state.messages.append({"role": "assistant", "content": reply})

@@ -1,7 +1,23 @@
+
+def _sanitize(text: str) -> str:
+    """
+    Sanitize input text to prevent SQL injection or unwanted characters.
+    This is a basic implementation; for more robust security, use parameterized queries.
+    """
+    if not isinstance(text, str):
+        return ""
+    # Remove control characters and excessive whitespace
+    import re
+    text = re.sub(r'[\x00-\x1f\x7f]', '', text)
+    return text.strip()
+
 """
 Memory Module for RoastBot - Now with SQLite Persistent Storage!
 Chat history persists across server restarts using SQLite database.
 """
+
+from collections import deque
+from .database import add_chat_entry, get_chat_history, clear_chat_history
 
 MAX_MEMORY = 10
 chat_history = deque(maxlen=MAX_MEMORY)

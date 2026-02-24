@@ -1,6 +1,7 @@
 """Quick smoke test runner for RoastBot fixes."""
 import sys
-sys.path.insert(0, r"c:\Users\Aryan Ghadiya\super-roast-bot\super roast bot")
+import os
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 def test_prompt():
     """Test prompt sanity."""
