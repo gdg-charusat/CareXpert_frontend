@@ -1,22 +1,22 @@
 import { NavLink } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { 
-  Home, 
-  Calendar, 
-  Search, 
-  FileText, 
-  Pill, 
-  MapPin, 
-  Clock, 
-  User, 
+import {
+  Home,
+  Calendar,
+  Search,
+  FileText,
+  Pill,
+  MapPin,
+  Clock,
+  User,
   X,
   Bell,
   MessageCircle
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import axios from "axios";
 
 interface SidebarProps {
@@ -24,7 +24,7 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+export const Sidebar = memo(function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const user = useAuthStore((state) => state.user);
   const [unreadCount, setUnreadCount] = useState(0);
   const intervalRef = useRef<number | null>(null);
@@ -121,7 +121,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            
+
             return (
               <motion.div
                 key={item.href}
@@ -131,10 +131,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 <NavLink
                   to={item.href}
                   className={({ isActive }) =>
-                    `flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${
-                      isActive 
-                        ? 'bg-blue-100/70 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300' 
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/70'
+                    `flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${isActive
+                      ? 'bg-blue-100/70 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/70'
                     }`
                   }
                 >
@@ -157,7 +156,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Mobile Sidebar */}
       <motion.aside
         initial={false}
-        animate={{ 
+        animate={{
           x: isOpen ? 0 : "-100%",
           transition: { type: "spring", damping: 25, stiffness: 200 }
         }}
@@ -178,7 +177,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            
+
             return (
               <motion.div
                 key={item.href}
@@ -188,10 +187,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 <NavLink
                   to={item.href}
                   className={({ isActive }) =>
-                    `flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${
-                      isActive 
-                        ? 'bg-blue-100/70 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300' 
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/70'
+                    `flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${isActive
+                      ? 'bg-blue-100/70 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/70'
                     }`
                   }
                   onClick={() => {
@@ -218,4 +216,4 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       </motion.aside>
     </>
   );
-}
+});
