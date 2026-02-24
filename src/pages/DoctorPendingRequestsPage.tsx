@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -84,12 +84,12 @@ export default function DoctorPendingRequestsPage() {
   const fetchPendingRequests = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get(`${url}/pending-requests`, { withCredentials: true });
+      const res = await api.get(`/pending-requests`, { withCredentials: true });
       if (res.data.success) {
         setPendingRequests(res.data.data);
       }
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
+      if (api.isAxiosError(err) && err.response) {
         toast.error(err.response.data?.message || "Failed to fetch pending requests");
       } else {
         toast.error("Unknown error occurred");
@@ -119,8 +119,8 @@ export default function DoctorPendingRequestsPage() {
         }
       }
 
-      const res = await axios.patch(
-        `${url}/appointment-requests/${selectedRequest.id}/respond`,
+      const res = await api.patch(
+        `/appointment-requests/${selectedRequest.id}/respond`,
         payload,
         { withCredentials: true }
       );
@@ -135,7 +135,7 @@ export default function DoctorPendingRequestsPage() {
         setAlternativeSlots("");
       }
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
+      if (api.isAxiosError(err) && err.response) {
         toast.error(err.response.data?.message || "Failed to process request");
       } else {
         toast.error("Unknown error occurred");

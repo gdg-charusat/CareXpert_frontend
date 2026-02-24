@@ -1,7 +1,6 @@
 /**
  * LoginSignup.tsx - Auth page using react-hook-form + Zod for login, and manual Zod validation for signup.
- * 
- * Changes made (Issue #25):
+ * * Changes made (Issue #25):
  * 1. Replaced useState for login form data with useForm hook from react-hook-form
  * 2. Added Zod schemas for type-safe validation (loginSchema, signupSchema)
  * 3. Removed manual onChange handlers for the login form - now using register() from react-hook-form
@@ -23,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Heart, User, Stethoscope, MapPin, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../../store/authstore";
+import { api } from "@/lib/api";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -138,10 +138,9 @@ export default function LoginSignup() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/user/login`,
-        data,
-        { withCredentials: true }
+      const response = await api.post(
+        `/api/user/login`,
+        data
       );
 
       if (response.data.success) {
@@ -159,7 +158,11 @@ export default function LoginSignup() {
         }
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Login failed");
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Login failed");
+      } else {
+        toast.error("Login failed");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -225,8 +228,8 @@ export default function LoginSignup() {
         }),
       };
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/user/signup`,
+      const response = await api.post(
+        `/api/user/signup`,
         payload
       );
 
@@ -238,7 +241,11 @@ export default function LoginSignup() {
         setSelectedRole(null);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Signup failed");
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Signup failed");
+      } else {
+        toast.error("Signup failed");
+      }
     } finally {
       setIsLoading(false);
     }

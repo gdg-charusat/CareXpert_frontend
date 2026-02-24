@@ -18,7 +18,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -69,7 +69,7 @@ export default function AppointmentManagementPage() {
     async function fetchAppointments() {
       try {
         setIsLoading(true);
-        const res = await axios.get<AppointmentApiResponse>(`${url}/all-appointments`, { withCredentials: true });
+        const res = await api.get<AppointmentApiResponse>(`/all-appointments`, { withCredentials: true });
         if (res.data.success) {
           const allAppointments = res.data.data;
           const now = new Date();
@@ -101,7 +101,7 @@ export default function AppointmentManagementPage() {
           setPastAppointments(past);
         }
       } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
+        if (api.isAxiosError(err) && err.response) {
           toast.error(err.response.data.message);
         } else {
           toast.error("Unknown error occurred..");

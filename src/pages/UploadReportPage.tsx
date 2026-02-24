@@ -9,7 +9,7 @@ import {
 } from "../components/ui/card";
 import { Upload, FileText, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "../components/ui/alert";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Badge } from "../components/ui/badge";
 
@@ -94,7 +94,7 @@ export default function UploadReportPage() {
     stopPolling();
     pollRef.current = window.setInterval(async () => {
       try {
-        const res = await axios.get(`${apiBase}/report/${id}`, {
+        const res = await api.get(`/report/${id}`, {
           withCredentials: true,
         });
         if (res.data?.success) {
@@ -132,7 +132,7 @@ const handleSubmit = async () => {
       const form = new FormData();
       form.append("report", file);
 
-      const res = await axios.post(`${apiBase}/report`, form, {
+      const res = await api.post(`/report`, form, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -150,7 +150,7 @@ const handleSubmit = async () => {
       setIsUploading(false);
       setStatus("FAILED");
       const msg =
-        axios.isAxiosError(err)
+        api.isAxiosError(err)
           ? err.response?.data?.message || err.message
           : err instanceof Error ? err.message : "Upload failed";
       setErrorMessage(msg);

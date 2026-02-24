@@ -1,7 +1,6 @@
 /**
  * ProfilePage.tsx - Refactored to use react-hook-form with Zod validation
- * 
- * Changes made:
+ * * Changes made:
  * 1. Replaced useState for formData with useForm hook from react-hook-form
  * 2. Added Zod schema (profileSchema) for type-safe validation
  * 3. Removed manual handleInputChange - now using register()
@@ -27,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Edit, Mail, Phone, Calendar, MapPin } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion } from "framer-motion";
+import { api } from "@/lib/api";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -54,7 +54,6 @@ export default function ProfilePage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const setUser = useAuthStore((state) => state.setUser);
-  const baseUrl = `${import.meta.env.VITE_BASE_URL}/api/user`;
   const [saving, setSaving] = useState(false);
 
   /**
@@ -101,26 +100,28 @@ export default function ProfilePage() {
     try {
       setSaving(true);
       const form = new FormData();
-      if (data.name && data.name !== user?.name)
+      if (data.name && data.name !== user?.name) {
         form.append("name", data.name);
+      }
       if (selectedImage) form.append("profilePicture", selectedImage);
 
       const endpoint =
         user?.role === "DOCTOR"
-          ? `${baseUrl}/update-doctor`
-          : `${baseUrl}/update-patient`;
-      const res = await axios.put(endpoint, form, {
-        withCredentials: true,
+          ? `/user/update-doctor`
+          : `/user/update-patient`;
+          
+      // Using centralized api instance
+      const res = await api.put(endpoint, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      
       if (!res.data?.success) {
         throw new Error(res.data?.message || "Failed to update profile");
       }
 
       // Fetch fresh profile to ensure updated data
-      const me = await axios.get(`${baseUrl}/authenticated-profile`, {
-        withCredentials: true,
-      });
+      const me = await api.get(`/user/authenticated-profile`);
+      
       if (me.data?.success && me.data?.data?.user) {
         const updatedUser = me.data.data.user;
         setUser(updatedUser);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, lazy, Suspense } from "react";
-import axios from "axios";
+import { api } from "@/lib/api";
 
 const VideoCall = lazy(() => import("../components/VideoCall"));
 
@@ -15,7 +15,7 @@ const StartCall: React.FC = () => {
   useEffect(() => {
     const getRoom = async () => {
       try {
-        const res = await axios.post<MeetingResponse>(`${import.meta.env.VITE_BASE_URL}/api/chat/get-token`);
+        const res = await api.post<MeetingResponse>(`/api/chat/get-token`);
         setMeetingId(res.data.roomId);
         setToken(res.data.token);
       } catch (err) {

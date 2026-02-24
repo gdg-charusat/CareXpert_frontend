@@ -1,13 +1,26 @@
 import { io, Socket } from "socket.io-client";
-import axios from "axios";
+// import { api } from "@/lib/api";
+import { api } from "@/lib/api";
 
 const URL = import.meta.env.VITE_SOCKET_URL;
 const API_URL = import.meta.env.VITE_BASE_URL;
 
 export const socket: Socket = io(URL, {
-  // transports : ["websocket"],
+  autoConnect: false, // Prevent immediate connection
   withCredentials: true,
 });
+
+export const connectSocket = () => {
+  if (!socket.connected) {
+    socket.connect();
+  }
+};
+
+export const disconnectSocket = () => {
+  if (socket.connected) {
+    socket.disconnect();
+  }
+};
 
 interface DmMessageData {
   roomId: string;
@@ -90,8 +103,7 @@ export const loadOneOnOneChatHistory = async (
   limit: number = 50
 ) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/api/chat/one-on-one/${otherUserId}`,
+    const response = await api.get(`/api/chat/one-on-one/${otherUserId}`,
       {
         params: { page, limit },
         withCredentials: true,
@@ -110,8 +122,7 @@ export const loadCityChatHistory = async (
   limit: number = 50
 ) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/api/chat/city/${encodeURIComponent(cityName)}`,
+    const response = await api.get(`/api/chat/city/${encodeURIComponent(cityName)}`,
       {
         params: { page, limit },
         withCredentials: true,
@@ -130,7 +141,7 @@ export const loadRoomChatHistory = async (
   limit: number = 50
 ) => {
   try {
-    const response = await axios.get(`${API_URL}/api/chat/room/${roomId}`, {
+    const response = await api.get(`/api/chat/room/${roomId}`, {
       params: { page, limit },
       withCredentials: true,
     });
@@ -147,7 +158,7 @@ export const loadDmChatHistory = async (
   limit: number = 50
 ) => {
   try {
-    const response = await axios.get(`${API_URL}/api/chat/dm/${roomId}`, {
+    const response = await api.get(`/api/chat/dm/${roomId}`, {
       params: { page, limit },
       withCredentials: true,
     });

@@ -33,7 +33,8 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api } from "@/lib/api";
+import axios from "axios"; // Added this to fix the isAxiosError check
 import { useAuthStore } from "@/store/authstore";
 import EmptyState from "@/components/EmptyState";
 
@@ -94,6 +95,7 @@ export default function DoctorsPage() {
   const [isBooking, setIsBooking] = useState(false);
 
   const user = useAuthStore((state) => state.user);
+  // Kept URL for reference if needed, but api instance handles the base URL
   const url = `${import.meta.env.VITE_BASE_URL}/api/patient`;
 
   /* ================= EFFECTS ================= */
@@ -112,11 +114,10 @@ export default function DoctorsPage() {
     const fetchDoctors = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get<FindDoctorsApiResponse>(
-          `${url}/fetchAllDoctors`,
+        const res = await api.get<FindDoctorsApiResponse>(
+          `/patient/fetchAllDoctors`,
           {
             params: { search: debouncedSearch },
-            withCredentials: true,
           }
         );
 
@@ -135,7 +136,7 @@ export default function DoctorsPage() {
     };
 
     fetchDoctors();
-  }, [debouncedSearch, url]);
+  }, [debouncedSearch]);
 
   /* ================= FILTERS ================= */
 
@@ -199,10 +200,9 @@ export default function DoctorsPage() {
 
     setIsBooking(true);
     try {
-      const res = await axios.post(
-        `${url}/book-direct-appointment`,
-        bookingData,
-        { withCredentials: true }
+      const res = await api.post(
+        `/patient/book-direct-appointment`,
+        bookingData
       );
 
       if (res.data.success) {
@@ -210,7 +210,11 @@ export default function DoctorsPage() {
         closeBookingDialog();
       }
     } catch (err) {
-      toast.error("Failed to book appointment");
+      if (axios.isAxiosError(err) && err.response) {
+        toast.error(err.response.data?.message || "Failed to book an appointment");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setIsBooking(false);
     }

@@ -1,7 +1,6 @@
 /**
  * DoctorSignup.tsx - Refactored to use react-hook-form with Zod validation
- * 
- * Changes made:
+ * * Changes made:
  * 1. Replaced multiple useState hooks with useForm hook from react-hook-form
  * 2. Added Zod schema (doctorSignupSchema) for type-safe validation
  * 3. Removed manual onChange handlers - now using register() and Controller for Select
@@ -38,9 +37,11 @@ import {
 import { InputWithIcon } from "../../components/ui/input-with-icon";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { api } from "@/lib/api";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -107,7 +108,7 @@ export default function DoctorSignup() {
    */
   const onSubmit = async (data: DoctorSignupFormData) => {
     try {
-      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/signup`, {
+      const res = await api.post(`/api/user/signup`, {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -115,8 +116,6 @@ export default function DoctorSignup() {
         role: "DOCTOR",
         specialty: data.specialty,
         clinicLocation: data.location,
-      }, {
-        withCredentials: true,
       });
 
       if (res.data.success) {

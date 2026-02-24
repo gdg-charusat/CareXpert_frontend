@@ -1,7 +1,6 @@
 /**
  * BookAppointmentPage.tsx - Refactored to use react-hook-form with Zod validation
- * 
- * Changes made (Issue #25):
+ * * Changes made (Issue #25):
  * 1. Replaced useState for formData with useForm hook from react-hook-form
  * 2. Added Zod schema (appointmentSchema) for type-safe validation
  * 3. Removed manual handleInputChange - now using register() and setValue()
@@ -33,6 +32,7 @@ import {
 import { Textarea } from "../components/ui/textarea";
 import { MapPin, Clock, Star, Video, User } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
 
@@ -115,8 +115,6 @@ export default function BookAppointmentPage() {
     },
   });
 
-  const url = `${import.meta.env.VITE_BASE_URL}/api/patient`;
-
   useEffect(() => {
     if (!user || user.role !== "PATIENT") {
       navigate("/auth/login");
@@ -125,9 +123,8 @@ export default function BookAppointmentPage() {
 
     const fetchDoctor = async () => {
       try {
-        const res = await axios.get<DoctorApiResponse>(
-          `${url}/fetchAllDoctors`,
-          { withCredentials: true }
+        const res = await api.get<DoctorApiResponse>(
+          `/api/patient/fetchAllDoctors`
         );
         
         if (res.data.success) {
@@ -139,12 +136,8 @@ export default function BookAppointmentPage() {
             navigate("/doctors");
           }
         }
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Failed to fetch doctor details");
-        } else {
-          toast.error("An unexpected error occurred");
-        }
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to fetch doctor details");
         navigate("/doctors");
       } finally {
         setLoading(false);
@@ -154,7 +147,7 @@ export default function BookAppointmentPage() {
     if (doctorId) {
       fetchDoctor();
     }
-  }, [doctorId, user, navigate, url]);
+  }, [doctorId, user, navigate]);
 
   /**
    * Handle form submission - simplified with react-hook-form
@@ -165,11 +158,8 @@ export default function BookAppointmentPage() {
     setBooking(true);
     
     try {
-      const res = await axios.post(
-        `${url}/book-direct-appointment`,
-        data,
-        { withCredentials: true }
-      );
+      // Used centralized api instance and react-hook-form data
+      const res = await api.post(`/api/patient/book-direct-appointment`, data);
 
       if (res.data.success) {
         toast.success("Appointment request sent successfully! You will be notified once the doctor responds.");
@@ -229,7 +219,7 @@ export default function BookAppointmentPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pt-20">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">

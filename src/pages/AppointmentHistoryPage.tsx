@@ -4,7 +4,7 @@ import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Calendar, Clock, User, MapPin, FileText, Search } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Input } from "../components/ui/input";
@@ -70,8 +70,8 @@ export default function AppointmentHistoryPage() {
   const fetchAppointmentHistory = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<AppointmentApiResponse>(
-        `${url}/patient/all-appointments`,
+      const response = await api.get<AppointmentApiResponse>(
+        `/patient/all-appointments`,
         { withCredentials: true }
       );
 
@@ -80,7 +80,7 @@ export default function AppointmentHistoryPage() {
       }
     } catch (error) {
       console.error("Error fetching appointment history:", error);
-      if (axios.isAxiosError(error) && error.response) {
+      if (api.isAxiosError(error) && error.response) {
         toast.error(error.response.data?.message || "Failed to fetch appointment history");
       } else {
         toast.error("Failed to fetch appointment history");
@@ -398,7 +398,7 @@ export default function AppointmentHistoryPage() {
                     <div className="mt-4">
                       <Button
                         variant="secondary"
-                        onClick={() => window.open(`${url}/patient/prescription-pdf/${appointment.prescriptionId}`, '_blank')}
+                        onClick={() => window.open(`/patient/prescription-pdf/${appointment.prescriptionId}`, '_blank')}
                       >
                         View Prescription
                       </Button>
