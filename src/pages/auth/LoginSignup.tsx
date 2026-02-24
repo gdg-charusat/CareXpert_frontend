@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Badge } from "../../components/ui/badge";
 import { Heart, User, Stethoscope, MapPin, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuthStore } from "../../store/authstore";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 interface LoginErrors {
@@ -119,8 +119,8 @@ export default function LoginSignup() {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/user/login`,
+      const response = await api.post(
+        `/api/user/login`,
         loginData,
         { withCredentials: true }
       );
@@ -139,7 +139,7 @@ export default function LoginSignup() {
         }
       }
     } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (api.isAxiosError(error) && error.response) {
         const data = error.response.data;
         if (data?.errors && typeof data.errors === "object") {
           const be: LoginErrors = {};
@@ -177,8 +177,8 @@ export default function LoginSignup() {
         }),
       };
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/user/signup`,
+      const response = await api.post(
+        `/api/user/signup`,
         payload
       );
 
@@ -200,7 +200,7 @@ export default function LoginSignup() {
         setSignupErrors({});
       }
     } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (api.isAxiosError(error) && error.response) {
         const data = error.response.data;
         if (data?.errors && typeof data.errors === "object") {
           const be: SignupErrors = {};

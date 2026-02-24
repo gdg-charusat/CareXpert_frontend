@@ -23,7 +23,7 @@ import {
 } from "../components/ui/dialog";
 import { Search, MapPin, Clock, Filter, Heart, Video, User, Loader2, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authstore";
 import EmptyState from "@/components/EmptyState";
 
@@ -97,8 +97,8 @@ export default function DoctorsPage() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await axios.get<FindDoctorsApiResponse>(
-          `${url}/fetchAllDoctors`,
+        const res = await api.get<FindDoctorsApiResponse>(
+          `/fetchAllDoctors`,
           {
             params: { search: debouncedSearch },
             withCredentials: true,
@@ -109,7 +109,7 @@ export default function DoctorsPage() {
           setDoctors(res.data.data);
         }
       } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
+        if (api.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
         } else {
           toast.error("An unexpected error occurred.");
@@ -189,8 +189,8 @@ export default function DoctorsPage() {
     setIsBooking(true);
 
     try {
-      const res = await axios.post(
-        `${url}/book-direct-appointment`,
+      const res = await api.post(
+        `/book-direct-appointment`,
         bookingData,
         { withCredentials: true }
       );
@@ -200,7 +200,7 @@ export default function DoctorsPage() {
         closeBookingDialog();
       }
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
+      if (api.isAxiosError(err) && err.response) {
         toast.error(err.response.data?.message || "Failed to book an appointment");
       } else {
         toast.error("An unexpected error occurred");

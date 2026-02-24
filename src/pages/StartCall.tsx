@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "@/lib/api";
 import VideoCall from "../components/VideoCall";
 
 interface MeetingResponse {
@@ -14,7 +14,7 @@ const StartCall: React.FC = () => {
   useEffect(() => {
     const getRoom = async () => {
       try {
-        const res = await axios.post<MeetingResponse>(`${import.meta.env.VITE_BASE_URL}/api/chat/get-token`);
+        const res = await api.post<MeetingResponse>(`/api/chat/get-token`);
         setMeetingId(res.data.roomId);
         setToken(res.data.token);
       } catch (err) {

@@ -29,7 +29,7 @@ import {
   Stethoscope,
   Trash2,
 } from "lucide-react";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
   FormattedMessage,
@@ -111,14 +111,14 @@ export default function ChatPage() {
   useEffect(() => {
     async function fetchAllDoctors() {
       try {
-        const res = await axios.get(`${url}/patient/fetchAllDoctors`, {
+        const res = await api.get(`/patient/fetchAllDoctors`, {
           withCredentials: true,
         });
         if (res.data.success) {
           setDoctors(res.data.data);
         }
       } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
+        if (api.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
         } else {
           toast.error("Unknown error occurred");
@@ -135,10 +135,10 @@ export default function ChatPage() {
       try {
         const endpoint =
           user.role === "DOCTOR"
-            ? `${url}/doctor/city-rooms`
-            : `${url}/patient/city-rooms`;
+            ? `/doctor/city-rooms`
+            : `/patient/city-rooms`;
 
-        const res = await axios.get<CityRoomApiResponse>(endpoint, {
+        const res = await api.get<CityRoomApiResponse>(endpoint, {
           withCredentials: true,
         });
 
@@ -147,7 +147,7 @@ export default function ChatPage() {
           setCityRoom(Array.isArray(data) ? data : [data]);
         }
       } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
+        if (api.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
         } else {
           toast.error("Unknown error ocurred");
@@ -243,7 +243,7 @@ export default function ChatPage() {
   // Function to load AI chat history
   const loadAiChatHistory = async () => {
     try {
-      const response = await axios.get(`${url}/ai-chat/history`, {
+      const response = await api.get(`/ai-chat/history`, {
         withCredentials: true,
       });
       if (response.data.success) {
@@ -315,7 +315,7 @@ export default function ChatPage() {
   // Clear AI chat history
   const handleClearAiChat = async () => {
     try {
-      await axios.delete(`${url}/ai-chat/history`, { withCredentials: true });
+      await api.delete(`/ai-chat/history`, { withCredentials: true });
         setAiMessages([
         {
           id: "welcome",
@@ -348,8 +348,8 @@ export default function ChatPage() {
       // Clear the input immediately
       setMessage("");
 //fix5
-      const response = await axios.post(
-  `${url}/ai-chat/process`,
+      const response = await api.post(
+  `/ai-chat/process`,
   {
     symptoms: userMessage,
     language: selectedLanguage,
@@ -396,7 +396,7 @@ export default function ChatPage() {
   // Function to fetch DM conversations for doctors
   const fetchDmConversations = async () => {
     try {
-      const response = await axios.get(`${url}/chat/doctor/conversations`, {
+      const response = await api.get(`/chat/doctor/conversations`, {
         withCredentials: true,
       });
       if (response.data.success) {
@@ -456,7 +456,7 @@ export default function ChatPage() {
   // Function to fetch community members
   const fetchCommunityMembers = async (roomId: string) => {
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${
           import.meta.env.VITE_BASE_URL
         }/api/user/communities/${roomId}/members`,

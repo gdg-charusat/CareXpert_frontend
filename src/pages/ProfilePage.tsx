@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Edit, Mail, Phone, Calendar, MapPin } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
@@ -53,7 +53,7 @@ export default function ProfilePage() {
           user?.role === "DOCTOR"
             ? `${baseUrl}/update-doctor`
             : `${baseUrl}/update-patient`;
-        const res = await axios.put(endpoint, form, {
+        const res = await api.put(endpoint, form, {
           withCredentials: true,
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -62,7 +62,7 @@ export default function ProfilePage() {
         }
 
         // Fetch fresh profile to ensure updated data
-        const me = await axios.get(`${baseUrl}/authenticated-profile`, {
+        const me = await api.get(`/authenticated-profile`, {
           withCredentials: true,
         });
         if (me.data?.success && me.data?.data?.user) {
@@ -80,7 +80,7 @@ export default function ProfilePage() {
         setSelectedImage(null);
         setPreviewUrl(null);
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
+        if (api.isAxiosError(error) && error.response) {
           toast.error(
             error.response.data?.message || "Failed to update profile"
           );

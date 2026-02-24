@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import EmptyState from "@/components/EmptyState";
@@ -59,12 +59,12 @@ export default function PrescriptionsPage() {
     async function fetchPrescriptions() {
       try {
         setIsLoading(true);
-        const res = await axios.get<PrescriptionApiResponse>(`${url}/view-prescriptions`, { withCredentials: true });
+        const res = await api.get<PrescriptionApiResponse>(`/view-prescriptions`, { withCredentials: true });
         if (res.data.success) {
           setPrescriptions(res.data.data);
         }
       } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
+        if (api.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
         } else {
           toast.error("Unknown error occurred");
@@ -148,7 +148,7 @@ export default function PrescriptionsPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(`${url}/prescription-pdf/${prescription.id}`, "_blank")}
+                          onClick={() => window.open(`/prescription-pdf/${prescription.id}`, "_blank")}
                         >
                           <Download className="h-4 w-4 mr-1" />
                           Download PDF

@@ -17,7 +17,8 @@ import {
 import { useAuthStore } from "@/store/authstore";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
-import axios from "axios";
+// import { api } from "@/lib/api";
+import { api } from "@/lib/api";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -34,10 +35,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     if (user) {
       const fetchUnreadCount = async () => {
         try {
-          const response = await axios.get(
-            `${import.meta.env.VITE_BASE_URL}/api/user/notifications/unread-count`,
-            { withCredentials: true }
-          );
+          const response = await api.get('/api/user/notifications/unread-count');
           if (response.data.success) {
             setUnreadCount(response.data.data.unreadCount);
           }

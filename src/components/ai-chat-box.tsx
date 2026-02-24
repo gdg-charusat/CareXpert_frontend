@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Send, Trash2 } from "lucide-react";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 export function AIChatBox() {
@@ -46,9 +46,8 @@ export function AIChatBox() {
           content: "Chat cleared. How can I assist you now?",
         },
       ]);
-
-      const baseUrl = `${import.meta.env.VITE_BASE_URL}/api/ai-chat`;
-      await axios.delete(`${baseUrl}/history`, { withCredentials: true });
+      
+      await api.delete('/api/ai-chat/history')
       toast.success("Chat history cleared");
     } catch (error) {
       toast.error("Failed to clear chat");

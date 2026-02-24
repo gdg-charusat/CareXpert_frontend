@@ -18,7 +18,7 @@ import {
 import { Textarea } from "../components/ui/textarea";
 import { MapPin, Clock, Star, Video, User } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authstore";
 
 type Doctor = {
@@ -82,9 +82,8 @@ export default function BookAppointmentPage() {
 
     const fetchDoctor = async () => {
       try {
-        const res = await axios.get<DoctorApiResponse>(
-          `${url}/fetchAllDoctors`,
-          { withCredentials: true }
+        const res = await api.get<DoctorApiResponse>(
+          `/fetchAllDoctors`
         );
         
         if (res.data.success) {
@@ -96,12 +95,8 @@ export default function BookAppointmentPage() {
             navigate("/doctors");
           }
         }
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Failed to fetch doctor details");
-        } else {
-          toast.error("An unexpected error occurred");
-        }
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to fetch doctor details");
         navigate("/doctors");
       } finally {
         setLoading(false);
@@ -142,8 +137,8 @@ export default function BookAppointmentPage() {
     setBooking(true);
     
     try {
-      const res = await axios.post(
-        `${url}/book-direct-appointment`,
+      const res = await api.post(
+        `/book-direct-appointment`,
         formData,
         { withCredentials: true }
       );
@@ -153,7 +148,7 @@ export default function BookAppointmentPage() {
         navigate("/dashboard/patient");
       }
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
+      if (api.isAxiosError(err) && err.response) {
         toast.error(err.response.data?.message || "Failed to book appointment");
       } else {
         toast.error("An unexpected error occurred");

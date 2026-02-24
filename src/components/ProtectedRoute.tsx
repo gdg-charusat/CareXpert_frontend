@@ -1,11 +1,18 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useEffect } from "react-router-dom";
 import { useAuthStore } from "@/store/authstore";
 import { Loader2 } from "lucide-react";
+import { connectSocket } from "@/sockets/socket"; // <-- Added this
 
 export default function ProtectedRoute() {
   const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
   const location = useLocation();
+
+  useEffect(() => {
+    if (user) {
+      connectSocket();
+    }
+  }, [user]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {

@@ -12,7 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import * as React from "react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authstore";
 
 const getPasswordRules = (pwd: string) => [
@@ -104,8 +104,8 @@ export default function PatientSignup() {
 
     if (Object.keys(newErrors).length > 0) return;
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/user/signup`,
+      const res = await api.post(
+        `/api/user/signup`,
         { firstName, lastName, email, password },
         { withCredentials: true }
       );
@@ -125,7 +125,7 @@ export default function PatientSignup() {
         toast.error(res.data.message || "Signup failed");
       }
     } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) toast.error(err.response.data?.message || "Something went wrong");
+      if (api.isAxiosError(err) && err.response) toast.error(err.response.data?.message || "Something went wrong");
       else toast.error("Unknown error occurred");
     }
   };

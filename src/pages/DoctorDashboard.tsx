@@ -36,28 +36,10 @@ import {
   SelectValue as _SelectValue,
 } from "../components/ui/select";
 import { ScrollArea as _ScrollArea } from "../components/ui/scroll-area";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authstore";
-
-type Appointment = {
-  id: string;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
-  appointmentType: 'ONLINE' | 'OFFLINE';
-  date: string;
-  time: string;
-  notes?: string;
-  consultationFee?: number;
-  createdAt: string;
-  updatedAt: string;
-  patient: {
-    id: string;
-    name: string;
-    profilePicture?: string;
-    email: string;
-    medicalHistory?: string;
-  };
-};
+import { Appointment, Doctor, User } from "@/types";
 
 type AppointmentApiResponse = {
   statusCode: number;
@@ -89,8 +71,8 @@ export default function DoctorDashboard() {
   useEffect(() => {
     async function fetchAppointments() {
       try {
-        const res = await axios.get<AppointmentApiResponse>(
-          `${url}/all-appointments`,
+        const res = await api.get<AppointmentApiResponse>(
+          `/all-appointments`,
           { withCredentials: true }
         );
         if (res.data.success) {
@@ -117,7 +99,7 @@ export default function DoctorDashboard() {
           setUpcomingApppointments(upcoming);
         }
       } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
+        if (api.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
         } else {
           toast.error("Unknown error occured");

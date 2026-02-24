@@ -13,7 +13,7 @@ import {
   Search,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Input } from "../components/ui/input";
@@ -81,8 +81,8 @@ export default function DoctorAppointmentHistoryPage() {
   const fetchAppointmentHistory = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<AppointmentApiResponse>(
-        `${url}/doctor/all-appointments`,
+      const response = await api.get<AppointmentApiResponse>(
+        `/doctor/all-appointments`,
         { withCredentials: true }
       );
 
@@ -91,7 +91,7 @@ export default function DoctorAppointmentHistoryPage() {
       }
     } catch (error) {
       console.error("Error fetching appointment history:", error);
-      if (axios.isAxiosError(error) && error.response) {
+      if (api.isAxiosError(error) && error.response) {
         toast.error(error.response.data?.message || "Failed to fetch appointment history");
       } else {
         toast.error("Failed to fetch appointment history");
