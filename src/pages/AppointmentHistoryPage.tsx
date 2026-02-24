@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Calendar, Clock, User, MapPin, FileText, Mail, Filter, Search } from "lucide-react";
+import { Calendar, Clock, User, MapPin, FileText, Search } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import axios from "axios";
 import { toast } from "sonner";
@@ -309,7 +309,7 @@ export default function AppointmentHistoryPage() {
                 No appointments found
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-center">
-                {appointments.length === 0 
+                {appointments.length === 0
                   ? "You don't have any appointments yet."
                   : "No appointments match your current filters."
                 }

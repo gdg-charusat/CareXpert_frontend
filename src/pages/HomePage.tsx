@@ -8,7 +8,7 @@ import {
 } from "../components/ui/card";
 import { Heart, Users, Clock, Shield, Star } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Navbar } from "../components/Navbar";
+import { Navbar } from "../components/navbar";
 import { Footer } from "../components/footer";
 import { AIChatBox } from "../components/ai-chat-box";
 import { SampleCredentials } from "../components/sample-credentials";
@@ -123,7 +123,7 @@ export default function HomePage() {
               </p>
             </CardContent>
           </Card>
-<Card className="group p-6 text-center border-0 bg-purple-100 dark:bg-purple-900/30 backdrop-blur-sm transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 cursor-pointer">
+          <Card className="group p-6 text-center border-0 bg-purple-100 dark:bg-purple-900/30 backdrop-blur-sm transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 cursor-pointer">
             <CardContent className="p-0">
               <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400" />

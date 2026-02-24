@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import {
   Pill,
   Calendar,
@@ -17,7 +17,6 @@ import {
   FileText,
   User,
   MapPin,
-  Clock,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
@@ -218,7 +217,7 @@ export default function PrescriptionsPage() {
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
               You don't have any prescriptions yet. Your prescriptions will appear here after your appointments.
             </p>
-            <Button 
+            <Button
               onClick={() => navigate("/doctors")}
               className="bg-blue-600 hover:bg-blue-700"
             >

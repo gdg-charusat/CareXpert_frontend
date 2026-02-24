@@ -16,7 +16,7 @@ import { Badge } from "../components/ui/badge";
 export default function UploadReportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [reportId, setReportId] = useState<string | null>(null);
+  const [, setReportId] = useState<string | null>(null);
   const [status, setStatus] = useState<
     "IDLE" | "PROCESSING" | "COMPLETED" | "FAILED"
   >("IDLE");
@@ -65,7 +65,9 @@ export default function UploadReportPage() {
           setStatus(parsedLast.status || "COMPLETED");
         }
       }
-    } catch {}
+    } catch {
+      /* ignore */
+    }
 
     return () => stopPolling();
   }, []);
