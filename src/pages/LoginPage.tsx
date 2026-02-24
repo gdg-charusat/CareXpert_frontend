@@ -27,7 +27,7 @@ export default function LoginPage() {
       { email, password }
     );
 
-    localStorage.setItem("token", response.data.token);
+    // Do not store tokens in localStorage. Rely on secure, HttpOnly cookies set by the backend.
     navigate("/dashboard/patient");
   } catch (error) {
     setError("Invalid credentials");

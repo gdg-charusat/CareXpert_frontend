@@ -7,8 +7,7 @@ interface User {
     name: string,
     email: string,
     profilePicture: string,
-    role: string,
-    refreshToken: string
+    role: string
 }
 
 interface AuthState {
@@ -45,7 +44,6 @@ export const useAuthStore = create<AuthState>()(
                             email: res.data.data.email,
                             profilePicture: res.data.data.profilePicture,
                             role: res.data.data.role,
-                            refreshToken: res.data.data.refreshToken,
                         };
                         set({ user: userData, isLoading: false });
                         return;
@@ -67,7 +65,10 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'auth-storage',
-            partialize: (state) => ({ user: state.user }),
+            // Persist only non-sensitive user metadata. Tokens are handled via secure httpOnly cookies.
+            partialize: (state) => ({
+                user: state.user,
+            }),
         }
     )
 )
