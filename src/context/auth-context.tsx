@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // For now, using mock data
       const mockUser: User = {
         id: "1",
-        name: "John Doe",
+        name: "test user",
         email: email,
         role: "patient",
       };

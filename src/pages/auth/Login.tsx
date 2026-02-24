@@ -25,7 +25,7 @@ export default function Login() {
     e.preventDefault();
 
     try{
-      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/login` ,{data : email , password} , {
+      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/login` ,{email , password} , {
         withCredentials : true
       });
       if(res.data.success){
