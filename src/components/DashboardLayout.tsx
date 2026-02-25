@@ -16,7 +16,10 @@ export default function DashboardLayout() {
       <Navbar />
       
       {/* Fixed Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      {/* Desktop Sidebar */}
+<div className="hidden md:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-64">
+  <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+</div>
       
       {/* Main Content Area */}
       <div className="flex-1 flex pt-16 md:ml-64 overflow-hidden">

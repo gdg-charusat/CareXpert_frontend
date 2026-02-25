@@ -17,15 +17,15 @@ const AIChatBox = lazy(() => import("../components/ai-chat-box").then(module => 
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
 
       {/* Hero Section with Inline Chat */}
-      <section className="container mx-auto px-4 pt-20 pb-16">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           {/* Left side - Hero content */}
           <div>
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900 dark:text-white mb-6">
               Your Health, Our
               <span className="text-blue-600 dark:text-blue-400">
                 {" "}
@@ -62,7 +62,7 @@ export default function HomePage() {
 
           {/* Right side - AI Chat Box */}
           <div>
-            <Card className="border-0 shadow-2xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+            <Card className="border-0 shadow-2xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl">
               <CardHeader className="text-center pb-4">
                 <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <Heart className="h-6 w-6 text-white" />
@@ -74,7 +74,7 @@ export default function HomePage() {
                   Get instant health guidance from our AI assistant
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6">
                 <Suspense fallback={<div className="text-center py-8 text-gray-500">Loading AI Chat...</div>}>
                   <AIChatBox />
                 </Suspense>
@@ -99,7 +99,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="group p-6 text-center border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer">
             <CardContent className="p-0">
               <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">

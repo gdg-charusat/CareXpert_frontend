@@ -233,7 +233,7 @@ export default function BookAppointmentPage() {
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Doctor Info */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-2 max-w-md mx-auto w-full">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">

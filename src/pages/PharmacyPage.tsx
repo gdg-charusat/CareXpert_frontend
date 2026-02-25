@@ -62,110 +62,139 @@ export default function PharmacyPage() {
   );
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Pharmacy Near Me
+  <div className="min-h-screen bg-slate-50 dark:bg-zinc-900">
+    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+
+      {/* Header */}
+      <div className="mb-10">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+          Find Nearby Pharmacies
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Find nearby pharmacies and medical stores for your prescription needs.
+        <p className="text-gray-600 dark:text-gray-400 max-w-2xl">
+          Search trusted pharmacies and medical stores near your location for prescriptions and emergency medicines.
         </p>
       </div>
 
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+      {/* Search */}
+      <div className="mb-8">
+        <div className="relative max-w-xl">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search pharmacies by name or location..."
+            placeholder="Search by pharmacy name or address..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-11 h-11 rounded-xl"
           />
         </div>
       </div>
 
+      {/* Pharmacy List */}
       <div className="grid gap-6">
+
         {filteredPharmacies.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          <Card className="border-0 shadow-sm rounded-2xl">
+            <CardContent className="text-center py-16">
+              <MapPin className="h-14 w-14 text-gray-400 mx-auto mb-5" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 No pharmacies found
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                Try adjusting your search criteria.
+                Try searching with a different keyword.
               </p>
             </CardContent>
           </Card>
         ) : (
           filteredPharmacies.map((pharmacy) => (
-            <Card key={pharmacy.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={pharmacy.id}
+              className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-2xl"
+            >
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  
                   <div>
-                    <CardTitle className="text-xl">{pharmacy.name}</CardTitle>
-                    <CardDescription className="flex items-center gap-2 mt-1">
+                    <CardTitle className="text-lg sm:text-xl">
+                      {pharmacy.name}
+                    </CardTitle>
+
+                    <CardDescription className="flex items-center gap-2 mt-2 text-sm">
                       <MapPin className="h-4 w-4" />
                       {pharmacy.address}
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={pharmacy.isOpen ? "default" : "secondary"}>
-                      {pharmacy.isOpen ? "Open" : "Closed"}
+
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Badge
+                      variant={pharmacy.isOpen ? "default" : "secondary"}
+                      className="rounded-full"
+                    >
+                      {pharmacy.isOpen ? "Open Now" : "Closed"}
                     </Badge>
+
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-medium">{pharmacy.rating}</span>
+                      <span className="text-sm font-medium">
+                        {pharmacy.rating}
+                      </span>
                     </div>
                   </div>
+
                 </div>
               </CardHeader>
+
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Phone className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {pharmacy.phone}
-                    </span>
+
+                {/* Info Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <Phone className="h-4 w-4" />
+                    {pharmacy.phone}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {pharmacy.hours}
-                    </span>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <Clock className="h-4 w-4" />
+                    {pharmacy.hours}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Navigation className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {pharmacy.distance}
-                    </span>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <Navigation className="h-4 w-4" />
+                    {pharmacy.distance}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 mb-4">
+                {/* Services */}
+                <div className="flex flex-wrap gap-2 mb-6">
                   {pharmacy.services.map((service, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="rounded-full text-xs px-3 py-1"
+                    >
                       {service}
                     </Badge>
                   ))}
                 </div>
 
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" size="sm">
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
+                  <Button variant="outline" size="sm" className="rounded-xl">
                     Call
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="rounded-xl">
                     Directions
                   </Button>
-                  <Button size="sm">
+                  <Button size="sm" className="rounded-xl">
                     View Details
                   </Button>
                 </div>
+
               </CardContent>
             </Card>
           ))
         )}
+
       </div>
     </div>
-  );
+  </div>
+);
 }

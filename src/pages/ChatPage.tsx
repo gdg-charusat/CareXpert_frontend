@@ -629,7 +629,7 @@ export default function ChatPage() {
   }, [selectedChat, user]);
 
   return (
-    <div className="h-[calc(100%-1rem)] overflow-hidden flex flex-col mt-4">
+    <div className="h-[calc(100vh-5rem)] flex flex-col overflow-hidden">
       {/* Mobile Header */}
       <div className="lg:hidden p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div className="flex items-center justify-between">
@@ -662,7 +662,7 @@ export default function ChatPage() {
         {/* Chat Sidebar */}
         <div
           className={`${showSidebar ? "block" : "hidden"
-            } lg:block w-80 flex-shrink-0 lg:mr-6 lg:relative fixed lg:top-0 top-0 left-0 h-full z-50 lg:z-auto bg-white dark:bg-gray-900 lg:bg-transparent`}
+            } lg:block w-72 xl:w-80 flex-shrink-0 lg:mr-6 lg:relative fixed top-0 left-0 h-full z-50 lg:z-auto bg-white dark:bg-gray-900 lg:bg-transparent transition-all duration-300`}
         >
           {/* Mobile close button */}
           <div className="lg:hidden flex justify-end p-4 border-b border-gray-200 dark:border-gray-700">
@@ -931,7 +931,7 @@ export default function ChatPage() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Card className="h-full flex flex-col">
             {/* Chat Header */}
             <CardHeader className="border-b">
@@ -1032,7 +1032,7 @@ export default function ChatPage() {
             </CardHeader>
 
             {/* Messages Area */}
-            <CardContent className="flex-1 p-4 overflow-y-auto scrollbar-hide">
+            <CardContent className="flex-1 p-4 overflow-y-auto scrollbar-hide scroll-smooth">
               <div className="h-full">
                 {selectedChat === "ai" && (
                   <>
@@ -1176,7 +1176,7 @@ export default function ChatPage() {
                               </div>
                             )}
                           <div
-                            className={`max-w-[80%] py-2 px-[10px] rounded-lg ${(msg as any).type === "user" ||
+                            className={`max-w-[85%] sm:max-w-[75%] lg:max-w-[65%] py-2 px-[10px] rounded-lg ${(msg as any).type === "user" ||
                               msg.senderId === user?.id
                               ? "bg-blue-600 text-white"
                               : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -1288,7 +1288,7 @@ export default function ChatPage() {
               )}
 
             {/* Message Input */}
-            <div className="border-t p-4">
+            <div className="border-t p-4 bg-white dark:bg-gray-900 sticky bottom-0">
               <div className="flex gap-2">
 
                 {/* fix2 */}
@@ -1305,12 +1305,13 @@ export default function ChatPage() {
                       handleSendMessage();
                     }
                   }}
-                  className="flex-1"
+  
+                className="flex-1 rounded-xl"
                 />
                 {/* fix1 */}
                 <Button
                   onClick={handleSendMessage}
-                  className="px-6"
+                  className="px-6 rounded-x1"
                   disabled={!message.trim() || (selectedChat === "ai" && isAiLoading)}
                 >
                   <Send className="h-4 w-4" />

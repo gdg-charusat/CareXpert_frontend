@@ -314,7 +314,7 @@ export default function DoctorsPage() {
             icon={<Stethoscope />}
           />
         ) : (
-          <div className="grid gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDoctors.map((doctor) => (
               <Card key={doctor.id}>
                 <CardContent className="p-6 grid lg:grid-cols-12 gap-6">

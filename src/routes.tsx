@@ -39,9 +39,7 @@ const PageLoader = () => (
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
+  if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 }
 
@@ -49,68 +47,48 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/" element={<Layout><HomePage /></Layout>} />
-        <Route path="/about" element={<Layout><AboutPage /></Layout>} />
+
+        {/* Public Layout Routes */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+        </Route>
+
+        {/* Auth */}
         <Route path="/auth/*" element={<AuthPage />} />
 
-        <Route path="/dashboard/*" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route path="patient" element={<PatientDashboard />} />
-          <Route path="doctor" element={<DoctorDashboard />} />
+        {/* Protected Dashboard Routes */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/dashboard/patient" element={<PatientDashboard />} />
+          <Route path="/dashboard/doctor" element={<DoctorDashboard />} />
+          <Route path="/appointments" element={<AppointmentManagementPage />} />
+          <Route path="/doctor/appointments" element={<DoctorAppointmentsPage />} />
+          <Route path="/doctor/appointment-history" element={<DoctorAppointmentHistoryPage />} />
+          <Route path="/prescriptions" element={<PrescriptionsPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/pending-requests" element={<DoctorPendingRequestsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/doctors" element={<DoctorsPage />} />
+          <Route path="/doctors/:id" element={<DoctorProfilePage />} />
+          <Route path="/book-appointment/:id" element={<BookAppointmentPage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/upload-report" element={<UploadReportPage />} />
+          <Route path="/appointment-history" element={<AppointmentHistoryPage />} />
+          <Route path="/appointment-status" element={<AppointmentStatusPage />} />
+          <Route path="/pharmacy" element={<PharmacyPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/start-call" element={<StartCall />} />
         </Route>
 
-        <Route path="/appointments" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<AppointmentManagementPage />} />
-        </Route>
-        <Route path="/doctor/appointments" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorAppointmentsPage />} />
-        </Route>
-        <Route path="/doctor/appointment-history" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorAppointmentHistoryPage />} />
-        </Route>
-        <Route path="/prescriptions" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<PrescriptionsPage />} />
-        </Route>
-        <Route path="/notifications" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<NotificationsPage />} />
-        </Route>
-        <Route path="/pending-requests" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorPendingRequestsPage />} />
-        </Route>
-        <Route path="/profile" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<ProfilePage />} />
-        </Route>
-        <Route path="/doctors" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorsPage />} />
-        </Route>
-        <Route path="/doctors/:id" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorProfilePage />} />
-        </Route>
-        <Route path="/book-appointment/:id" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<BookAppointmentPage />} />
-        </Route>
-        <Route path="/chat" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<ChatPage />} />
-        </Route>
-        <Route path="/upload-report" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<UploadReportPage />} />
-        </Route>
-        <Route path="/appointment-history" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<AppointmentHistoryPage />} />
-        </Route>
-        <Route path="/appointment-status" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<AppointmentStatusPage />} />
-        </Route>
-        <Route path="/pharmacy" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<PharmacyPage />} />
-        </Route>
-        <Route path="/admin" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<AdminPage />} />
-        </Route>
-        <Route path="/start-call" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<StartCall />} />
-        </Route>
-
+        {/* 404 */}
         <Route path="*" element={<NotFound />} />
+
       </Routes>
     </Suspense>
   );
