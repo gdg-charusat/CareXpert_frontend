@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Send, Trash2 } from "lucide-react";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
+import axios from "axios";
+import { useAuthStore } from "@/store/authstore";
 
 export function AIChatBox() {
   const [message, setMessage] = useState("");
+  const [isClearing, setIsClearing] = useState(false);
   const [chatHistory, setChatHistory] = useState<
     Array<{ type: "user" | "ai"; content: string }>
   >([
@@ -38,20 +41,38 @@ export function AIChatBox() {
   };
 
   const handleClearChat = async () => {
-    try {
-      // Optimistically clear UI
-      setChatHistory([
-        {
-          type: "ai",
-          content: "Chat cleared. How can I assist you now?",
-        },
-      ]);
+    if (isClearing) return;
+    setIsClearing(true);
 
-      const baseUrl = `${import.meta.env.VITE_BASE_URL}/api/ai-chat`;
-      await axios.delete(`${baseUrl}/history`, { withCredentials: true });
-      toast.success("Chat history cleared");
+    // Optimistically clear UI first
+    setChatHistory([
+      {
+        type: "ai",
+        content: "Chat cleared. How can I assist you now?",
+      },
+    ]);
+
+    try {
+      // Use Zustand to check if user is logged in (matches your PR's goal!)
+      const isUserLoggedIn = useAuthStore.getState().user !== null;
+
+      if (isUserLoggedIn) {
+        // Use your new centralized API instance
+        await api.delete('/ai-chat/history');
+        toast.success("Chat history cleared from server");
+      } else {
+        // Just show success for demo mode
+        toast.success("Demo chat cleared");
+      }
     } catch (error) {
-      toast.error("Failed to clear chat");
+      console.error("Error clearing backend chat history:", error);
+      // Don't show error toast if it's just a demo/guest session
+      // or at least make the failure non-blocking for the UI
+      if (axios.isAxiosError(error) && error.response?.status !== 401) {
+        toast.error("Failed to sync clear with server");
+      }
+    } finally {
+      setIsClearing(false);
     }
   };
 
@@ -62,9 +83,9 @@ export function AIChatBox() {
         <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
           AI Assistant
         </span>
-        <Button variant="outline" size="sm" onClick={handleClearChat}>
+        <Button variant="outline" size="sm" onClick={handleClearChat} disabled={isClearing}>
           <Trash2 className="h-4 w-4 mr-2" />
-          Clear chat
+          {isClearing ? "Clearing..." : "Clear chat"}
         </Button>
       </div>
 
@@ -73,16 +94,14 @@ export function AIChatBox() {
         {chatHistory.map((msg, index) => (
           <div
             key={index}
-            className={`flex ${
-              msg.type === "user" ? "justify-end" : "justify-start"
-            }`}
+            className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"
+              }`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
-                msg.type === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              }`}
+              className={`max-w-[80%] rounded-lg p-3 ${msg.type === "user"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                }`}
             >
               {msg.content}
             </div>

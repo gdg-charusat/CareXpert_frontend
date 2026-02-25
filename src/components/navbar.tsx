@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Stethoscope, LogOut, User, Sun, Moon } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
+import { memo } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,35 +11,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { useEffect, useState } from "react";
+import { useTheme } from "@/context/theme-context";
 
-export function Navbar() {
+export const Navbar = memo(function Navbar() {
   const user = useAuthStore((state) => state.user);
 
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
 
-  // Theme toggle logic
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("theme") || "light";
-    }
-    return "light";
-  });
-
-  useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  };
+  // Use shared theme context — single source of truth
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = async () => {
     logout();
@@ -165,4 +147,4 @@ export function Navbar() {
       </div>
     </nav>
   );
-}
+});

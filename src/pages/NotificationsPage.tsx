@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Bell, Check, CheckCheck, Calendar, User, Stethoscope } from "lucide-react";
-import axios from "axios";
+import { Bell, Check, CheckCheck, Calendar, Stethoscope } from "lucide-react";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { relativeTime } from "@/lib/utils";
 
 interface Notification {
   id: string;
@@ -27,8 +28,8 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/api/user/notifications`,
+      const response = await api.get(
+        `/user/notifications`,
         { withCredentials: true }
       );
       
@@ -46,8 +47,8 @@ export default function NotificationsPage() {
   const markAsRead = async (notificationId: string) => {
     setMarkingAsRead(notificationId);
     try {
-      await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/api/user/notifications/${notificationId}/read`,
+      await api.put(
+        `/user/notifications/${notificationId}/read`,
         {},
         { withCredentials: true }
       );
@@ -70,8 +71,8 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/api/user/notifications/mark-all-read`,
+      await api.put(
+        `/user/notifications/mark-all-read`,
         {},
         { withCredentials: true }
       );
@@ -194,15 +195,7 @@ export default function NotificationsPage() {
                       </p>
                       
                       <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                        <span>
-                          {new Date(notification.createdAt).toLocaleDateString()}
-                        </span>
-                        <span>
-                          {new Date(notification.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
+                        <span>{relativeTime(notification.createdAt)}</span>
                       </div>
                     </div>
                   </div>
