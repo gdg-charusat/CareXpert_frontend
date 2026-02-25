@@ -10,7 +10,6 @@ interface User {
   email: string;
   profilePicture: string;
   role: string;
-  refreshToken: string;
 }
 
 interface AuthState {
@@ -29,10 +28,15 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       setUser: (user) => set({ user }),
       logout: () => {
+<<<<<<< HEAD
         // Disconnect socket first, then clear user state and persisted storage.
         disconnectSocket();
         set({ user: null });
         localStorage.removeItem('auth-storage');
+=======
+        set({ user: null });
+        disconnectSocket();
+>>>>>>> 1131484 (Enhance security by eliminating localStorage token usage. Fixes #68.)
       },
       login: async (email: string, password: string) => {
         set({ isLoading: true });
@@ -49,7 +53,6 @@ export const useAuthStore = create<AuthState>()(
               email: res.data.data.email,
               profilePicture: res.data.data.profilePicture,
               role: res.data.data.role,
-              refreshToken: res.data.data.refreshToken,
             };
             set({ user: userData, isLoading: false });
             return;
@@ -71,7 +74,20 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-      partialize: (state) => ({ user: state.user }),
+      // Persist only non-sensitive profile information. Do NOT persist tokens.
+      partialize: (state) => {
+        const u = state.user;
+        if (!u) return { user: null };
+        return {
+          user: {
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            profilePicture: u.profilePicture,
+            role: u.role,
+          },
+        };
+      },
     },
   ),
 );
