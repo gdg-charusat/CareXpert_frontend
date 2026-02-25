@@ -22,5 +22,8 @@ export type {
   Prescription,
   Report,
   ChatMessage,
+  BackendChatMessage,
+  ChatHistoryResponse,
+  CityChatHistoryResponse,
   Notification,
 } from "./api";

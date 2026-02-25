@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { chatAPI } from "@/services";
+import { chatAPI, ApiResponse, ChatHistoryResponse, CityChatHistoryResponse } from "@/services";
 
 const URL = import.meta.env.VITE_SOCKET_URL;
 
@@ -83,7 +83,7 @@ export const loadOneOnOneChatHistory = async (
   otherUserId: string,
   page: number = 1,
   limit: number = 50
-) => {
+): Promise<ApiResponse<ChatHistoryResponse>> => {
   try {
     const response = await chatAPI.getOneOnOneChatHistory(otherUserId, page, limit);
     return response.data;
@@ -97,7 +97,7 @@ export const loadCityChatHistory = async (
   cityName: string,
   page: number = 1,
   limit: number = 50
-) => {
+): Promise<ApiResponse<CityChatHistoryResponse>> => {
   try {
     const response = await chatAPI.getCityChatHistory(cityName, page, limit);
     return response.data;
@@ -111,7 +111,7 @@ export const loadRoomChatHistory = async (
   roomId: string,
   page: number = 1,
   limit: number = 50
-) => {
+): Promise<ApiResponse<ChatHistoryResponse>> => {
   try {
     const response = await chatAPI.getRoomChatHistory(roomId, page, limit);
     return response.data;
@@ -125,7 +125,7 @@ export const loadDmChatHistory = async (
   roomId: string,
   page: number = 1,
   limit: number = 50
-) => {
+): Promise<ApiResponse<ChatHistoryResponse>> => {
   try {
     const response = await chatAPI.getDMChatHistory(roomId, page, limit);
     return response.data;

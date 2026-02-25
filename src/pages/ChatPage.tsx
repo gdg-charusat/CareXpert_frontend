@@ -435,7 +435,7 @@ export default function ChatPage() {
   const loadConversationHistory = async (patientId: string) => {
     try {
       const response = await loadOneOnOneChatHistory(patientId);
-      if (response.success) {
+      if (response.success && response.data) {
         const formattedMessages = response.data.messages.map((msg: any) => ({
           roomId: generateRoomId(user?.id || "", patientId),
           senderId: msg.senderId,
@@ -489,7 +489,7 @@ useEffect(() => {
           selectedChat.data.userId
         );
 
-        if (isMounted && historyResponse.success) {
+        if (isMounted && historyResponse.success && historyResponse.data) {
           const formattedMessages = historyResponse.data.messages.map(
             (msg: any) => ({
               roomId: roomId,
@@ -513,7 +513,7 @@ useEffect(() => {
       ) {
         const historyResponse = await loadCityChatHistory(selectedChat.name);
 
-        if (isMounted && historyResponse.success) {
+        if (isMounted && historyResponse.success && historyResponse.data) {
           const roomId =
             historyResponse.data?.room?.id || selectedChat.id;
 
@@ -527,7 +527,7 @@ useEffect(() => {
             (msg: any) => ({
               roomId: roomId,
               senderId: msg.senderId,
-              receiverId: null,
+              receiverId: undefined,
               username: msg.sender.name,
               text: msg.message,
               time: new Date(msg.timestamp).toLocaleTimeString([], {
@@ -631,7 +631,7 @@ useEffect(() => {
   onMessage(handleIncomingMessage);
 
   return () => {
-    offMessage(handleIncomingMessage);
+    offMessage();
   };
 }, [selectedChat, user]);
   

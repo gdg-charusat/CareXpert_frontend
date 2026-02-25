@@ -69,6 +69,20 @@ export interface Report {
   uploadedAt: string;
 }
 
+export interface BackendChatMessage {
+  id?: string;
+  senderId: string;
+  receiverId?: string;
+  sender: {
+    name: string;
+    id: string;
+  };
+  message: string;
+  timestamp: string;
+  messageType?: string;
+  imageUrl?: string;
+}
+
 export interface ChatMessage {
   roomId: string;
   senderId: string;
@@ -78,6 +92,18 @@ export interface ChatMessage {
   time: string;
   messageType?: string;
   imageUrl?: string;
+}
+
+export interface ChatHistoryResponse {
+  messages: BackendChatMessage[];
+}
+
+export interface CityChatHistoryResponse {
+  room: {
+    id: string;
+    name?: string;
+  };
+  messages: BackendChatMessage[];
 }
 
 export interface Notification {
@@ -411,7 +437,7 @@ export const chatAPI = {
     page: number = 1,
     limit: number = 50
   ) =>
-    api.get<ApiResponse<ChatMessage[]>>(
+    api.get<ApiResponse<ChatHistoryResponse>>(
       `/api/chat/one-on-one/${otherUserId}`,
       {
         params: { page, limit },
@@ -423,7 +449,7 @@ export const chatAPI = {
     page: number = 1,
     limit: number = 50
   ) =>
-    api.get<ApiResponse<ChatMessage[]>>(
+    api.get<ApiResponse<CityChatHistoryResponse>>(
       `/api/chat/city/${encodeURIComponent(cityName)}`,
       {
         params: { page, limit },
@@ -435,7 +461,7 @@ export const chatAPI = {
     page: number = 1,
     limit: number = 50
   ) =>
-    api.get<ApiResponse<ChatMessage[]>>(`/api/chat/room/${roomId}`, {
+    api.get<ApiResponse<ChatHistoryResponse>>(`/api/chat/room/${roomId}`, {
       params: { page, limit },
     }),
 
@@ -444,7 +470,7 @@ export const chatAPI = {
     page: number = 1,
     limit: number = 50
   ) =>
-    api.get<ApiResponse<ChatMessage[]>>(`/api/chat/dm/${roomId}`, {
+    api.get<ApiResponse<ChatHistoryResponse>>(`/api/chat/dm/${roomId}`, {
       params: { page, limit },
     }),
 
