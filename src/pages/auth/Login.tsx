@@ -12,7 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import * as React from "react";
 import { toast } from "sonner";
-import axios from "axios";
+import { authAPI } from "@/services";
 import { useAuthStore } from "@/store/authstore";
 
 export default function Login() {
@@ -24,33 +24,27 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try{
-      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/login` ,{data : email , password} , {
-        withCredentials : true
-      });
-      if(res.data.success){
+    try {
+      const res = await authAPI.login(email, password);
+      if (res.data.success && res.data.data) {
         useAuthStore.getState().setUser({
-          id : res.data.data.id,
-          name : res.data.data.name,
-          email : res.data.data.email,
-          profilePicture : res.data.data.profilePicture,
-          role : res.data.data.role,
-          refreshToken : res.data.data.refreshToken
-        })
+          id: res.data.data.id,
+          name: res.data.data.name,
+          email: res.data.data.email,
+          profilePicture: res.data.data.profilePicture || "",
+          role: res.data.data.role,
+          refreshToken: res.data.data.refreshToken || "",
+        });
 
-        if(res.data.data.role === "PATIENT"){
+        if (res.data.data.role === "PATIENT") {
           navigate("/dashboard/patient");
-        }else{
-          navigate("/dashboard/doctor")
+        } else {
+          navigate("/dashboard/doctor");
         }
       }
-      // console.log(res.data.data)
-    }catch(err){
-      if(axios.isAxiosError(err) && err.response){
-        toast.error(err.response.data?.message || "Something went wrong");
-      }else{
-        toast.error("Unknown error occured..")
-      }
+    } catch (err) {
+      toast.error("Login failed. Please check your credentials.");
+      console.error(err);
     }
     // Simulate login based on demo emails
     // if (email === "patient@demo.com" && password === "password") {

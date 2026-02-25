@@ -1,8 +1,7 @@
 import { io, Socket } from "socket.io-client";
-import axios from "axios";
+import { chatAPI } from "@/services";
 
 const URL = import.meta.env.VITE_SOCKET_URL;
-const API_URL = import.meta.env.VITE_BASE_URL;
 
 export const socket: Socket = io(URL, {
   // transports : ["websocket"],
@@ -86,13 +85,7 @@ export const loadOneOnOneChatHistory = async (
   limit: number = 50
 ) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/api/chat/one-on-one/${otherUserId}`,
-      {
-        params: { page, limit },
-        withCredentials: true,
-      }
-    );
+    const response = await chatAPI.getOneOnOneChatHistory(otherUserId, page, limit);
     return response.data;
   } catch (error) {
     console.error("Error loading 1-on-1 chat history:", error);
@@ -106,13 +99,7 @@ export const loadCityChatHistory = async (
   limit: number = 50
 ) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/api/chat/city/${encodeURIComponent(cityName)}`,
-      {
-        params: { page, limit },
-        withCredentials: true,
-      }
-    );
+    const response = await chatAPI.getCityChatHistory(cityName, page, limit);
     return response.data;
   } catch (error) {
     console.error("Error loading city chat history:", error);
@@ -126,10 +113,7 @@ export const loadRoomChatHistory = async (
   limit: number = 50
 ) => {
   try {
-    const response = await axios.get(`${API_URL}/api/chat/room/${roomId}`, {
-      params: { page, limit },
-      withCredentials: true,
-    });
+    const response = await chatAPI.getRoomChatHistory(roomId, page, limit);
     return response.data;
   } catch (error) {
     console.error("Error loading room chat history:", error);
@@ -143,10 +127,7 @@ export const loadDmChatHistory = async (
   limit: number = 50
 ) => {
   try {
-    const response = await axios.get(`${API_URL}/api/chat/dm/${roomId}`, {
-      params: { page, limit },
-      withCredentials: true,
-    });
+    const response = await chatAPI.getDMChatHistory(roomId, page, limit);
     return response.data;
   } catch (error) {
     console.error("Error loading DM chat history:", error);
