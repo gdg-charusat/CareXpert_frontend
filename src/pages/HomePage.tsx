@@ -8,10 +8,12 @@ import {
 } from "../components/ui/card";
 import { Heart, Users, Clock, Shield, Star } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Navbar } from "../components/Navbar";
+import { Navbar } from "../components/navbar";
 import { Footer } from "../components/footer";
-import { AIChatBox } from "../components/ai-chat-box";
+import { lazy, Suspense } from "react";
 import { SampleCredentials } from "../components/sample-credentials";
+
+const AIChatBox = lazy(() => import("../components/ai-chat-box").then(module => ({ default: module.AIChatBox })));
 
 export default function HomePage() {
   return (
@@ -73,7 +75,9 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AIChatBox />
+                <Suspense fallback={<div className="text-center py-8 text-gray-500">Loading AI Chat...</div>}>
+                  <AIChatBox />
+                </Suspense>
               </CardContent>
             </Card>
           </div>
@@ -96,7 +100,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="p-6 text-center hover:shadow-lg transition-shadow duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="group p-6 text-center border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer">
             <CardContent className="p-0">
               <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -110,7 +114,7 @@ export default function HomePage() {
             </CardContent>
           </Card>
 
-          <Card className="p-6 text-center hover:shadow-lg transition-shadow duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="group p-6 text-center border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer">
             <CardContent className="p-0">
               <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />
@@ -123,8 +127,7 @@ export default function HomePage() {
               </p>
             </CardContent>
           </Card>
-
-          <Card className="p-6 text-center hover:shadow-lg transition-shadow duration-300 border-0 bg-purple-100 dark:bg-purple-900/30 backdrop-blur-sm">
+          <Card className="group p-6 text-center border-0 bg-purple-100 dark:bg-purple-900/30 backdrop-blur-sm transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 cursor-pointer">
             <CardContent className="p-0">
               <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400" />
@@ -138,7 +141,7 @@ export default function HomePage() {
             </CardContent>
           </Card>
 
-          <Card className="p-6 text-center hover:shadow-lg transition-shadow duration-300 border-0 bg-orange-100 dark:bg-orange-900/30 backdrop-blur-sm">
+          <Card className="group p-6 text-center border-0 bg-orange-100 dark:bg-orange-900/30 backdrop-blur-sm transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 cursor-pointer">
             <CardContent className="p-0">
               <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Star className="h-6 w-6 text-orange-600 dark:text-orange-400" />
