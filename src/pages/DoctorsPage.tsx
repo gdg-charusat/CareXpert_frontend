@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -88,6 +89,11 @@ export default function DoctorsPage() {
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const user = useAuthStore((state) => state.user);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+const [currentPage, setCurrentPage] = useState(1);
+const [itemsPerPage] = useState(5);
+const [sortBy, setSortBy] = useState("name-asc");
   /* ================= EFFECTS ================= */
 
   useEffect(() => {
@@ -110,10 +116,82 @@ export default function DoctorsPage() {
             params: { search: debouncedSearch },
           }
         );
-
-        if (res.data.success) {
-          setDoctors(res.data.data);
-        }
+if (res.data.success) {
+  setDoctors([
+    {
+      id: "1",
+      userId: "1",
+      specialty: "Cardiology",
+      clinicLocation: "New York, NY",
+      experience: "5 years",
+      education: "MBBS",
+      bio: "",
+      languages: ["English"],
+      consultationFee: 200,
+      user: { name: "Dr. A", profilePicture: "" }
+    },
+    {
+      id: "2",
+      userId: "2",
+      specialty: "Cardiology",
+      clinicLocation: "New York, NY",
+      experience: "8 years",
+      education: "MBBS",
+      bio: "",
+      languages: ["English"],
+      consultationFee: 100,
+      user: { name: "Dr. B", profilePicture: "" }
+    },
+    {
+      id: "3",
+      userId: "3",
+      specialty: "Dermatology",
+      clinicLocation: "Boston, MA",
+      experience: "10 years",
+      education: "MD",
+      bio: "",
+      languages: ["English"],
+      consultationFee: 300,
+      user: { name: "Dr. C", profilePicture: "" }
+    },
+    {
+      id: "4",
+      userId: "4",
+      specialty: "Neurology",
+      clinicLocation: "Miami, FL",
+      experience: "6 years",
+      education: "MD",
+      bio: "",
+      languages: ["English"],
+      consultationFee: 250,
+      user: { name: "Dr. D", profilePicture: "" }
+    },
+    {
+      id: "5",
+      userId: "5",
+      specialty: "Orthopedics",
+      clinicLocation: "Seattle, WA",
+      experience: "4 years",
+      education: "MBBS",
+      bio: "",
+      languages: ["English"],
+      consultationFee: 150,
+      user: { name: "Dr. E", profilePicture: "" }
+    },
+    {
+      id: "6",
+      userId: "6",
+      specialty: "Gynecology",
+      clinicLocation: "Chicago, IL",
+      experience: "7 years",
+      education: "MD",
+      bio: "",
+      languages: ["English"],
+      consultationFee: 220,
+      user: { name: "Dr. F", profilePicture: "" }
+    }
+  ]);
+}
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
@@ -128,6 +206,26 @@ export default function DoctorsPage() {
     fetchDoctors();
   }, [debouncedSearch]);
 
+  useEffect(() => {
+  const page = Number(searchParams.get("page")) || 1;
+  const sort = searchParams.get("sort") || "name-asc";
+  const specialty = searchParams.get("specialty") || "all";
+  const location = searchParams.get("location") || "all";
+
+  setCurrentPage(page);
+  setSortBy(sort);
+  setSelectedSpecialty(specialty);
+  setSelectedLocation(location);
+}, [searchParams]);
+
+useEffect(() => {
+  setSearchParams({
+    page: String(currentPage),
+    sort: sortBy,
+    specialty: selectedSpecialty,
+    location: selectedLocation,
+  });
+}, [currentPage, sortBy, selectedSpecialty, selectedLocation]);
   /* ================= FILTERS ================= */
 
   const specialties = [
@@ -157,6 +255,33 @@ export default function DoctorsPage() {
       selectedLocation === "all" || doctor.clinicLocation === selectedLocation;
     return matchesSpecialty && matchesLocation;
   });
+
+  const sortedDoctors = [...filteredDoctors].sort((a, b) => {
+  if (sortBy === "name-asc") {
+    return a.user.name.localeCompare(b.user.name);
+  }
+  if (sortBy === "name-desc") {
+    return b.user.name.localeCompare(a.user.name);
+  }
+  if (sortBy === "fee-asc") {
+    return a.consultationFee - b.consultationFee;
+  }
+  if (sortBy === "fee-desc") {
+    return b.consultationFee - a.consultationFee;
+  }
+  return 0;
+});
+
+const totalPages = Math.ceil(sortedDoctors.length / itemsPerPage);
+
+const paginatedDoctors = sortedDoctors.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
+useEffect(() => {
+  setCurrentPage(1);
+}, [selectedSpecialty, selectedLocation, debouncedSearch, sortBy]);
+
 
   /* ================= ACTIONS ================= */
 
@@ -307,7 +432,7 @@ export default function DoctorsPage() {
               <Skeleton key={i} className="h-32 w-full" />
             ))}
           </div>
-        ) : filteredDoctors.length === 0 ? (
+        ) : sortedDoctors.length === 0 ? (
           <EmptyState
             title="No Doctors Found"
             description="Try adjusting your filters"
@@ -315,7 +440,7 @@ export default function DoctorsPage() {
           />
         ) : (
           <div className="grid gap-6">
-            {filteredDoctors.map((doctor) => (
+            {paginatedDoctors.map((doctor) => (
               <Card key={doctor.id}>
                 <CardContent className="p-6 grid lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-8 flex gap-4">
@@ -346,6 +471,28 @@ export default function DoctorsPage() {
                 </CardContent>
               </Card>
             ))}
+
+            <div className="flex justify-center items-center gap-4 mt-8">
+  <Button
+    variant="outline"
+    disabled={currentPage === 1}
+    onClick={() => setCurrentPage((prev) => prev - 1)}
+  >
+    Previous
+  </Button>
+
+  <span>
+    Page {currentPage} of {totalPages}
+  </span>
+
+  <Button
+    variant="outline"
+    disabled={currentPage === totalPages}
+    onClick={() => setCurrentPage((prev) => prev + 1)}
+  >
+    Next
+  </Button>
+</div>
           </div>
         )}
       </div>
