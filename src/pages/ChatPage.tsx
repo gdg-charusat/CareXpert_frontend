@@ -321,10 +321,10 @@ export default function ChatPage() {
 
     try {
       await api.delete(`/ai-chat/history`);
-      toast.success("AI chat history cleared");
+      notify.success("AI chat history cleared");
     } catch (error) {
       console.error("Error clearing AI chat history:", error);
-      toast.error("Failed to sync clear with server");
+      notify.error("Failed to sync clear with server");
     } finally {
       setIsClearingAi(false);
     }
