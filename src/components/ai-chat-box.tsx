@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Send, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
-import { toast } from "sonner";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
+import { notify } from "@/lib/toast";
 
 export function AIChatBox() {
   const [message, setMessage] = useState("");
@@ -59,17 +59,17 @@ export function AIChatBox() {
       if (isUserLoggedIn) {
         // Use your new centralized API instance
         await api.delete('/ai-chat/history');
-        toast.success("Chat history cleared from server");
+        notify.success("Chat history cleared from server");
       } else {
         // Just show success for demo mode
-        toast.success("Demo chat cleared");
+        notify.success("Demo chat cleared");
       }
     } catch (error) {
       console.error("Error clearing backend chat history:", error);
       // Don't show error toast if it's just a demo/guest session
       // or at least make the failure non-blocking for the UI
       if (axios.isAxiosError(error) && error.response?.status !== 401) {
-        toast.error("Failed to sync clear with server");
+        notify.error("Failed to sync clear with server");
       }
     } finally {
       setIsClearing(false);

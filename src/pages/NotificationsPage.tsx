@@ -4,8 +4,8 @@ import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Bell, Check, CheckCheck, Calendar, Stethoscope } from "lucide-react";
 import { api } from "@/lib/api";
-import { toast } from "sonner";
 import { relativeTime } from "@/lib/utils";
+import { notify } from "@/lib/toast";
 
 interface Notification {
   id: string;
@@ -38,7 +38,7 @@ export default function NotificationsPage() {
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);
-      toast.error("Failed to fetch notifications");
+      notify.error("Failed to fetch notifications");
     } finally {
       setLoading(false);
     }
@@ -60,10 +60,10 @@ export default function NotificationsPage() {
             : notif
         )
       );
-      toast.success("Notification marked as read");
+      notify.success("Notification marked as read");
     } catch (error) {
       console.error("Error marking notification as read:", error);
-      toast.error("Failed to mark notification as read");
+      notify.error("Failed to mark notification as read");
     } finally {
       setMarkingAsRead(null);
     }
@@ -80,10 +80,10 @@ export default function NotificationsPage() {
       setNotifications(prev => 
         prev.map(notif => ({ ...notif, isRead: true }))
       );
-      toast.success("All notifications marked as read");
+      notify.success("All notifications marked as read");
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
-      toast.error("Failed to mark all notifications as read");
+      notify.error("Failed to mark all notifications as read");
     }
   };
 

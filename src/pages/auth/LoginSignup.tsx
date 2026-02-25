@@ -24,7 +24,7 @@ import { Heart, User, Stethoscope, MapPin, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../../store/authstore";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
+import { notify } from "@/lib/toast";
 
 /**
  * Zod Schema for Login Form
@@ -135,121 +135,115 @@ export default function LoginSignup() {
    * Form validation is handled automatically by zodResolver
    */
   const handleLogin = async (data: LoginFormData) => {
-    setIsLoading(true);
+  setIsLoading(true);
 
-    try {
-      const response = await api.post(
-        `/user/login`,
-        data
-      );
+  try {
+    const response = await api.post(`/user/login`, data);
 
-      if (response.data.success) {
-        setUser(response.data.data);
-        toast.success("Login successful!");
-        
-        // Navigate based on role
-        const role = response.data.data.role;
-        if (role === "DOCTOR") {
-          navigate("/dashboard/doctor");
-        } else if (role === "PATIENT") {
-          navigate("/dashboard/patient");
-        } else if (role === "ADMIN") {
-          navigate("/admin");
-        }
+    if (response.data.success) {
+      setUser(response.data.data);
+
+      notify.success("Login successful!"); // ✅ updated
+
+      const role = response.data.data.role;
+      if (role === "DOCTOR") {
+        navigate("/dashboard/doctor");
+      } else if (role === "PATIENT") {
+        navigate("/dashboard/patient");
+      } else if (role === "ADMIN") {
+        navigate("/admin");
       }
-    } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || "Login failed");
-      } else {
-        toast.error("Login failed");
-      }
-    } finally {
-      setIsLoading(false);
     }
-  };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      notify.error(
+        error.response?.data?.message || "Login failed"
+      );
+    } else {
+      notify.error("Login failed");
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   /**
    * Handle Signup - with Zod validation
    * Password matching and role-specific fields are validated by schema
    */
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Get form values - now properly typed with all fields
-    const formValues = signupForm.getValues();
-    
-    // Check role first
-    if (!selectedRole) {
-      toast.error("Please select a role");
-      return;
-    }
+  e.preventDefault();
 
-    // Build complete data with role for validation
-    const completeData = {
+  const formValues = signupForm.getValues();
+
+  if (!selectedRole) {
+    notify.error("Please select a role");
+    return;
+  }
+
+  const completeData = {
+    firstName: formValues.firstName,
+    lastName: formValues.lastName,
+    email: formValues.email,
+    password: formValues.password,
+    confirmPassword: formValues.confirmPassword,
+    role: selectedRole,
+    ...(selectedRole === "PATIENT" && { location: formValues.location }),
+    ...(selectedRole === "DOCTOR" && {
+      specialty: formValues.specialty,
+      clinicLocation: formValues.clinicLocation,
+    }),
+  };
+
+  const validationResult = signupSchema.safeParse(completeData);
+
+  if (!validationResult.success) {
+    const firstError = validationResult.error.errors[0];
+    notify.error(firstError.message);
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const payload = {
       firstName: formValues.firstName,
       lastName: formValues.lastName,
       email: formValues.email,
       password: formValues.password,
-      confirmPassword: formValues.confirmPassword,
       role: selectedRole,
-      ...(selectedRole === "PATIENT" && { location: formValues.location }),
-      ...(selectedRole === "DOCTOR" && { 
+      ...(selectedRole === "DOCTOR" && {
         specialty: formValues.specialty,
         clinicLocation: formValues.clinicLocation,
       }),
+      ...(selectedRole === "PATIENT" && {
+        location: formValues.location,
+      }),
     };
 
-    // Validate with Zod schema
-    const validationResult = signupSchema.safeParse(completeData);
-    
-    if (!validationResult.success) {
-      // Show first validation error
-      const firstError = validationResult.error.errors[0];
-      toast.error(firstError.message);
-      return;
+    const response = await api.post(`/user/signup`, payload);
+
+    if (response.data.success) {
+      notify.success("Signup successful! Please login.");
+
+      setIsLogin(true);
+      signupForm.reset();
+      setSelectedRole(null);
     }
-
-    setIsLoading(true);
-
-    try {
-      // Build payload from form values (already validated)
-      const payload = {
-        firstName: formValues.firstName,
-        lastName: formValues.lastName,
-        email: formValues.email,
-        password: formValues.password,
-        role: selectedRole,
-        ...(selectedRole === "DOCTOR" && {
-          specialty: formValues.specialty,
-          clinicLocation: formValues.clinicLocation,
-        }),
-        ...(selectedRole === "PATIENT" && {
-          location: formValues.location,
-        }),
-      };
-
-      const response = await api.post(
-        `/user/signup`,
-        payload
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      notify.error(
+        error.response?.data?.message || "Signup failed"
       );
-
-      if (response.data.success) {
-        toast.success("Signup successful! Please login.");
-        setIsLogin(true);
-        // Reset form using react-hook-form's reset method
-        signupForm.reset();
-        setSelectedRole(null);
-      }
-    } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || "Signup failed");
-      } else {
-        toast.error("Signup failed");
-      }
-    } finally {
-      setIsLoading(false);
+    } else {
+      notify.error("Signup failed");
     }
-  };
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+    // Build complete data with role for validation   
 
   /**
    * Handle role selection and update form accordingly
