@@ -4,9 +4,21 @@ import { chatAPI } from "@/services";
 const URL = import.meta.env.VITE_SOCKET_URL;
 
 export const socket: Socket = io(URL, {
-  // transports : ["websocket"],
+  autoConnect: false, // Prevent immediate connection
   withCredentials: true,
 });
+
+export const connectSocket = () => {
+  if (!socket.connected) {
+    socket.connect();
+  }
+};
+
+export const disconnectSocket = () => {
+  if (socket.connected) {
+    socket.disconnect();
+  }
+};
 
 interface DmMessageData {
   roomId: string;
@@ -67,8 +79,12 @@ export const onMessage = (callback: (msg: FormattedMessage) => void) => {
   });
 };
 
-export const offMessage = () => {
-  socket.off("message");
+export const offMessage = (callback?: (msg: FormattedMessage) => void) => {
+  if (callback) {
+    socket.off("message", callback);
+  } else {
+    socket.off("message");
+  }
 };
 
 export const SendMessageToRoom = (message: RoomMessageData) => {

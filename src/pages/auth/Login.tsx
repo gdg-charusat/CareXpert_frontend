@@ -145,6 +145,7 @@ export default function Login() {
               />
               {errors.email && <p className="text-xs text-red-500 mt-1">&#x2717; {errors.email}</p>}
             </div>
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -189,6 +190,7 @@ export default function Login() {
                 </ul>
               )}
             </div>
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
@@ -202,10 +204,7 @@ export default function Login() {
           </form>
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
             Don't have an account?{" "}
-            <Link
-              to="/auth/patient/signup"
-              className="font-medium text-blue-600 hover:underline dark:text-blue-400"
-            >
+            <Link to="/auth/patient/signup" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
               Sign up
             </Link>
           </div>
