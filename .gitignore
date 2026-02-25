@@ -1,20 +1,28 @@
-# Environment variables — never commit real secrets
-.env
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.egg-info/
-dist/
-build/
-.venv/
-venv/
-env/
+# dependencies
+/node_modules
 
-# Streamlit
-.streamlit/
+# next.js
+/.next/
+/out/
 
-# OS
-.DS_Store
-Thumbs.db
+# production
+/build
+/dist
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

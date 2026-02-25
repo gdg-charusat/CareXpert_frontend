@@ -1,126 +1,256 @@
-# 🔥Super RoastBot — Bug Hunt Hackathon Challenge
+# CareXpert Frontend
 
-> **Your mission:** This RoastBot is completely broken. Find all the bugs, fix them, and bring the roast master back to life!
-
-## 🤔 What is Super RoastBot?
-
-RoastBot is a **RAG-powered AI chatbot** that roasts you based on what you say. It uses:
-
-- **Streamlit** — for the web UI
-- **Groq API** (LLaMA 3.1) — for generating savage roasts
-- **FAISS + Sentence Transformers** — for retrieving relevant roast context
-- **Conversation Memory** — so it remembers what you said and roasts you even harder
-
-**But right now... it's broken.** The code is riddled with bugs — some will crash the app, some will make it produce garbage, and some are sneaky enough that you won't notice until you look closely.
+**CareXpert** is a full-featured healthcare platform that connects patients with doctors through appointment booking, real-time chat, video consultations, prescription management, and more. This repository contains the frontend client built with React and TypeScript.
 
 ---
 
-## 📁 Project Structure
+## Table of Contents
 
-```
-├── app.py              # Main Streamlit app + Groq API client
-├── rag.py              # RAG module (chunking, embedding, FAISS retrieval)
-├── prompt.py           # System prompt for the LLM
-├── memory.py           # Conversation memory management
-├── .env                # Environment variables (API keys)
-├── requirements.txt    # Python dependencies
-└── data/
-    └── roast_data.txt  # Roast knowledge base
-```
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Running the Project](#running-the-project)
+- [Available Scripts](#available-scripts)
+- [Folder Structure](#folder-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🚀 Getting Started
+## Tech Stack
 
-### 1. Clone the repo
+| Category            | Technology                                                  |
+| ------------------- | ----------------------------------------------------------- |
+| **Framework**       | [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) |
+| **Build Tool**      | [Vite 5](https://vitejs.dev/)                               |
+| **Styling**         | [Tailwind CSS 3](https://tailwindcss.com/)                   |
+| **UI Components**   | [shadcn/ui](https://ui.shadcn.com/) (Radix UI + Tailwind)   |
+| **Routing**         | [React Router v6](https://reactrouter.com/)                  |
+| **State Management**| [Zustand](https://zustand-demo.pmnd.rs/)                    |
+| **Forms**           | [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) |
+| **HTTP Client**     | [Axios](https://axios-http.com/)                             |
+| **Real-time**       | [Socket.IO Client](https://socket.io/)                      |
+| **Video Calls**     | [VideoSDK](https://www.videosdk.live/)                       |
+| **Charts**          | [Recharts](https://recharts.org/)                            |
+| **Animations**      | [Framer Motion](https://www.framer.com/motion/)              |
+| **Icons**           | [Lucide React](https://lucide.dev/)                          |
+| **Package Manager** | [pnpm](https://pnpm.io/)                                    |
+
+---
+
+## Features
+
+- **Patient & Doctor Dashboards** — Role-based views with relevant stats and actions
+- **Appointment Booking** — Search doctors, view profiles, and book appointments
+- **Real-time Chat** — Instant messaging between patients and doctors via Socket.IO
+- **Video Consultations** — In-browser video calls powered by VideoSDK
+- **Prescription Management** — View and manage prescriptions
+- **Notifications** — Real-time notification system
+- **Report Uploads** — Patients can upload medical reports
+- **Pharmacy** — Browse pharmacy information
+- **Admin Panel** — Administrative controls for platform management
+- **Dark / Light Theme** — Toggle between themes with persistent preference
+- **Responsive Design** — Mobile-friendly layout across all pages
+
+---
+
+## Prerequisites
+
+Make sure the following are installed on your machine:
+
+- **Node.js** — v18 or later → [Download](https://nodejs.org/)
+- **Package manager** — `pnpm` (recommended) or `npm`
+
+### Recommendation
+
+Use **pnpm** as the default for contributors (this project is primarily maintained with `pnpm-lock.yaml`).
+
+`npm` is also supported, but avoid mixing package managers in the same branch/PR to prevent lockfile churn.
+
+Install pnpm globally (if you choose pnpm):
+
+  ```bash
+  npm install -g pnpm
+  ```
+
+---
+
+## Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/<your-org>/CareXpert_frontend.git
+   cd CareXpert_frontend
+   ```
+
+2. **Install dependencies**
+
+   **Option A — Recommended (`pnpm`)**
+
+   ```bash
+   pnpm install
+   ```
+
+   **Option B — Alternative (`npm`)**
+
+   ```bash
+   npm install
+   ```
+
+---
+
+## Environment Variables
+
+The app requires a few environment variables to connect to the backend API and socket server.
+
+Create a `.env` file in the project root manually (next to `package.json`).
+
+Then fill in the following values:
+
+| Variable          | Description                                  | Example                        |
+| ----------------- | -------------------------------------------- | ------------------------------ |
+| `VITE_BASE_URL`   | Base URL of the backend API server           | `http://localhost:5000`        |
+| `VITE_SOCKET_URL` | URL of the Socket.IO server                  | `http://localhost:5000`        |
+
+**.env**
+
+```env
+VITE_BASE_URL=http://localhost:5000
+VITE_SOCKET_URL=http://localhost:5000
+```
+
+> **Important:** Never commit your `.env` file. It is (and should be) listed in `.gitignore`. If you need actual credentials for development, contact the project maintainers privately.
+
+---
+
+## Running the Project
+
+**Start the development server:**
+
 ```bash
-git clone <repo-url>
-cd <repo-folder>
+pnpm dev
 ```
 
-### 2. Create a virtual environment
+or
+
 ```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
+npm run dev
 ```
 
-### 3. Install dependencies
+The app will be available at **http://localhost:5173** (default Vite port).
+
+**Build for production:**
+
 ```bash
-pip install -r requirements.txt
+pnpm build
 ```
-> ⚠️ **Hint:** If installation fails, that might be your first bug...
 
-### 4. Set up your API key
-- Get a free API key from [Groq Console](https://console.groq.com/)
-- Check the `.env` file and make sure your key is configured correctly
+or
 
-### 5. Run the app
 ```bash
-streamlit run app.py
+npm run build
+```
+
+**Preview production build locally:**
+
+```bash
+pnpm preview
+```
+
+or
+
+```bash
+npm run preview
 ```
 
 ---
 
-## 🎯 Challenge Rules
+## Available Scripts
 
-1. **Find and fix all the bugs** hidden across the codebase
-2. Bugs exist in **every file** — Python code, config files, even the requirements
-3. Some bugs **crash** the app, some make it produce **bad/gibberish output**, and some are **subtle logic errors**
-4. **Do NOT modify `data/roast_data.txt`** — the data file is clean
-5. When you fix a bug, **document it** — write what was wrong and what you changed
-
----
-
-## 🐛 Types of Bugs to Look For
-
-| Category | Examples |
-|----------|---------|
-| 🔧 **Config Errors** | Wrong URLs, bad API keys, mismatched variable names |
-| 📐 **Bad Hyperparameters** | Values that are technically valid but produce terrible results |
-| ✏️ **Typos** | Misspelled names that cause lookup failures |
-| 🧠 **Logic Errors** | Code that runs but does the wrong thing |
-| 📦 **Dependency Issues** | Missing or misspelled packages |
-| 💬 **Prompt Engineering** | Instructions that sabotage the AI's behavior |
+| Purpose         | pnpm command     | npm command        |
+| --------------- | ---------------- | ------------------ |
+| Start dev server | `pnpm dev`      | `npm run dev`      |
+| Production build | `pnpm build`    | `npm run build`    |
+| Preview build    | `pnpm preview`  | `npm run preview`  |
+| Lint code        | `pnpm lint`     | `npm run lint`     |
 
 ---
 
-## ✅ How to Know You're Done
-
-When RoastBot is fully fixed, it should:
-
-- ✅ Start without any errors
-- ✅ Accept user input and respond with **creative, funny roasts**
-- ✅ Use relevant context from the roast knowledge base (RAG working)
-- ✅ Remember previous messages in the conversation (memory working)
-- ✅ Generate responses that are **multiple sentences long**, not cut off
-
----
-
-## 📝 Submission Format
-
-For each bug you find, document:
+## Folder Structure
 
 ```
-Bug #: [number]
-File: [filename]
-Line: [line number]
-What was wrong: [description]
-Fix: [what you changed]
+CareXpert_frontend/
+├── public/                  # Static assets served as-is
+├── src/
+│   ├── components/          # Reusable React components
+│   │   ├── ui/              # shadcn/ui primitives (Button, Card, Dialog, etc.)
+│   │   ├── navbar.tsx       # Top navigation bar
+│   │   ├── sidebar.tsx      # Dashboard sidebar navigation
+│   │   ├── footer.tsx       # Site footer
+│   │   ├── layout.tsx       # Public page layout (navbar + footer)
+│   │   ├── DashboardLayout.tsx  # Authenticated layout (sidebar + content)
+│   │   ├── ai-chat-box.tsx  # AI-powered chat box component
+│   │   ├── VideoCall.tsx    # Video call component (VideoSDK)
+│   │   ├── theme-provider.tsx   # Theme context provider
+│   │   └── theme-toggle.tsx     # Dark/light mode toggle
+│   ├── context/             # React context providers
+│   │   ├── auth-context.tsx # DEPRECATED: Use authstore.ts instead
+│   │   └── theme-context.tsx# Theme context & provider
+│   ├── store/               # Zustand stores
+│   │   └── authstore.ts     # Authentication state management (Zustand)
+│   ├── lib/                 # Utility functions
+│   │   └── utils.ts         # Helper utilities (cn, etc.)
+│   ├── pages/               # Page-level components (one per route)
+│   │   ├── auth/            # Authentication pages (Login, Signup)
+│   │   ├── HomePage.tsx     # Landing page
+│   │   ├── PatientDashboard.tsx   # Patient dashboard
+│   │   ├── DoctorDashboard.tsx    # Doctor dashboard
+│   │   ├── ChatPage.tsx     # Real-time messaging
+│   │   ├── DoctorsPage.tsx  # Doctor listing & search
+│   │   ├── BookAppointmentPage.tsx # Appointment booking
+│   │   ├── AdminPage.tsx    # Admin panel
+│   │   └── ...              # Other pages
+│   ├── sockets/             # Socket.IO client setup & event handlers
+│   │   └── socket.ts        # Socket connection & messaging functions
+│   ├── store/               # Zustand state stores
+│   │   └── authstore.ts     # Authentication store
+│   ├── App.tsx              # Root component (providers + router)
+│   ├── routes.tsx           # All route definitions
+│   ├── main.tsx             # Application entry point
+│   ├── globals.css          # Global styles & Tailwind directives
+│   └── vite-env.d.ts        # Vite/TypeScript env type declarations
+├── styles/
+│   └── globals.css          # Additional global styles
+├── components.json          # shadcn/ui configuration
+├── tailwind.config.ts       # Tailwind CSS configuration
+├── vite.config.ts           # Vite configuration
+├── tsconfig.json            # TypeScript configuration
+├── postcss.config.mjs       # PostCSS configuration
+├── package.json             # Dependencies & scripts
+└── pnpm-lock.yaml           # Lockfile for reproducible installs
 ```
 
 ---
 
-## 💡 Tips
+## Contributing
 
-- Read the **error messages carefully** — they often point you straight to the bug
-- If the app runs but output is bad, check the **hyperparameters** and **prompt**
-- Compare related files — does the `.env` variable name match what the code expects?
-- **Don't overthink it** — some bugs are literally just typos
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
+
+**Quick summary:**
+
+1. Check for existing issues or create a new one
+2. Wait for a maintainer to assign the issue to you
+3. Fork the repo and create a feature branch from `main`
+4. Make your changes and test locally
+5. Submit a pull request with a clear description and your team number
+
+For detailed rules and guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-**Good luck, and may your roasts be savage! 🔥**
+## License
 
+This project is part of the **GDG CHARUSAT Open Source Contri Sprintathon**. Please refer to the repository for licensing details.
