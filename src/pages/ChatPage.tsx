@@ -29,8 +29,6 @@ import {
   Stethoscope,
   Trash2,
 } from "lucide-react";
-import { api } from "@/lib/api";
-import axios from "axios"; // Needed for axios.isAxiosError
 import { toast } from "sonner";
 import {
   FormattedMessage,
@@ -46,6 +44,7 @@ import {
 } from "@/sockets/socket";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
+import { doctorAPI, aiChatAPI, chatAPI, communityAPI } from "@/services/endpoints/api";
 
 type DoctorData = {
   id: string;
@@ -53,7 +52,7 @@ type DoctorData = {
   clinicLocation: string;
   user: {
     name: string;
-    profilePicture: string;
+    profilePicture?: string;
   };
   userId: string;
 };
@@ -82,13 +81,6 @@ type CityRoomData = {
   admin: UserData[];
 };
 
-type CityRoomApiResponse = {
-  statuscode: number;
-  message: string;
-  success: string;
-  data: CityRoomData;
-};
-
 export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [doctors, setDoctors] = useState<DoctorData[]>([]);
@@ -111,15 +103,11 @@ export default function ChatPage() {
   useEffect(() => {
     async function fetchAllDoctors() {
       try {
-        const res = await api.get(`/patient/fetchAllDoctors`);
-        if (res.data.success) {
-          setDoctors(res.data.data);
-        }
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
-        } else {
-          toast.error("Unknown error occurred");
+        const doctors = await doctorAPI.getAllDoctors();
+        setDoctors(doctors);
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(error.message);
         }
       }
     }
@@ -131,22 +119,11 @@ export default function ChatPage() {
       if (!user) return;
 
       try {
-        const endpoint =
-          user.role === "DOCTOR"
-            ? `/doctor/city-rooms`
-            : `/patient/city-rooms`;
-
-        const res = await api.get<CityRoomApiResponse>(endpoint);
-
-        if (res.data.success) {
-          const data = res.data.data;
-          setCityRoom(Array.isArray(data) ? data : [data]);
-        }
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
-        } else {
-          toast.error("Unknown error ocurred");
+        const rooms = await communityAPI.getCityRooms(user.role as 'DOCTOR' | 'PATIENT');
+        setCityRoom(rooms);
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(error.message);
         }
       }
     }
@@ -239,39 +216,37 @@ export default function ChatPage() {
   // Function to load AI chat history
   const loadAiChatHistory = async () => {
     try {
-      const response = await api.get(`/ai-chat/history`);
-      if (response.data.success) {
-        const chats = response.data.data.chats || [];
-        if (chats.length === 0) {
-          setAiMessages([
+      const historyData = await aiChatAPI.getHistory();
+      const chats = historyData?.chats || [];
+      if (chats.length === 0) {
+        setAiMessages([
+          {
+            id: "welcome",
+            type: "ai",
+            message:
+              "Hello! I'm CareXpert AI, your health assistant. Describe your symptoms and I'll help analyze them for you.",
+            time: "Just now",
+          },
+        ]);
+      } else {
+        const formattedMessages = chats
+          .map((chat: any) => [
             {
-              id: "welcome",
-              type: "ai",
-              message:
-                "Hello! I'm CareXpert AI, your health assistant. Describe your symptoms and I'll help analyze them for you.",
-              time: "Just now",
+              id: `${chat.id}-user`,
+              type: "user",
+              message: chat.userMessage,
+              time: relativeTime(chat.createdAt),
             },
-          ]);
-        } else {
-          const formattedMessages = chats
-            .map((chat: any) => [
-              {
-                id: `${chat.id}-user`,
-                type: "user",
-                message: chat.userMessage,
-                time: relativeTime(chat.createdAt),
-              },
-              {
-                id: `${chat.id}-ai`,
-                type: "ai",
-                message: formatAiResponse(chat),
-                time: relativeTime(chat.createdAt),
-                aiData: chat,
-              },
-            ])
-            .flat();
-          setAiMessages(formattedMessages);
-        }
+            {
+              id: `${chat.id}-ai`,
+              type: "ai",
+              message: formatAiResponse(chat),
+              time: relativeTime(chat.createdAt),
+              aiData: chat,
+            },
+          ])
+          .flat();
+        setAiMessages(formattedMessages);
       }
     } catch (error) {
       console.error("Error loading AI chat history:", error);
@@ -320,11 +295,13 @@ export default function ChatPage() {
     ]);
 
     try {
-      await api.delete(`/ai-chat/history`);
+      await aiChatAPI.clearHistory();
       toast.success("AI chat history cleared");
     } catch (error) {
-      console.error("Error clearing AI chat history:", error);
-      toast.error("Failed to sync clear with server");
+      if (error instanceof Error) {
+        console.error("Error clearing AI chat history:", error);
+        toast.error(error.message);
+      }
     } finally {
       setIsClearingAi(false);
     }
@@ -347,32 +324,23 @@ export default function ChatPage() {
       // Clear the input immediately
       setMessage("");
 
-      // Replaced with centralized API and retained timeout from main
-      const response = await api.post(
-        `/ai-chat/process`,
-        {
-          symptoms: userMessage,
-          language: selectedLanguage,
-        },
-        {
-          timeout: 15000,
-        }
-      );
-
-      if (response.data.success) {
-        const aiData = response.data.data;
-        const aiMsg = {
-          id: `ai-${Date.now()}`,
-          type: "ai",
-          message: formatAiResponse(aiData),
-          time: relativeTime(new Date()),
-          aiData: aiData,
-        };
-        setAiMessages((prev) => [...prev, aiMsg]);
-      }
+      // Send message to AI using centralized API
+      const aiData = await aiChatAPI.sendMessage(userMessage, selectedLanguage);
+      const aiMsg = {
+        id: `ai-${Date.now()}`,
+        type: "ai",
+        message: formatAiResponse(aiData),
+        time: relativeTime(new Date()),
+        aiData: aiData,
+      };
+      setAiMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
       console.error("Error sending AI message:", error);
-      toast.error("Failed to get AI response. Please try again.");
+      let errorMessage = "Failed to get AI response. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
 
       // Add error message
       const errorMsg = {
@@ -395,12 +363,12 @@ export default function ChatPage() {
   // Function to fetch DM conversations for doctors
   const fetchDmConversations = async () => {
     try {
-      const response = await api.get(`/chat/doctor/conversations`);
-      if (response.data.success) {
-        setDmConversations(response.data.data.conversations);
-      }
+      const conversations = await chatAPI.getDoctorConversations();
+      setDmConversations(conversations || []);
     } catch (error) {
-      console.error("Error fetching DM conversations:", error);
+      if (error instanceof Error) {
+        console.error("Error fetching DM conversations:", error.message);
+      }
     }
   };
 
@@ -453,13 +421,12 @@ export default function ChatPage() {
   // Function to fetch community members
   const fetchCommunityMembers = async (roomId: string) => {
     try {
-      // Replaced with centralized API and cleaned up template string
-      const response = await api.get(`/user/communities/${roomId}/members`);
-      if (response.data.success) {
-        setCommunityMembers(response.data.data.members);
-      }
+      const members = await communityAPI.getMembers(roomId);
+      setCommunityMembers(members);
     } catch (error) {
-      console.error("Error fetching community members:", error);
+      if (error instanceof Error) {
+        console.error("Error fetching community members:", error.message);
+      }
     }
   };
 
@@ -515,12 +482,11 @@ export default function ChatPage() {
             if (user) {
               joinCommunityRoom(roomId, user.id, user.name);
             }
-
             const formattedMessages = historyResponse.data.messages.map(
               (msg: any) => ({
                 roomId: roomId,
                 senderId: msg.senderId,
-                receiverId: null,
+                receiverId: undefined,
                 username: msg.sender.name,
                 text: msg.message,
                 time: new Date(msg.timestamp).toLocaleTimeString([], {

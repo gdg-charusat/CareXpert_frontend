@@ -7,6 +7,7 @@
  * 4. Added inline error messages for each field
  * 5. Centralized validation in Zod schema
  * 6. Used zodResolver to connect Zod schema with react-hook-form
+ * 7. Updated to use centralized API service (userAPI)
  */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -26,8 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Edit, Mail, Phone, Calendar, MapPin } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion } from "framer-motion";
-import { api } from "@/lib/api";
-import axios from "axios";
+import { userAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
 
 /**
@@ -95,6 +95,7 @@ export default function ProfilePage() {
   /**
    * Handle form submission - simplified with react-hook-form
    * Validation is handled automatically by zodResolver
+   * Uses centralized userAPI service for HTTP requests
    */
   const onSubmit = async (data: ProfileFormData) => {
     try {
@@ -105,42 +106,28 @@ export default function ProfilePage() {
       }
       if (selectedImage) form.append("profilePicture", selectedImage);
 
-      const endpoint =
-        user?.role === "DOCTOR"
-          ? `/user/update-doctor`
-          : `/user/update-patient`;
-          
-      // Using centralized api instance
-      const res = await api.put(endpoint, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      
-      if (!res.data?.success) {
-        throw new Error(res.data?.message || "Failed to update profile");
+      // Use centralized API service based on user role
+      let updatedUser;
+      if (user?.role === "DOCTOR") {
+        updatedUser = await userAPI.updateDoctorProfile(form);
+      } else {
+        updatedUser = await userAPI.updatePatientProfile(form);
       }
 
-      // Fetch fresh profile to ensure updated data
-      const me = await api.get(`/user/authenticated-profile`);
-      
-      if (me.data?.success && me.data?.data?.user) {
-        const updatedUser = me.data.data.user;
-        setUser(updatedUser);
-        reset({
-          ...data,
-          name: updatedUser.name || data.name,
-          email: updatedUser.email || data.email,
-        });
-      }
+      setUser(updatedUser);
+      reset({
+        ...data,
+        name: updatedUser.name || data.name,
+        email: updatedUser.email || data.email,
+      });
 
       toast.success("Profile updated successfully");
       setIsEditing(false);
       setSelectedImage(null);
       setPreviewUrl(null);
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          error.response.data?.message || "Failed to update profile"
-        );
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to update profile");
       } else {
         toast.error("Failed to update profile");
       }

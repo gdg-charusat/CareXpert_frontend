@@ -9,8 +9,7 @@ import {
 } from "../components/ui/card";
 import { Upload, FileText, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "../components/ui/alert";
-import { api } from "@/lib/api";
-import axios from "axios";
+import { reportAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
 import { Badge } from "../components/ui/badge";
 
@@ -74,26 +73,21 @@ export default function UploadReportPage() {
     stopPolling();
     pollRef.current = window.setInterval(async () => {
       try {
-        const res = await api.get(`/report/${id}`, {
-          withCredentials: true,
-        });
-        if (res.data?.success) {
-          const r = res.data.data;
-          if (r.status === "COMPLETED") {
-            setStatus("COMPLETED");
-            setResult(r);
-            stopPolling();
-            setIsUploading(false);
-            toast.success("Report analyzed successfully");
-          } else if (r.status === "FAILED") {
-            setStatus("FAILED");
-            setErrorMessage(r.error || "Analysis failed");
-            stopPolling();
-            setIsUploading(false);
-            toast.error(r.error || "Report analysis failed");
-          } else {
-            setStatus("PROCESSING");
-          }
+        const report = await reportAPI.getReport(id);
+        if (report.status === "COMPLETED") {
+          setStatus("COMPLETED");
+          setResult(report);
+          stopPolling();
+          setIsUploading(false);
+          toast.success("Report analyzed successfully");
+        } else if (report.status === "FAILED") {
+          setStatus("FAILED");
+          setErrorMessage(report.error || "Analysis failed");
+          stopPolling();
+          setIsUploading(false);
+          toast.error(report.error || "Report analysis failed");
+        } else {
+          setStatus("PROCESSING");
         }
       } catch (err) {
         // keep polling briefly; show toast once
@@ -109,30 +103,16 @@ const handleSubmit = async () => {
     setStatus("PROCESSING");
 
     try {
-      const form = new FormData();
-      form.append("report", file);
-
-      const res = await api.post(`/report`, form, {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
+      const uploadResponse = await reportAPI.uploadReport(file);
+      const id = uploadResponse.reportId as string;
+      startPolling(id);
+      toast.message("Report uploaded", {
+        description: "Analyzing in background...",
       });
-
-      if (res.data?.success && res.data?.data?.reportId) {
-        const id = res.data.data.reportId as string;
-        startPolling(id);
-        toast.message("Report uploaded", {
-          description: "Analyzing in background...",
-        });
-      } else {
-        throw new Error(res.data?.message || "Upload failed");
-      }
     } catch (err: unknown) {
       setIsUploading(false);
       setStatus("FAILED");
-      const msg =
-        axios.isAxiosError(err)
-          ? err.response?.data?.message || err.message
-          : err instanceof Error ? err.message : "Upload failed";
+      const msg = err instanceof Error ? err.message : "Upload failed";
       setErrorMessage(msg);
       toast.error(msg);
     }

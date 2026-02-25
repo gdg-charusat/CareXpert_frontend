@@ -7,6 +7,7 @@
  * 4. Added inline error messages for validation
  * 5. Centralized validation in Zod schema instead of manual checks
  * 6. Used zodResolver to connect Zod schema with react-hook-form
+ * 7. Updated to use centralized API service (doctorAPI, patientAPI)
  */
 
 import { useState, useEffect } from "react";
@@ -32,17 +33,13 @@ import {
 import { Textarea } from "../components/ui/textarea";
 import { MapPin, Clock, Star, Video, User } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
-import axios from "axios";
+import { doctorAPI, patientAPI } from "@/services/endpoints/api";
 import { useAuthStore } from "@/store/authstore";
+import type { Doctor } from "@/services/types/api";
+
 
 /**
  * Zod Schema for Appointment Booking Form
- * - doctorId: required string
- * - date: required, must be a valid date string
- * - time: required, must be selected
- * - appointmentType: enum of ONLINE or OFFLINE
- * - notes: optional string
  */
 const appointmentSchema = z.object({
   doctorId: z.string().min(1, "Doctor ID is required"),
@@ -56,30 +53,6 @@ const appointmentSchema = z.object({
 
 // Type inference from Zod schema
 type AppointmentFormData = z.infer<typeof appointmentSchema>;
-
-// Type for Doctor data from API
-type Doctor = {
-  id: string;
-  userId: string;
-  specialty: string;
-  clinicLocation: string;
-  experience: string;
-  education: string;
-  bio: string;
-  languages: string[];
-  consultationFee: number;
-  user: {
-    name: string;
-    profilePicture: string;
-  };
-};
-
-type DoctorApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: Doctor;
-};
 
 export default function BookAppointmentPage() {
   const { id: doctorId } = useParams<{ id: string }>();
@@ -123,18 +96,14 @@ export default function BookAppointmentPage() {
 
     const fetchDoctor = async () => {
       try {
-        const res = await api.get<DoctorApiResponse>(
-          `/api/patient/fetchAllDoctors`
-        );
+        const doctors = await doctorAPI.getAllDoctors();
         
-        if (res.data.success) {
-          const foundDoctor = res.data.data;
-          if (foundDoctor && foundDoctor.id === doctorId) {
-            setDoctor(foundDoctor);
-          } else {
-            toast.error("Doctor not found");
-            navigate("/doctors");
-          }
+        const foundDoctor = doctors.find((d) => d.id === doctorId);
+        if (foundDoctor) {
+          setDoctor(foundDoctor);
+        } else {
+          toast.error("Doctor not found");
+          navigate("/doctors");
         }
       } catch (err: any) {
         toast.error(err?.message || "Failed to fetch doctor details");
@@ -152,22 +121,25 @@ export default function BookAppointmentPage() {
   /**
    * Handle form submission - simplified with react-hook-form
    * Validation is handled automatically by zodResolver
-   * No need for manual checks like "if (!formData.date || !formData.time)"
    */
   const onSubmit = async (data: AppointmentFormData) => {
     setBooking(true);
     
     try {
-      // Used centralized api instance and react-hook-form data
-      const res = await api.post(`/patient/book-direct-appointment`, data);
+      // Use centralized patientAPI service to book appointment
+      await patientAPI.bookAppointment(
+        data.doctorId,
+        data.date,
+        data.time,
+        data.appointmentType,
+        data.notes
+      );
 
-      if (res.data.success) {
-        toast.success("Appointment request sent successfully! You will be notified once the doctor responds.");
-        navigate("/dashboard/patient");
-      }
+      toast.success("Appointment request sent successfully! You will be notified once the doctor responds.");
+      navigate("/dashboard/patient");
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Failed to book appointment");
+      if (err instanceof Error) {
+        toast.error(err.message || "Failed to book appointment");
       } else {
         toast.error("An unexpected error occurred");
       }

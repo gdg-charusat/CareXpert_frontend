@@ -3,19 +3,10 @@ import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Bell, Check, CheckCheck, Calendar, Stethoscope } from "lucide-react";
-import { api } from "@/lib/api";
+import { notificationAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/utils";
-
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  appointmentId?: string;
-  createdAt: string;
-}
+import type { Notification } from "@/services/types/api";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -28,14 +19,8 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await api.get(
-        `/user/notifications`,
-        { withCredentials: true }
-      );
-      
-      if (response.data.success) {
-        setNotifications(response.data.data.notifications);
-      }
+      const notifications = await notificationAPI.getNotifications();
+      setNotifications(notifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       toast.error("Failed to fetch notifications");
@@ -47,11 +32,7 @@ export default function NotificationsPage() {
   const markAsRead = async (notificationId: string) => {
     setMarkingAsRead(notificationId);
     try {
-      await api.put(
-        `/user/notifications/${notificationId}/read`,
-        {},
-        { withCredentials: true }
-      );
+      await notificationAPI.markAsRead(notificationId);
       
       setNotifications(prev => 
         prev.map(notif => 
@@ -71,11 +52,7 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      await api.put(
-        `/user/notifications/mark-all-read`,
-        {},
-        { withCredentials: true }
-      );
+      await notificationAPI.markAllAsRead();
       
       setNotifications(prev => 
         prev.map(notif => ({ ...notif, isRead: true }))

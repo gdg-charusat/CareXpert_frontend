@@ -20,27 +20,11 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
-import { api } from "@/lib/api";
-import axios from "axios";
+import { patientAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import EmptyState from "@/components/EmptyState";
-
-type Prescription = {
-  id: string;
-  date: string;
-  prescriptionText: string;
-  doctorName: string;
-  speciality: string;
-  clinicLocation: string;
-}
-
-type PrescriptionApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: Prescription[];
-}
+import type { Prescription } from "@/services/types/api";
 
 export default function PrescriptionsPage() {
   const navigate = useNavigate();
@@ -57,13 +41,11 @@ export default function PrescriptionsPage() {
     async function fetchPrescriptions() {
       try {
         setIsLoading(true);
-        const res = await api.get<PrescriptionApiResponse>(`/patient/view-Prescriptions`, { withCredentials: true });
-        if (res.data.success) {
-          setPrescriptions(res.data.data);
-        }
+        const prescriptions = await patientAPI.getPrescriptions();
+        setPrescriptions(prescriptions);
       } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+        if (err instanceof Error) {
+          toast.error(err.message || "Something went wrong");
         } else {
           toast.error("Unknown error occurred");
         }

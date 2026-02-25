@@ -18,8 +18,7 @@ import {
   Mail,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
-import { api } from "@/lib/api";
-import axios from "axios";
+import { doctorAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import EmptyState from "@/components/EmptyState";
@@ -34,57 +33,27 @@ import {
 } from "../components/ui/dialog";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
-
-type AppointmentRequest = {
-  id: string;
-  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "REJECTED";
-  appointmentType: "ONLINE" | "OFFLINE";
-  date: string;
-  time: string;
-  notes?: string;
-  consultationFee?: number;
-  createdAt: string;
-  prescriptionId?: string | null;
-  patient: {
-    id: string;
-    name: string;
-    email: string;
-    profilePicture?: string;
-    medicalHistory?: string;
-  };
-  timeSlot?: {
-    id: string;
-    startTime: string;
-    endTime: string;
-    consultationFee?: number;
-  };
-};
-
-type AppointmentApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: AppointmentRequest[];
-};
+import type { Appointment } from "@/services/types/api";
 
 export default function DoctorAppointmentsPage() {
-  const [appointments, setAppointments] = useState<AppointmentRequest[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<AppointmentRequest[]>(
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<Appointment[]>(
     []
   );
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"requests" | "all">("requests");
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] =
-    useState<AppointmentRequest | null>(null);
+    useState<Appointment | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [processing, setProcessing] = useState(false);
   const [prescriptionDialogOpen, setPrescriptionDialogOpen] = useState(false);
   const [prescriptionText, setPrescriptionText] = useState("");
   const [prescriptionForAppointmentId, setPrescriptionForAppointmentId] =
     useState<string | null>(null);
-  const [completeAfterPrescription, setCompleteAfterPrescription] =
-    useState(false);
+  // @ts-ignore - Reserved for future feature: auto-complete appointment after prescription
+  const [_completeAfterPrescription, _setCompleteAfterPrescription] =
+    useState(false); // Used to track if we need to mark appointment as completed after adding prescription
 
   const user = useAuthStore((state) => state.user);
   useEffect(() => {
@@ -97,31 +66,18 @@ export default function DoctorAppointmentsPage() {
     try {
       setLoading(true);
 
-      // Fetch pending requests
-      const pendingResponse = await api.get<AppointmentApiResponse>(
-        `/doctor/pending-requests`,
-        { withCredentials: true }
-      );
+      // Fetch pending requests and all appointments using centralized API service
+      const [pending, all] = await Promise.all([
+        doctorAPI.getPendingRequests(),
+        doctorAPI.getAllAppointments(),
+      ]);
 
-      // Fetch all appointments
-      const allResponse = await api.get<AppointmentApiResponse>(
-        `/doctor/all-appointments`,
-        { withCredentials: true }
-      );
-
-      if (pendingResponse.data.success) {
-        setPendingRequests(pendingResponse.data.data);
-      }
-
-      if (allResponse.data.success) {
-        setAppointments(allResponse.data.data);
-      }
+      setPendingRequests(pending);
+      setAppointments(all);
     } catch (error) {
       console.error("Error fetching appointments:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          error.response.data?.message || "Failed to fetch appointments"
-        );
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to fetch appointments");
       } else {
         toast.error("Failed to fetch appointments");
       }
@@ -133,22 +89,14 @@ export default function DoctorAppointmentsPage() {
   const handleAcceptAppointment = async (appointmentId: string) => {
     try {
       setProcessing(true);
-      const response = await api.patch(
-        `/doctor/appointment-requests/${appointmentId}/respond`,
-        { action: "accept" },
-        { withCredentials: true }
-      );
+      await doctorAPI.respondToAppointmentRequest(appointmentId, "accept");
 
-      if (response.data.success) {
-        toast.success("Appointment accepted successfully!");
-        fetchAppointments();
-      }
+      toast.success("Appointment accepted successfully!");
+      fetchAppointments();
     } catch (error) {
       console.error("Error accepting appointment:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          error.response.data?.message || "Failed to accept appointment"
-        );
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to accept appointment");
       } else {
         toast.error("Failed to accept appointment");
       }
@@ -164,46 +112,23 @@ export default function DoctorAppointmentsPage() {
     }
     try {
       setProcessing(true);
-      const res = await api.post(
-        `/doctor/appointments/${prescriptionForAppointmentId}/prescription`,
-        { prescriptionText: prescriptionText.trim() },
-        { withCredentials: true }
+      
+      // Use centralized API service to complete appointment with prescription
+      await doctorAPI.completeAppointmentWithPrescription(
+        prescriptionForAppointmentId,
+        prescriptionText.trim()
       );
-      if (res.data.success) {
-        toast.success("Prescription saved");
-        // If we initiated from "Mark Completed", mark the appointment as completed now
-        if (completeAfterPrescription && prescriptionForAppointmentId) {
-          try {
-            const completeRes = await api.patch(
-              `/doctor/appointments/${prescriptionForAppointmentId}/complete`,
-              {},
-              { withCredentials: true }
-            );
-            if (completeRes.data.success) {
-              toast.success("Appointment marked as completed");
-            }
-          } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-              toast.error(
-                error.response.data?.message || "Failed to mark as completed"
-              );
-            } else {
-              toast.error("Failed to mark as completed");
-            }
-          }
-        }
 
-        setCompleteAfterPrescription(false);
-        setPrescriptionDialogOpen(false);
-        setPrescriptionText("");
-        setPrescriptionForAppointmentId(null);
-        fetchAppointments();
-      }
+      toast.success("Prescription saved and appointment marked as completed");
+
+      setPrescriptionDialogOpen(false);
+      setPrescriptionText("");
+      setPrescriptionForAppointmentId(null);
+      _setCompleteAfterPrescription(false);
+      fetchAppointments();
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          error.response.data?.message || "Failed to save prescription"
-        );
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to save prescription");
       } else {
         toast.error("Failed to save prescription");
       }
@@ -212,7 +137,7 @@ export default function DoctorAppointmentsPage() {
     }
   };
 
-  const canMarkCompleted = (appointment: AppointmentRequest) => {
+  const canMarkCompleted = (appointment: Appointment) => {
     if (
       appointment.appointmentType !== "OFFLINE" ||
       appointment.status !== "CONFIRMED"
@@ -231,7 +156,7 @@ export default function DoctorAppointmentsPage() {
   const handleMarkCompleted = async (appointmentId: string) => {
     // On completion, require prescription first, then complete
     setPrescriptionForAppointmentId(appointmentId);
-    setCompleteAfterPrescription(true);
+    _setCompleteAfterPrescription(true);
     setPrescriptionDialogOpen(true);
   };
 
@@ -243,28 +168,22 @@ export default function DoctorAppointmentsPage() {
 
     try {
       setProcessing(true);
-      const response = await api.patch(
-        `/doctor/appointment-requests/${selectedAppointment.id}/respond`,
-        {
-          action: "reject",
-          rejectionReason: rejectionReason.trim(),
-        },
-        { withCredentials: true }
+      
+      // Use centralized API service to reject appointment
+      await doctorAPI.respondToAppointmentRequest(
+        selectedAppointment.id,
+        "reject",
+        rejectionReason.trim()
       );
 
-      if (response.data.success) {
-        toast.success("Appointment request rejected");
-        setRejectDialogOpen(false);
-        setRejectionReason("");
-        setSelectedAppointment(null);
-        fetchAppointments(); // Refresh the list
-      }
+      toast.success("Appointment request rejected");
+      setRejectDialogOpen(false);
+      setRejectionReason("");
+      setSelectedAppointment(null);
+      fetchAppointments();
     } catch (error) {
-      console.error("Error rejecting appointment:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          error.response.data?.message || "Failed to reject appointment"
-        );
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to reject appointment");
       } else {
         toast.error("Failed to reject appointment");
       }
@@ -409,19 +328,19 @@ export default function DoctorAppointmentsPage() {
                         <div className="flex items-center space-x-4">
                           <Avatar className="h-12 w-12">
                             <AvatarImage
-                              src={appointment.patient.profilePicture}
+                              src={appointment.patient?.profilePicture || "/placeholder.svg"}
                             />
                             <AvatarFallback>
-                              {appointment.patient.name.charAt(0)}
+                              {appointment.patient?.name?.charAt(0) || "P"}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <CardTitle className="text-lg">
-                              {appointment.patient.name}
+                              {appointment.patient?.name || "Patient"}
                             </CardTitle>
                             <CardDescription className="flex items-center space-x-2">
                               <Mail className="h-4 w-4" />
-                              <span>{appointment.patient.email}</span>
+                              <span>{appointment.patient?.email || "No email"}</span>
                             </CardDescription>
                           </div>
                         </div>
@@ -468,13 +387,13 @@ export default function DoctorAppointmentsPage() {
                         </div>
                       )}
 
-                      {appointment.patient.medicalHistory && (
+                      {(appointment.patient as any)?.medicalHistory && (
                         <div className="mb-4">
                           <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             Medical History:
                           </Label>
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            {appointment.patient.medicalHistory}
+                            {(appointment.patient as any).medicalHistory}
                           </p>
                         </div>
                       )}
@@ -597,18 +516,18 @@ export default function DoctorAppointmentsPage() {
                         <div className="flex items-center space-x-4">
                           <Avatar className="h-10 w-10">
                             <AvatarImage
-                              src={appointment.patient.profilePicture}
+                              src={appointment.patient?.profilePicture || "/placeholder.svg"}
                             />
                             <AvatarFallback>
-                              {appointment.patient.name.charAt(0)}
+                              {appointment.patient?.name?.charAt(0) || "P"}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <h3 className="font-semibold text-gray-900 dark:text-white">
-                              {appointment.patient.name}
+                              {appointment.patient?.name || "Patient"}
                             </h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {appointment.patient.email}
+                              {appointment.patient?.email || "No email"}
                             </p>
                           </div>
                         </div>
