@@ -116,82 +116,9 @@ const [sortBy, setSortBy] = useState("name-asc");
             params: { search: debouncedSearch },
           }
         );
-if (res.data.success) {
-  setDoctors([
-    {
-      id: "1",
-      userId: "1",
-      specialty: "Cardiology",
-      clinicLocation: "New York, NY",
-      experience: "5 years",
-      education: "MBBS",
-      bio: "",
-      languages: ["English"],
-      consultationFee: 200,
-      user: { name: "Dr. A", profilePicture: "" }
-    },
-    {
-      id: "2",
-      userId: "2",
-      specialty: "Cardiology",
-      clinicLocation: "New York, NY",
-      experience: "8 years",
-      education: "MBBS",
-      bio: "",
-      languages: ["English"],
-      consultationFee: 100,
-      user: { name: "Dr. B", profilePicture: "" }
-    },
-    {
-      id: "3",
-      userId: "3",
-      specialty: "Dermatology",
-      clinicLocation: "Boston, MA",
-      experience: "10 years",
-      education: "MD",
-      bio: "",
-      languages: ["English"],
-      consultationFee: 300,
-      user: { name: "Dr. C", profilePicture: "" }
-    },
-    {
-      id: "4",
-      userId: "4",
-      specialty: "Neurology",
-      clinicLocation: "Miami, FL",
-      experience: "6 years",
-      education: "MD",
-      bio: "",
-      languages: ["English"],
-      consultationFee: 250,
-      user: { name: "Dr. D", profilePicture: "" }
-    },
-    {
-      id: "5",
-      userId: "5",
-      specialty: "Orthopedics",
-      clinicLocation: "Seattle, WA",
-      experience: "4 years",
-      education: "MBBS",
-      bio: "",
-      languages: ["English"],
-      consultationFee: 150,
-      user: { name: "Dr. E", profilePicture: "" }
-    },
-    {
-      id: "6",
-      userId: "6",
-      specialty: "Gynecology",
-      clinicLocation: "Chicago, IL",
-      experience: "7 years",
-      education: "MD",
-      bio: "",
-      languages: ["English"],
-      consultationFee: 220,
-      user: { name: "Dr. F", profilePicture: "" }
-    }
-  ]);
-}
+        if (res.data.success) {
+          setDoctors(res.data.data);
+        }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
@@ -225,7 +152,7 @@ useEffect(() => {
     specialty: selectedSpecialty,
     location: selectedLocation,
   });
-}, [currentPage, sortBy, selectedSpecialty, selectedLocation]);
+}, [currentPage, sortBy, selectedSpecialty, selectedLocation, setSearchParams]);
   /* ================= FILTERS ================= */
 
   const specialties = [
@@ -377,7 +304,7 @@ useEffect(() => {
 
         {/* Search */}
         <Card className="mb-8">
-          <CardContent className="p-6 grid md:grid-cols-4 gap-4">
+          <CardContent className="p-6 grid md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -418,7 +345,17 @@ useEffect(() => {
                 ))}
               </SelectContent>
             </Select>
-
+<Select value={sortBy} onValueChange={setSortBy}>
+  <SelectTrigger>
+    <SelectValue placeholder="Sort By" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="name-asc">Name A to Z</SelectItem>
+    <SelectItem value="name-desc">Name Z to A</SelectItem>
+    <SelectItem value="fee-asc">Fee Low to High</SelectItem>
+    <SelectItem value="fee-desc">Fee High to Low</SelectItem>
+  </SelectContent>
+</Select>
             <Button>
               <Filter className="h-4 w-4 mr-2" /> Apply
             </Button>
