@@ -11,8 +11,8 @@ import { Upload, FileText, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { Badge } from "../components/ui/badge";
+import { notify } from "@/lib/toast";
 
 export default function UploadReportPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -84,13 +84,13 @@ export default function UploadReportPage() {
             setResult(r);
             stopPolling();
             setIsUploading(false);
-            toast.success("Report analyzed successfully");
+            notify.success("Report analyzed successfully");
           } else if (r.status === "FAILED") {
             setStatus("FAILED");
             setErrorMessage(r.error || "Analysis failed");
             stopPolling();
             setIsUploading(false);
-            toast.error(r.error || "Report analysis failed");
+            notify.error(r.error || "Report analysis failed");
           } else {
             setStatus("PROCESSING");
           }
@@ -120,9 +120,7 @@ const handleSubmit = async () => {
       if (res.data?.success && res.data?.data?.reportId) {
         const id = res.data.data.reportId as string;
         startPolling(id);
-        toast.message("Report uploaded", {
-          description: "Analyzing in background...",
-        });
+        notify.info("Report uploaded. Analyzing in background...");
       } else {
         throw new Error(res.data?.message || "Upload failed");
       }
@@ -134,7 +132,7 @@ const handleSubmit = async () => {
           ? err.response?.data?.message || err.message
           : err instanceof Error ? err.message : "Upload failed";
       setErrorMessage(msg);
-      toast.error(msg);
+      notify.error(msg);
     }
   };
 

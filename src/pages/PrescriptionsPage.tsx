@@ -22,9 +22,9 @@ import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
 import EmptyState from "@/components/EmptyState";
+import { notify } from "@/lib/toast";
 
 type Prescription = {
   id: string;
@@ -63,9 +63,9 @@ export default function PrescriptionsPage() {
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+          notify.error(err.response.data?.message || "Something went wrong");
         } else {
-          toast.error("Unknown error occurred");
+          notify.error("Unknown error occurred");
         }
       } finally {
         setIsLoading(false);
