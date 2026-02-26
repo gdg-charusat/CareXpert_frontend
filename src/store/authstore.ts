@@ -28,15 +28,14 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       setUser: (user) => set({ user }),
       logout: () => {
-<<<<<<< HEAD
-        // Disconnect socket first, then clear user state and persisted storage.
+        // Clear persisted auth storage
+        try {
+          localStorage.removeItem("auth-storage");
+        } catch (e) {
+          // ignore storage errors
+        }
         disconnectSocket();
         set({ user: null });
-        localStorage.removeItem('auth-storage');
-=======
-        set({ user: null });
-        disconnectSocket();
->>>>>>> 1131484 (Enhance security by eliminating localStorage token usage. Fixes #68.)
       },
       login: async (email: string, password: string) => {
         set({ isLoading: true });
