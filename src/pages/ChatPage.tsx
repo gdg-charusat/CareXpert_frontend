@@ -36,14 +36,13 @@ import {
   FormattedMessage,
   joinRoom,
   joinCommunityRoom,
-  offMessage,
-  onMessage,
   sendMessage,
   SendMessageToRoom,
   loadOneOnOneChatHistory,
   loadCityChatHistory,
   loadRoomChatHistory as _loadRoomChatHistory,
 } from "@/sockets/socket";
+import { useChatSocket } from "@/hooks/useChatSocket";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
 
@@ -601,32 +600,48 @@ export default function ChatPage() {
   };
 
   // Listen for incoming messages
-  //Changed this for preventing duplicate listeners
+  // Centralized socket subscription to avoid re-attaching listeners on every
+  // selectedChat/user change. We use refs captured by the handler to access
+  // current selectedChat/user values without recreating the listener.
+  const { subscribe } = useChatSocket();
+
+  // refs to hold latest values for use inside the stable handler
+  const selectedChatRef = useRef(selectedChat);
+  const userRef = useRef(user);
+
   useEffect(() => {
-    const handleIncomingMessage = (msg: FormattedMessage) => {
-      if (msg.senderId === user?.id) return;
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  useEffect(() => {
+    const handler = (msg: FormattedMessage) => {
+      const curUser = userRef.current;
+      const curSelected = selectedChatRef.current;
+
+      if (msg.senderId === curUser?.id) return;
 
       if (
-        typeof selectedChat === "object" &&
-        selectedChat.type === "doctor" &&
-        generateRoomId(user?.id || "", selectedChat.data.userId) === msg.roomId
+        typeof curSelected === 'object' &&
+        curSelected.type === 'doctor' &&
+        generateRoomId(curUser?.id || '', curSelected.data.userId) === msg.roomId
       ) {
         setMessages((prev) => [...prev, msg]);
       } else if (
-        typeof selectedChat === "object" &&
-        selectedChat.type === "room" &&
-        selectedChat.id === msg.roomId
+        typeof curSelected === 'object' &&
+        curSelected.type === 'room' &&
+        (curSelected.id === msg.roomId || (activeRoomId && activeRoomId === msg.roomId))
       ) {
         setMessages((prev) => [...prev, msg]);
       }
     };
 
-    onMessage(handleIncomingMessage);
-
-    return () => {
-      offMessage(handleIncomingMessage);
-    };
-  }, [selectedChat, user]);
+    const unsubscribe = subscribe(handler);
+    return () => unsubscribe();
+  }, [subscribe, activeRoomId]);
 
   return (
     <div className="h-[calc(100%-1rem)] overflow-hidden flex flex-col mt-4">
