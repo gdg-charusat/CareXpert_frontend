@@ -36,18 +36,11 @@ import {
   SelectValue as _SelectValue,
 } from "../components/ui/select";
 import { ScrollArea as _ScrollArea } from "../components/ui/scroll-area";
-import { api } from "@/lib/api";
+import { doctorAPI } from "@/services/endpoints/api";
 import axios from "axios";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authstore";
 import { Appointment } from "@/types";
-
-type AppointmentApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: Appointment[];
-};
 
 export default function DoctorDashboard() {
   const navigate = useNavigate();
@@ -70,12 +63,7 @@ export default function DoctorDashboard() {
   useEffect(() => {
     async function fetchAppointments() {
       try {
-        const res = await api.get<AppointmentApiResponse>(
-          `/doctor/all-appointments`,
-          { withCredentials: true }
-        );
-        if (res.data.success) {
-          const allAppointments = res.data.data;
+        const allAppointments = await doctorAPI.getAllAppointments();
           const now = new Date();
           const today = new Date();
           today.setHours(0, 0, 0, 0);
@@ -96,7 +84,6 @@ export default function DoctorDashboard() {
           
           setTodayAppointments(todayApts);
           setUpcomingApppointments(upcoming);
-        }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");

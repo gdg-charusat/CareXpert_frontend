@@ -18,39 +18,11 @@ import {
   Plus,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
-import { api } from "@/lib/api";
+import { patientAPI } from "@/services/endpoints/api";
+import type { Appointment } from "@/services/types/api";
 import axios from "axios";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-
-type Appointment = {
-  id: string;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'REJECTED';
-  appointmentType: 'ONLINE' | 'OFFLINE';
-  date: string;
-  time: string;
-  notes?: string;
-  consultationFee?: number;
-  createdAt: string;
-  doctor: {
-    id: string;
-    name: string;
-    profilePicture?: string;
-    specialty: string;
-    clinicLocation: string;
-    experience: string;
-    education?: string;
-    bio?: string;
-    languages: string[];
-  };
-}
-
-type AppointmentApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: Appointment[];
-}
 
 export default function AppointmentManagementPage() {
   const navigate = useNavigate();
@@ -68,37 +40,34 @@ export default function AppointmentManagementPage() {
     async function fetchAppointments() {
       try {
         setIsLoading(true);
-        const res = await api.get<AppointmentApiResponse>(`/patient/all-appointments`, { withCredentials: true });
-        if (res.data.success) {
-          const allAppointments = res.data.data;
-          const now = new Date();
-          
-          
-          function parseAppointmentDateTime(dateStr: string, timeStr: string) {
-            // If dateStr already contains 'T', assume it's ISO and just return new Date(dateStr)
-            if (dateStr.includes('T')) {
-              return new Date(dateStr);
-            }
-            // Otherwise, combine date and time as local time
-            // e.g. "2025-09-14" + "12:30" => "2025-09-14T12:30"
-            // This will be interpreted as local time by JS Date
-            return new Date(`${dateStr}T${timeStr}`);
+        const allAppointments = await patientAPI.getMyAppointments();
+        const now = new Date();
+        
+        
+        function parseAppointmentDateTime(dateStr: string, timeStr: string) {
+          // If dateStr already contains 'T', assume it's ISO and just return new Date(dateStr)
+          if (dateStr.includes('T')) {
+            return new Date(dateStr);
           }
-
-          // Separate upcoming and past appointments
-          const upcoming = allAppointments.filter(apt => {
-            const appointmentDateTime = parseAppointmentDateTime(apt.date, apt.time);
-            return appointmentDateTime >= now;
-          });
-
-          const past = allAppointments.filter(apt => {
-            const appointmentDateTime = parseAppointmentDateTime(apt.date, apt.time);
-            return appointmentDateTime < now;
-          });
-          
-          setUpcomingAppointments(upcoming);
-          setPastAppointments(past);
+          // Otherwise, combine date and time as local time
+          // e.g. "2025-09-14" + "12:30" => "2025-09-14T12:30"
+          // This will be interpreted as local time by JS Date
+          return new Date(`${dateStr}T${timeStr}`);
         }
+
+        // Separate upcoming and past appointments
+        const upcoming = allAppointments.filter(apt => {
+          const appointmentDateTime = parseAppointmentDateTime(apt.date, apt.time);
+          return appointmentDateTime >= now;
+        });
+
+        const past = allAppointments.filter(apt => {
+          const appointmentDateTime = parseAppointmentDateTime(apt.date, apt.time);
+          return appointmentDateTime < now;
+        });
+        
+        setUpcomingAppointments(upcoming);
+        setPastAppointments(past);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           toast.error(err.response.data.message);
@@ -188,21 +157,21 @@ export default function AppointmentManagementPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage
-                          src={appointment.doctor.profilePicture || "/placeholder.svg"}
+                          src={appointment.doctor?.user?.profilePicture || "/placeholder.svg"}
                         />
                         <AvatarFallback>
-                          {appointment.doctor.name
+                          {(appointment.doctor?.user?.name || "D")
                             .split(" ")
-                            .map((n) => n[0])
+                            .map((n: string) => n[0])
                             .join("")}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <h4 className="font-semibold text-gray-900 dark:text-white">
-                          {appointment.doctor.name}
+                          {appointment.doctor?.user?.name || 'Unknown Doctor'}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {appointment.doctor.specialty}
+                          {appointment.doctor?.specialty}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           {new Date(appointment.date).toLocaleDateString("en-US")} at {appointment.time}
@@ -287,21 +256,21 @@ export default function AppointmentManagementPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage
-                          src={appointment.doctor.profilePicture || "/placeholder.svg"}
+                          src={appointment.doctor?.user?.profilePicture || "/placeholder.svg"}
                         />
                         <AvatarFallback>
-                          {appointment.doctor.name
+                          {(appointment.doctor?.user?.name || "D")
                             .split(" ")
-                            .map((n) => n[0])
+                            .map((n: string) => n[0])
                             .join("")}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <h4 className="font-semibold text-gray-900 dark:text-white">
-                          {appointment.doctor.name}
+                          {appointment.doctor?.user?.name || 'Unknown Doctor'}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {appointment.doctor.specialty}
+                          {appointment.doctor?.specialty}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           {new Date(appointment.date).toLocaleDateString("en-US")} at {appointment.time}

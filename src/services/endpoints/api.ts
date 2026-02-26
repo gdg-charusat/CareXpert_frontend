@@ -110,17 +110,50 @@ export const authAPI = {
    * Signup new user (Patient or Doctor)
    */
   signup: async (
-    name: string,
+    nameOrFirstName: string,
     email: string,
     password: string,
-    role: 'PATIENT' | 'DOCTOR' = 'PATIENT'
+    role: 'PATIENT' | 'DOCTOR' = 'PATIENT',
+    additionalData?: {
+      lastName?: string;
+      specialty?: string;
+      clinicLocation?: string;
+      location?: string;
+      phone?: string;
+    }
   ): Promise<LoginResponse> => {
-    const response = await api.post<ApiResponse<LoginResponse>>('/api/user/signup', {
-      name,
+    const payload: any = {
       email,
       password,
       role,
-    });
+    };
+
+    // Handle name fields
+    if (additionalData?.lastName) {
+      payload.firstName = nameOrFirstName;
+      payload.lastName = additionalData.lastName;
+    } else {
+      payload.name = nameOrFirstName;
+    }
+
+    // Add doctor-specific fields
+    if (additionalData?.specialty) {
+      payload.specialty = additionalData.specialty;
+    }
+
+    // Add clinic or patient location
+    if (additionalData?.clinicLocation) {
+      payload.clinicLocation = additionalData.clinicLocation;
+    } else if (additionalData?.location) {
+      payload.location = additionalData.location;
+    }
+
+    // Add phone if provided
+    if (additionalData?.phone) {
+      payload.phone = additionalData.phone;
+    }
+
+    const response = await api.post<ApiResponse<LoginResponse>>('/api/user/signup', payload);
 
     if (!response.data.success) {
       throw new Error(response.data.message || 'Signup failed');
@@ -522,6 +555,22 @@ export const notificationAPI = {
     }
 
     return response.data.data?.notifications as Notification[];
+  },
+
+  /**
+   * Fetch unread notification count
+   */
+  getUnreadCount: async (): Promise<{ unreadCount: number }> => {
+    const response = await api.get<ApiResponse<{ unreadCount: number }>>(
+      '/api/user/notifications/unread-count',
+      { withCredentials: true }
+    );
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to fetch unread count');
+    }
+
+    return response.data.data as { unreadCount: number };
   },
 
   /**

@@ -17,7 +17,7 @@ import {
 import { useAuthStore } from "@/store/authstore";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useRef, memo } from "react";
-import { api } from "@/lib/api";
+import { notificationAPI } from "@/services/endpoints/api";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -34,10 +34,8 @@ export const Sidebar = memo(function Sidebar({ isOpen, onToggle }: SidebarProps)
     if (user) {
       const fetchUnreadCount = async () => {
         try {
-          const response = await api.get('/user/notifications/unread-count');
-          if (response.data.success) {
-            setUnreadCount(response.data.data.unreadCount);
-          }
+          const data = await notificationAPI.getUnreadCount();
+          setUnreadCount(data.unreadCount);
         } catch (error) {
           console.error("Error fetching unread count:", error);
         }

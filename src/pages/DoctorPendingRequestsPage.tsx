@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { doctorAPI } from "@/services/endpoints/api";
 import axios from "axios";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -83,15 +83,13 @@ export default function DoctorPendingRequestsPage() {
   const fetchPendingRequests = async () => {
     try {
       setIsLoading(true);
-      const res = await api.get(`/doctor/pending-requests`, { withCredentials: true });
-      if (res.data.success) {
-        setPendingRequests(res.data.data);
-      }
+      const data = await doctorAPI.getPendingRequests();
+      setPendingRequests(data as PendingRequest[]);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         toast.error(err.response.data?.message || "Failed to fetch pending requests");
       } else {
-        toast.error("Unknown error occurred");
+        toast.error(err instanceof Error ? err.message : "Unknown error occurred");
       }
     } finally {
       setIsLoading(false);
@@ -109,35 +107,25 @@ export default function DoctorPendingRequestsPage() {
 
     try {
       setIsProcessing(true);
-      const payload: any = { action };
       
-      if (action === "reject") {
-        payload.rejectionReason = rejectionReason;
-        if (alternativeSlots.trim()) {
-          payload.alternativeSlots = alternativeSlots.split(",").map(slot => slot.trim());
-        }
-      }
-
-      const res = await api.patch(
-        `/doctor/appointment-requests/${selectedRequest.id}/respond`,
-        payload,
-        { withCredentials: true }
+      await doctorAPI.respondToAppointmentRequest(
+        selectedRequest.id,
+        action,
+        action === "reject" ? rejectionReason : undefined
       );
 
-      if (res.data.success) {
-        toast.success(`Appointment request ${action}ed successfully`);
-        await fetchPendingRequests(); // Refresh the list
-        setIsDialogOpen(false);
-        setSelectedRequest(null);
-        setAction(null);
-        setRejectionReason("");
-        setAlternativeSlots("");
-      }
+      toast.success(`Appointment request ${action}ed successfully`);
+      await fetchPendingRequests(); // Refresh the list
+      setIsDialogOpen(false);
+      setSelectedRequest(null);
+      setAction(null);
+      setRejectionReason("");
+      setAlternativeSlots("");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         toast.error(err.response.data?.message || "Failed to process request");
       } else {
-        toast.error("Unknown error occurred");
+        toast.error(err instanceof Error ? err.message : "Unknown error occurred");
       }
     } finally {
       setIsProcessing(false);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Send, Trash2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { aiChatAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
@@ -57,8 +57,8 @@ export function AIChatBox() {
       const isUserLoggedIn = useAuthStore.getState().user !== null;
 
       if (isUserLoggedIn) {
-        // Use your new centralized API instance
-        await api.delete('/ai-chat/history');
+        // Use centralized API layer
+        await aiChatAPI.clearHistory();
         toast.success("Chat history cleared from server");
       } else {
         // Just show success for demo mode

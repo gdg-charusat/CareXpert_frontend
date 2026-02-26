@@ -20,9 +20,10 @@ import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Heart, User, Stethoscope, MapPin, Eye, EyeOff, Phone } from "lucide-react";
+import { Heart, User as UserIcon, Stethoscope, MapPin, Eye, EyeOff, Phone } from "lucide-react";
 import { useAuthStore } from "../../store/authstore";
-import { api } from "@/lib/api";
+import { authAPI } from "@/services/endpoints/api";
+import type { User } from "@/services/types/api";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -149,30 +150,24 @@ export default function LoginSignup() {
     setIsLoading(true);
 
     try {
-      const response = await api.post(
-        `/user/login`,
-        data
-      );
-
-      if (response.data.success) {
-        setUser(response.data.data);
-        toast.success("Login successful!");
-        
-        // Navigate based on role
-        const role = response.data.data.role;
-        if (role === "DOCTOR") {
-          navigate("/dashboard/doctor");
-        } else if (role === "PATIENT") {
-          navigate("/dashboard/patient");
-        } else if (role === "ADMIN") {
-          navigate("/admin");
-        }
+      const loginResponse = await authAPI.login(data.data, data.password);
+      setUser(loginResponse as unknown as User);
+      toast.success("Login successful!");
+      
+      // Navigate based on role
+      const role = loginResponse.role;
+      if (role === "DOCTOR") {
+        navigate("/dashboard/doctor");
+      } else if (role === "PATIENT") {
+        navigate("/dashboard/patient");
+      } else if (role === "ADMIN") {
+        navigate("/admin");
       }
     } catch (error: any) {
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data?.message || "Login failed");
       } else {
-        toast.error("Login failed");
+        toast.error(error instanceof Error ? error.message : "Login failed");
       }
     } finally {
       setIsLoading(false);
@@ -193,39 +188,36 @@ export default function LoginSignup() {
     setIsLoading(true);
 
     try {
-      // Build payload from form values (already validated)
-      const payload = {
-        firstName: formValues.firstName,
+      // Build additional data based on role
+      const additionalData: any = {
         lastName: formValues.lastName,
-        email: formValues.email,
         phone: formValues.phone,
-        password: formValues.password,
-        role: formValues.role,
-        ...(formValues.role === "DOCTOR" && {
-          specialty: formValues.specialty,
-          clinicLocation: formValues.clinicLocation,
-        }),
-        ...(formValues.role === "PATIENT" && {
-          location: formValues.location,
-        }),
       };
 
-      const response = await api.post(
-        `/user/signup`,
-        payload
+      if (formValues.role === "DOCTOR") {
+        additionalData.specialty = formValues.specialty;
+        additionalData.clinicLocation = formValues.clinicLocation;
+      } else if (formValues.role === "PATIENT") {
+        additionalData.location = formValues.location;
+      }
+
+      await authAPI.signup(
+        formValues.firstName,
+        formValues.email,
+        formValues.password,
+        formValues.role,
+        additionalData
       );
 
-      if (response.data.success) {
-        toast.success("Signup successful! Please login.");
-        setIsLogin(true);
-        // Reset form using react-hook-form's reset method
-        signupForm.reset();
-      }
+      toast.success("Signup successful! Please login.");
+      setIsLogin(true);
+      // Reset form using react-hook-form's reset method
+      signupForm.reset();
     } catch (error: any) {
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data?.message || "Signup failed");
       } else {
-        toast.error("Signup failed");
+        toast.error(error instanceof Error ? error.message : "Signup failed");
       }
     } finally {
       setIsLoading(false);
@@ -340,7 +332,7 @@ export default function LoginSignup() {
                         className="h-20 flex flex-col items-center justify-center space-y-2"
                         onClick={() => handleRoleSelect("PATIENT")}
                       >
-                        <User className="h-6 w-6" />
+                        <UserIcon className="h-6 w-6" />
                         <span>Patient</span>
                       </Button>
                       <Button

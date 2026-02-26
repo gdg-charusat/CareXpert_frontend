@@ -24,7 +24,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { authAPI } from "@/services/endpoints/api";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
 
@@ -75,41 +75,37 @@ export default function PatientSignup() {
    */
   const onSubmit = async (data: PatientSignupFormData) => {
     try {
-      const res = await api.post(
-        `/user/signup`,
+      const res = await authAPI.signup(
+        data.firstName,
+        data.email,
+        data.password,
+        'PATIENT',
         {
-          firstName: data.firstName,
           lastName: data.lastName,
-          email: data.email,
-          password: data.password,
         }
       );
 
-      if (res.data.success) {
-        toast.success("Account created successfully!");
+      toast.success("Account created successfully!");
 
-        useAuthStore.getState().setUser({
-          id: res.data.data.id,
-          name: res.data.data.name,
-          email: res.data.data.email,
-          profilePicture: res.data.data.profilePicture,
-          role: res.data.data.role,
-          refreshToken: res.data.data.refreshToken,
-        });
+      useAuthStore.getState().setUser({
+        id: res.id,
+        name: res.name,
+        email: res.email,
+        profilePicture: res.profilePicture,
+        role: res.role as 'PATIENT' | 'DOCTOR' | 'ADMIN',
+        refreshToken: res.refreshToken,
+      });
 
-        if (res.data.data.role === "PATIENT") {
-          navigate("/dashboard/patient");
-        } else {
-          navigate("/dashboard/doctor");
-        }
+      if (res.role === "PATIENT") {
+        navigate("/dashboard/patient");
       } else {
-        toast.error(res.data.message || "Signup failed");
+        navigate("/dashboard/doctor");
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         toast.error(err.response.data?.message || "Something went wrong");
       } else {
-        toast.error("Unknown error occurred");
+        toast.error(err instanceof Error ? err.message : "Unknown error occurred");
       }
     }
   };

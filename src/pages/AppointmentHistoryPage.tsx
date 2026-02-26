@@ -4,7 +4,8 @@ import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Calendar, Clock, User, MapPin, FileText, Search } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
-import { api } from "@/lib/api";
+import { patientAPI } from "@/services/endpoints/api";
+import type { Appointment } from "@/services/types/api";
 import axios from "axios";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -16,37 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-
-type Appointment = {
-  id: string;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'REJECTED';
-  appointmentType: 'ONLINE' | 'OFFLINE';
-  date: string;
-  time: string;
-  notes?: string;
-  consultationFee?: number;
-  createdAt: string;
-  updatedAt: string;
-  prescriptionId?: string | null;
-  doctor: {
-    id: string;
-    name: string;
-    profilePicture?: string;
-    specialty: string;
-    clinicLocation: string;
-    experience: string;
-    education?: string;
-    bio?: string;
-    languages: string[];
-  };
-};
-
-type AppointmentApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: Appointment[];
-};
 
 export default function AppointmentHistoryPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -69,14 +39,8 @@ export default function AppointmentHistoryPage() {
   const fetchAppointmentHistory = async () => {
     try {
       setLoading(true);
-      const response = await api.get<AppointmentApiResponse>(
-        `/patient/all-appointments`,
-        { withCredentials: true }
-      );
-
-      if (response.data.success) {
-        setAppointments(response.data.data);
-      }
+      const appointments = await patientAPI.getMyAppointments();
+      setAppointments(appointments);
     } catch (error) {
       console.error("Error fetching appointment history:", error);
       if (axios.isAxiosError(error) && error.response) {
@@ -95,8 +59,8 @@ export default function AppointmentHistoryPage() {
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(appointment =>
-        appointment.doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appointment.doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+        appointment.doctor?.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.doctor?.specialty?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -332,10 +296,10 @@ export default function AppointmentHistoryPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                          {appointment.doctor.name}
+                          {appointment.doctor?.user?.name || 'Unknown Doctor'}
                         </h3>
                         <p className="text-sm text-blue-600 dark:text-blue-400">
-                          {appointment.doctor.specialty}
+                          {appointment.doctor?.specialty}
                         </p>
                       </div>
                     </div>
@@ -363,7 +327,7 @@ export default function AppointmentHistoryPage() {
                     <div className="flex items-center space-x-2">
                       <MapPin className="h-4 w-4 text-gray-500" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {appointment.doctor.clinicLocation}
+                        {appointment.doctor?.clinicLocation || 'Location not specified'}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">

@@ -13,7 +13,7 @@ import {
   Search,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
-import { api } from "@/lib/api";
+import { doctorAPI } from "@/services/endpoints/api";
 import axios from "axios";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -51,13 +51,6 @@ type AppointmentHistory = {
   };
 };
 
-type AppointmentApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: AppointmentHistory[];
-};
-
 export default function DoctorAppointmentHistoryPage() {
   const [appointments, setAppointments] = useState<AppointmentHistory[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<AppointmentHistory[]>([]);
@@ -80,14 +73,8 @@ export default function DoctorAppointmentHistoryPage() {
   const fetchAppointmentHistory = async () => {
     try {
       setLoading(true);
-      const response = await api.get<AppointmentApiResponse>(
-        `/doctor/all-appointments`,
-        { withCredentials: true }
-      );
-
-      if (response.data.success) {
-        setAppointments(response.data.data);
-      }
+      const appointments = await doctorAPI.getAllAppointments();
+      setAppointments(appointments as AppointmentHistory[]);
     } catch (error) {
       console.error("Error fetching appointment history:", error);
       if (axios.isAxiosError(error) && error.response) {
@@ -361,18 +348,18 @@ export default function DoctorAppointmentHistoryPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={appointment.patient.profilePicture} />
+                        <AvatarImage src={appointment.patient?.profilePicture || ''} />
                         <AvatarFallback>
-                          {appointment.patient.name.charAt(0)}
+                          {appointment.patient?.name?.charAt(0) || 'P'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                          {appointment.patient.name}
+                          {appointment.patient?.name || 'Unknown'}
                         </h3>
                         <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                           <Mail className="h-4 w-4" />
-                          <span>{appointment.patient.email}</span>
+                          <span>{appointment.patient?.email || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -420,10 +407,10 @@ export default function DoctorAppointmentHistoryPage() {
                     </div>
                   )}
 
-                  {appointment.patient.medicalHistory && (
+                  {(appointment.patient as any)?.medicalHistory && (
                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        <strong>Medical History:</strong> {appointment.patient.medicalHistory}
+                        <strong>Medical History:</strong> {(appointment.patient as any).medicalHistory}
                       </p>
                     </div>
                   )}

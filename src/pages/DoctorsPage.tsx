@@ -27,7 +27,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { patientAPI, doctorAPI } from "@/services/endpoints/api";
 import axios from "axios"; // Added this to fix the isAxiosError check
 import { useAuthStore } from "@/store/authstore";
 import EmptyState from "@/components/EmptyState";
@@ -48,13 +48,6 @@ type FindDoctors = {
     name: string;
     profilePicture: string;
   };
-};
-
-type FindDoctorsApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: FindDoctors[];
 };
 
 type AppointmentBookingData = {
@@ -110,15 +103,8 @@ const [sortBy, setSortBy] = useState("name-asc");
     const fetchDoctors = async () => {
       setIsLoading(true);
       try {
-        const res = await api.get<FindDoctorsApiResponse>(
-          `/patient/fetchAllDoctors`,
-          {
-            params: { search: debouncedSearch },
-          }
-        );
-        if (res.data.success) {
-          setDoctors(res.data.data);
-        }
+        const doctors = await doctorAPI.getAllDoctors();
+        setDoctors(doctors as FindDoctors[]);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           toast.error(err.response.data?.message || "Something went wrong");
@@ -253,15 +239,16 @@ useEffect(() => {
 
     setIsBooking(true);
     try {
-      const res = await api.post(
-        `/patient/book-direct-appointment`,
-        bookingData
+      await patientAPI.bookAppointment(
+        bookingData.doctorId,
+        bookingData.date,
+        bookingData.time,
+        bookingData.appointmentType,
+        bookingData.notes
       );
 
-      if (res.data.success) {
-        toast.success("Appointment booked successfully!");
-        closeBookingDialog();
-      }
+      toast.success("Appointment booked successfully!");
+      closeBookingDialog();
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setBookingError(

@@ -40,7 +40,7 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { api } from "@/lib/api";
+import { authAPI } from "@/services/endpoints/api";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -107,27 +107,25 @@ export default function DoctorSignup() {
    */
   const onSubmit = async (data: DoctorSignupFormData) => {
     try {
-      const res = await api.post(`/user/signup`, {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: data.password,
-        role: "DOCTOR",
-        specialty: data.specialty,
-        clinicLocation: data.location,
-      });
+      await authAPI.signup(
+        data.firstName,
+        data.email,
+        data.password,
+        'DOCTOR',
+        {
+          lastName: data.lastName,
+          specialty: data.specialty,
+          clinicLocation: data.location,
+        }
+      );
 
-      if (res.data.success) {
-        toast.success("Doctor account created successfully!");
-        navigate("/dashboard/doctor");
-      } else {
-        toast.error(res.data.message || "Signup failed");
-      }
+      toast.success("Doctor account created successfully!");
+      navigate("/dashboard/doctor");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         toast.error(err.response.data?.message || "Something went wrong");
       } else {
-        toast.error("Unknown error occurred.");
+        toast.error(err instanceof Error ? err.message : "Unknown error occurred.");
       }
       console.error(err);
     }
