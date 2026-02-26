@@ -106,7 +106,7 @@ export default function LoginSignup() {
 
   /**
    * Login Form - using react-hook-form with Zod resolver
-   * Benefits: 
+   * Benefits:
    * - No manual state management for form fields
    * - Automatic validation on submit and onChange (after first submit)
    * - Type-safe form data
@@ -141,114 +141,55 @@ export default function LoginSignup() {
     },
   });
 
+  const selectedRole = signupForm.watch("role");
+
   /**
    * Handle Login - simplified with react-hook-form
    * Form validation is handled automatically by zodResolver
    */
   const handleLogin = async (data: LoginFormData) => {
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    const response = await api.post(`/user/login`, data);
+    try {
+      const response = await api.post(`/user/login`, data);
 
-    if (response.data.success) {
-      setUser(response.data.data);
+      if (response.data.success) {
+        setUser(response.data.data);
+        notify.success("Login successful!");
 
-      notify.success("Login successful!"); // ✅ updated
-
-      const role = response.data.data.role;
-      if (role === "DOCTOR") {
-        navigate("/dashboard/doctor");
-      } else if (role === "PATIENT") {
-        navigate("/dashboard/patient");
-      } else if (role === "ADMIN") {
-        navigate("/admin");
+        const role = response.data.data.role;
+        if (role === "DOCTOR") {
+          navigate("/dashboard/doctor");
+        } else if (role === "PATIENT") {
+          navigate("/dashboard/patient");
+        } else if (role === "ADMIN") {
+          navigate("/admin");
+        }
       }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        notify.error(error.response?.data?.message || "Login failed");
+      } else {
+        notify.error("Login failed");
+      }
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      notify.error(
-        error.response?.data?.message || "Login failed"
-      );
-    } else {
-      notify.error("Login failed");
-    }
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  /**
-   * Handle Signup - with Zod validation
-   * Password matching and role-specific fields are validated by schema
-   * FIX: Changed signature from (e: React.FormEvent) to (data: SignupFormFields)
-   * to match react-hook-form's handleSubmit expected type
-   */
-  const handleSignup = async (data: SignupFormFields) => {
-  if (!selectedRole) {
-    notify.error("Please select a role");
-    return;
-  }
-
-  const completeData = {
-    firstName: data.firstName,
-    lastName: data.lastName,
-    email: data.email,
-    password: data.password,
-    confirmPassword: data.confirmPassword,
-    role: selectedRole,
-    ...(selectedRole === "PATIENT" && { location: data.location }),
-    ...(selectedRole === "DOCTOR" && {
-      specialty: data.specialty,
-      clinicLocation: data.clinicLocation,
-    }),
   };
 
-  const validationResult = signupSchema.safeParse(completeData);
-
-  if (!validationResult.success) {
-    const firstError = validationResult.error.errors[0];
-    notify.error(firstError.message);
-    return;
-  }
-
-  setIsLoading(true);
-
-  try {
-    const payload = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      password: data.password,
-      role: selectedRole,
-      ...(selectedRole === "DOCTOR" && {
-        specialty: data.specialty,
-        clinicLocation: data.clinicLocation,
-      }),
-      ...(selectedRole === "PATIENT" && {
-        location: data.location,
-      }),
-    };
-
-    const response = await api.post(`/user/signup`, payload);
-
-    if (response.data.success) {
-      notify.success("Signup successful! Please login.");
-
-      setIsLogin(true);
-      signupForm.reset();
-      setSelectedRole(null);
+  /**
+   * Handle Signup - with Zod validation via react-hook-form resolver
+   * Password matching and role-specific fields are validated by schema
+   */
   const handleSignup = async (formValues: SignupFormFields) => {
-    // Check role first
     if (!formValues.role) {
-      toast.error("Please select a role");
+      notify.error("Please select a role");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Build payload from form values (already validated)
       const payload = {
         firstName: formValues.firstName,
         lastName: formValues.lastName,
@@ -265,38 +206,23 @@ export default function LoginSignup() {
         }),
       };
 
-      const response = await api.post(
-        `/user/signup`,
-        payload
-      );
+      const response = await api.post(`/user/signup`, payload);
 
       if (response.data.success) {
-        toast.success("Signup successful! Please login.");
+        notify.success("Signup successful! Please login.");
         setIsLogin(true);
-        // Reset form using react-hook-form's reset method
         signupForm.reset();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || "Signup failed");
+        notify.error(error.response?.data?.message || "Signup failed");
       } else {
-        toast.error("Signup failed");
+        notify.error("Signup failed");
       }
     } finally {
       setIsLoading(false);
     }
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      notify.error(
-        error.response?.data?.message || "Signup failed"
-      );
-    } else {
-      notify.error("Signup failed");
-    }
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   /**
    * Handle role selection and update form accordingly
@@ -306,8 +232,6 @@ export default function LoginSignup() {
     // Clear role-specific errors when role changes
     signupForm.clearErrors(["location", "specialty", "clinicLocation"]);
   };
-
-  const selectedRole = signupForm.watch("role");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -344,14 +268,12 @@ export default function LoginSignup() {
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-6">
                   <div>
                     <Label htmlFor="login-data">Email or Username</Label>
-                    {/* Using register() instead of value + onChange */}
                     <Input
                       id="login-data"
                       type="text"
                       {...loginForm.register("data")}
                       placeholder="Enter your email or username"
                     />
-                    {/* Display validation error from Zod schema */}
                     {loginForm.formState.errors.data && (
                       <p className="text-sm text-red-500 mt-1">
                         {loginForm.formState.errors.data.message}
@@ -362,7 +284,6 @@ export default function LoginSignup() {
                   <div>
                     <Label htmlFor="login-password">Password</Label>
                     <div className="relative">
-                      {/* Using register() instead of value + onChange */}
                       <Input
                         id="login-password"
                         type={showPassword ? "text" : "password"}
@@ -379,7 +300,6 @@ export default function LoginSignup() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    {/* Display validation error from Zod schema */}
                     {loginForm.formState.errors.password && (
                       <p className="text-sm text-red-500 mt-1">
                         {loginForm.formState.errors.password.message}
@@ -395,9 +315,6 @@ export default function LoginSignup() {
 
               {/* Signup Tab - Using react-hook-form's register and handleSubmit */}
               <TabsContent value="signup">
-                {/* FIX: Changed from onSubmit={handleSignup} to onSubmit={signupForm.handleSubmit(handleSignup)} */}
-                <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-6">
-                  {/* Role Selection - Kept as state since it controls conditional rendering */}
                 <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-6">
                   {/* Role Selection */}
                   <div>
@@ -548,7 +465,7 @@ export default function LoginSignup() {
                     </div>
                   )}
 
-                  {/* Password fields - Using register() */}
+                  {/* Password fields */}
                   <div>
                     <Label htmlFor="password">Password</Label>
                     <div className="relative">
