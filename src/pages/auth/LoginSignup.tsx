@@ -170,28 +170,26 @@ export default function LoginSignup() {
   /**
    * Handle Signup - with Zod validation
    * Password matching and role-specific fields are validated by schema
+   * FIX: Changed signature from (e: React.FormEvent) to (data: SignupFormFields)
+   * to match react-hook-form's handleSubmit expected type
    */
-  const handleSignup = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const formValues = signupForm.getValues();
-
+  const handleSignup = async (data: SignupFormFields) => {
   if (!selectedRole) {
     notify.error("Please select a role");
     return;
   }
 
   const completeData = {
-    firstName: formValues.firstName,
-    lastName: formValues.lastName,
-    email: formValues.email,
-    password: formValues.password,
-    confirmPassword: formValues.confirmPassword,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    password: data.password,
+    confirmPassword: data.confirmPassword,
     role: selectedRole,
-    ...(selectedRole === "PATIENT" && { location: formValues.location }),
+    ...(selectedRole === "PATIENT" && { location: data.location }),
     ...(selectedRole === "DOCTOR" && {
-      specialty: formValues.specialty,
-      clinicLocation: formValues.clinicLocation,
+      specialty: data.specialty,
+      clinicLocation: data.clinicLocation,
     }),
   };
 
@@ -207,17 +205,17 @@ export default function LoginSignup() {
 
   try {
     const payload = {
-      firstName: formValues.firstName,
-      lastName: formValues.lastName,
-      email: formValues.email,
-      password: formValues.password,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
       role: selectedRole,
       ...(selectedRole === "DOCTOR" && {
-        specialty: formValues.specialty,
-        clinicLocation: formValues.clinicLocation,
+        specialty: data.specialty,
+        clinicLocation: data.clinicLocation,
       }),
       ...(selectedRole === "PATIENT" && {
-        location: formValues.location,
+        location: data.location,
       }),
     };
 
@@ -242,8 +240,6 @@ export default function LoginSignup() {
     setIsLoading(false);
   }
 };
-
-    // Build complete data with role for validation   
 
   /**
    * Handle role selection and update form accordingly
@@ -338,7 +334,8 @@ export default function LoginSignup() {
 
               {/* Signup Tab - Using react-hook-form's register for all fields */}
               <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-6">
+                {/* FIX: Changed from onSubmit={handleSignup} to onSubmit={signupForm.handleSubmit(handleSignup)} */}
+                <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-6">
                   {/* Role Selection - Kept as state since it controls conditional rendering */}
                   <div>
                     <Label>I want to join as:</Label>
