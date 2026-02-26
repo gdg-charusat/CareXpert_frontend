@@ -33,6 +33,7 @@ import {
 import { Textarea } from "../components/ui/textarea";
 import { MapPin, Clock, Star, Video, User } from "lucide-react";
 import { toast } from "sonner";
+import { notify } from "@/lib/toast";
 import { doctorAPI, patientAPI } from "@/services/endpoints/api";
 import { useAuthStore } from "@/store/authstore";
 import type { Doctor } from "@/services/types/api";
@@ -58,7 +59,7 @@ export default function BookAppointmentPage() {
   const { id: doctorId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  
+
   // UI state - kept as useState since these are not form data
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,7 +98,7 @@ export default function BookAppointmentPage() {
     const fetchDoctor = async () => {
       try {
         const doctors = await doctorAPI.getAllDoctors();
-        
+
         const foundDoctor = doctors.find((d) => d.id === doctorId);
         if (foundDoctor) {
           setDoctor(foundDoctor);
@@ -106,7 +107,7 @@ export default function BookAppointmentPage() {
           navigate("/doctors");
         }
       } catch (err: any) {
-        toast.error(err?.message || "Failed to fetch doctor details");
+        notify.error(err?.message || "Failed to fetch doctor details");
         navigate("/doctors");
       } finally {
         setLoading(false);
@@ -124,7 +125,7 @@ export default function BookAppointmentPage() {
    */
   const onSubmit = async (data: AppointmentFormData) => {
     setBooking(true);
-    
+
     try {
       // Use centralized patientAPI service to book appointment
       await patientAPI.bookAppointment(
@@ -141,7 +142,7 @@ export default function BookAppointmentPage() {
       if (err instanceof Error) {
         toast.error(err.message || "Failed to book appointment");
       } else {
-        toast.error("An unexpected error occurred");
+        notify.error("An unexpected error occurred");
       }
     } finally {
       setBooking(false);
@@ -190,7 +191,7 @@ export default function BookAppointmentPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-8 pt-20">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -228,7 +229,7 @@ export default function BookAppointmentPage() {
                     <MapPin className="h-4 w-4 text-gray-500" />
                     <span>{doctor.clinicLocation}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-gray-500" />
                     <span>{doctor.experience} experience</span>
@@ -283,7 +284,7 @@ export default function BookAppointmentPage() {
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     {/* Hidden field to register doctorId so it's included in form submission */}
                     <input type="hidden" {...register("doctorId")} />
-                    
+
                     <div className="grid md:grid-cols-2 gap-4">
                       {/* Date field - using register() */}
                       <div className="space-y-2">
@@ -330,7 +331,7 @@ export default function BookAppointmentPage() {
                       <Label htmlFor="appointmentType">Appointment Type</Label>
                       <Select
                         value={watch("appointmentType")}
-                        onValueChange={(value: "ONLINE" | "OFFLINE") => 
+                        onValueChange={(value: "ONLINE" | "OFFLINE") =>
                           setValue("appointmentType", value, { shouldValidate: true, shouldDirty: true })
                         }
                       >

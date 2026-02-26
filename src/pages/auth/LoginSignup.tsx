@@ -25,6 +25,7 @@ import { useAuthStore } from "../../store/authstore";
 import { authAPI } from "@/services/endpoints/api";
 import type { User } from "@/services/types/api";
 import axios from "axios";
+import { notify } from "@/lib/toast";
 import { toast } from "sonner";
 
 /**
@@ -107,7 +108,7 @@ export default function LoginSignup() {
 
   /**
    * Login Form - using react-hook-form with Zod resolver
-   * Benefits: 
+   * Benefits:
    * - No manual state management for form fields
    * - Automatic validation on submit and onChange (after first submit)
    * - Type-safe form data
@@ -142,6 +143,8 @@ export default function LoginSignup() {
     },
   });
 
+  const selectedRole = signupForm.watch("role");
+
   /**
    * Handle Login - simplified with react-hook-form
    * Form validation is handled automatically by zodResolver
@@ -153,7 +156,7 @@ export default function LoginSignup() {
       const loginResponse = await authAPI.login(data.data, data.password);
       setUser(loginResponse as unknown as User);
       toast.success("Login successful!");
-      
+
       // Navigate based on role
       const role = loginResponse.role;
       if (role === "DOCTOR") {
@@ -163,9 +166,9 @@ export default function LoginSignup() {
       } else if (role === "ADMIN") {
         navigate("/admin");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || "Login failed");
+        notify.error(error.response?.data?.message || "Login failed");
       } else {
         toast.error(error instanceof Error ? error.message : "Login failed");
       }
@@ -175,13 +178,12 @@ export default function LoginSignup() {
   };
 
   /**
-   * Handle Signup - with Zod validation
+   * Handle Signup - with Zod validation via react-hook-form resolver
    * Password matching and role-specific fields are validated by schema
    */
   const handleSignup = async (formValues: SignupFormFields) => {
-    // Check role first
     if (!formValues.role) {
-      toast.error("Please select a role");
+      notify.error("Please select a role");
       return;
     }
 
@@ -215,7 +217,7 @@ export default function LoginSignup() {
       signupForm.reset();
     } catch (error: any) {
       if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || "Signup failed");
+        notify.error(error.response?.data?.message || "Signup failed");
       } else {
         toast.error(error instanceof Error ? error.message : "Signup failed");
       }
@@ -232,8 +234,6 @@ export default function LoginSignup() {
     // Clear role-specific errors when role changes
     signupForm.clearErrors(["location", "specialty", "clinicLocation"]);
   };
-
-  const selectedRole = signupForm.watch("role");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -270,14 +270,12 @@ export default function LoginSignup() {
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-6">
                   <div>
                     <Label htmlFor="login-data">Email or Username</Label>
-                    {/* Using register() instead of value + onChange */}
                     <Input
                       id="login-data"
                       type="text"
                       {...loginForm.register("data")}
                       placeholder="Enter your email or username"
                     />
-                    {/* Display validation error from Zod schema */}
                     {loginForm.formState.errors.data && (
                       <p className="text-sm text-red-500 mt-1">
                         {loginForm.formState.errors.data.message}
@@ -288,7 +286,6 @@ export default function LoginSignup() {
                   <div>
                     <Label htmlFor="login-password">Password</Label>
                     <div className="relative">
-                      {/* Using register() instead of value + onChange */}
                       <Input
                         id="login-password"
                         type={showPassword ? "text" : "password"}
@@ -305,7 +302,6 @@ export default function LoginSignup() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    {/* Display validation error from Zod schema */}
                     {loginForm.formState.errors.password && (
                       <p className="text-sm text-red-500 mt-1">
                         {loginForm.formState.errors.password.message}
@@ -471,7 +467,7 @@ export default function LoginSignup() {
                     </div>
                   )}
 
-                  {/* Password fields - Using register() */}
+                  {/* Password fields */}
                   <div>
                     <Label htmlFor="password">Password</Label>
                     <div className="relative">

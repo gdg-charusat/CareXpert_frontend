@@ -21,8 +21,8 @@ import { useAuthStore } from "@/store/authstore";
 import { patientAPI } from "@/services/endpoints/api";
 import type { Appointment } from "@/services/types/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { notify } from "@/lib/toast";
 
 export default function AppointmentManagementPage() {
   const navigate = useNavigate();
@@ -70,9 +70,9 @@ export default function AppointmentManagementPage() {
         setPastAppointments(past);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data.message);
+          notify.error(err.response.data.message);
         } else {
-          toast.error("Unknown error occurred..");
+          notify.error("Unknown error occurred..");
         }
       } finally {
         setIsLoading(false);

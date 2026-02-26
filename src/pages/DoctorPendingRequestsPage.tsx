@@ -32,8 +32,9 @@ import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
 import { doctorAPI } from "@/services/endpoints/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { notify } from "@/lib/toast";
+import { toast } from "sonner";
 
 type PendingRequest = {
   id: string;
@@ -87,7 +88,7 @@ export default function DoctorPendingRequestsPage() {
       setPendingRequests(data as PendingRequest[]);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Failed to fetch pending requests");
+        notify.error(err.response.data?.message || "Failed to fetch pending requests");
       } else {
         toast.error(err instanceof Error ? err.message : "Unknown error occurred");
       }
@@ -107,7 +108,7 @@ export default function DoctorPendingRequestsPage() {
 
     try {
       setIsProcessing(true);
-      
+
       await doctorAPI.respondToAppointmentRequest(
         selectedRequest.id,
         action,
@@ -123,7 +124,7 @@ export default function DoctorPendingRequestsPage() {
       setAlternativeSlots("");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Failed to process request");
+        notify.error(err.response.data?.message || "Failed to process request");
       } else {
         toast.error(err instanceof Error ? err.message : "Unknown error occurred");
       }
@@ -301,7 +302,7 @@ export default function DoctorPendingRequestsPage() {
               No Pending Requests
             </h3>
             <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
-              You don't have any pending appointment requests at the moment. 
+              You don't have any pending appointment requests at the moment.
               New requests will appear here when patients book appointments.
             </p>
           </motion.div>
@@ -316,13 +317,13 @@ export default function DoctorPendingRequestsPage() {
               {action === "accept" ? "Accept Appointment Request" : "Reject Appointment Request"}
             </DialogTitle>
             <DialogDescription>
-              {action === "accept" 
+              {action === "accept"
                 ? "Are you sure you want to accept this appointment request? The patient will be notified."
                 : "Please provide a reason for rejecting this appointment request. You can also suggest alternative time slots."
               }
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedRequest && (
             <div className="space-y-4">
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">

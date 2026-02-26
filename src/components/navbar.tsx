@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useTheme } from "@/context/theme-context";
+import { notify } from "@/lib/toast";
 
 export const Navbar = memo(function Navbar() {
   const user = useAuthStore((state) => state.user);
@@ -25,6 +26,7 @@ export const Navbar = memo(function Navbar() {
   const handleLogout = async () => {
     logout();
     localStorage.removeItem("auth-storage");
+    notify.info("You have been logged out.");
     navigate("/");
   };
 

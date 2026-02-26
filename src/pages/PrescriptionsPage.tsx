@@ -22,6 +22,7 @@ import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
 import { patientAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
+import { notify } from "@/lib/toast";
 import { motion } from "framer-motion";
 import EmptyState from "@/components/EmptyState";
 import type { Prescription } from "@/services/types/api";
@@ -47,7 +48,7 @@ export default function PrescriptionsPage() {
         if (err instanceof Error) {
           toast.error(err.message || "Something went wrong");
         } else {
-          toast.error("Unknown error occurred");
+          notify.error("Unknown error occurred");
         }
       } finally {
         setIsLoading(false);

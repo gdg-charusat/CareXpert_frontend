@@ -30,6 +30,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { notify } from "@/lib/toast";
 import {
   FormattedMessage,
   joinRoom,
@@ -548,7 +549,7 @@ export default function ChatPage() {
       selectedChat.type === "room"
     ) {
       if (!activeRoomId) {
-        toast.error("Connecting to room... please try again in a moment");
+        notify.error("Connecting to room... please try again in a moment");
         return;
       }
       // Handle community room message sending

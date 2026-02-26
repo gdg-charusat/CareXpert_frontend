@@ -29,6 +29,7 @@ import { useAuthStore } from "@/store/authstore";
 import { motion } from "framer-motion";
 import { userAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
+import { notify } from "@/lib/toast";
 
 /**
  * Zod Schema for Profile Form
@@ -121,7 +122,7 @@ export default function ProfilePage() {
         email: updatedUser.email || data.email,
       });
 
-      toast.success("Profile updated successfully");
+      notify.success("Profile updated successfully");
       setIsEditing(false);
       setSelectedImage(null);
       setPreviewUrl(null);
@@ -129,7 +130,7 @@ export default function ProfilePage() {
       if (error instanceof Error) {
         toast.error(error.message || "Failed to update profile");
       } else {
-        toast.error("Failed to update profile");
+        notify.error("Failed to update profile");
       }
     } finally {
       setSaving(false);

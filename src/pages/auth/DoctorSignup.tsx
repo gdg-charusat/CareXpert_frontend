@@ -42,6 +42,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { authAPI } from "@/services/endpoints/api";
 import axios from "axios";
+import { notify } from "@/lib/toast";
 import { toast } from "sonner";
 
 /**
@@ -123,7 +124,7 @@ export default function DoctorSignup() {
       navigate("/dashboard/doctor");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Something went wrong");
+        notify.error(err.response.data?.message || "Something went wrong");
       } else {
         toast.error(err instanceof Error ? err.message : "Unknown error occurred.");
       }

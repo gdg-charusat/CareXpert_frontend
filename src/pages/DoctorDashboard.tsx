@@ -38,9 +38,9 @@ import {
 import { ScrollArea as _ScrollArea } from "../components/ui/scroll-area";
 import { doctorAPI } from "@/services/endpoints/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { useAuthStore } from "@/store/authstore";
 import { Appointment } from "@/types";
+import { notify } from "@/lib/toast";
 
 export default function DoctorDashboard() {
   const navigate = useNavigate();
@@ -86,9 +86,9 @@ export default function DoctorDashboard() {
           setUpcomingApppointments(upcoming);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+          notify.error(err.response.data?.message || "Something went wrong");
         } else {
-          toast.error("Unknown error occured");
+          notify.error("Unknown error occured");
         }
       }
     }

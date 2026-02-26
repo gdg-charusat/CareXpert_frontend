@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { authAPI } from "@/services/endpoints/api";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
+import { notify } from "@/lib/toast";
 
 /**
  * Zod Schema for Patient Signup Form
@@ -103,7 +104,7 @@ export default function PatientSignup() {
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Something went wrong");
+        notify.error(err.response.data?.message || "Something went wrong");
       } else {
         toast.error(err instanceof Error ? err.message : "Unknown error occurred");
       }

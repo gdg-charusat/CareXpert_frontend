@@ -31,6 +31,7 @@ import { patientAPI, doctorAPI } from "@/services/endpoints/api";
 import axios from "axios"; // Added this to fix the isAxiosError check
 import { useAuthStore } from "@/store/authstore";
 import EmptyState from "@/components/EmptyState";
+import { notify } from "@/lib/toast";
 
 /* ================= TYPES ================= */
 
@@ -107,9 +108,9 @@ const [sortBy, setSortBy] = useState("name-asc");
         setDoctors(doctors as FindDoctors[]);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+          notify.error(err.response.data?.message || "Something went wrong");
         } else {
-          toast.error("An unexpected error occurred.");
+          notify.error("An unexpected error occurred.");
         }
       } finally {
         setIsLoading(false);
@@ -200,7 +201,7 @@ useEffect(() => {
 
   const openBookingDialog = (doctor: FindDoctors) => {
     if (!user || user.role !== "PATIENT") {
-      toast.error("Please login as a patient to book appointments");
+      notify.error("Please login as a patient to book appointments");
       return;
     }
     setSelectedDoctor(doctor);
