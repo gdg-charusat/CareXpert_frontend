@@ -47,7 +47,7 @@ export default function PrescriptionsPage() {
         if (err instanceof Error) {
           toast.error(err.message || "Something went wrong");
         } else {
-          toast.error("Unknown error occurred");
+          notify.error("Unknown error occurred");
         }
       } finally {
         setIsLoading(false);

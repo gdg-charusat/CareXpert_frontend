@@ -23,7 +23,7 @@ export default function NotificationsPage() {
       setNotifications(notifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
-      toast.error("Failed to fetch notifications");
+      notify.error("Failed to fetch notifications");
     } finally {
       setLoading(false);
     }
@@ -41,10 +41,10 @@ export default function NotificationsPage() {
             : notif
         )
       );
-      toast.success("Notification marked as read");
+      notify.success("Notification marked as read");
     } catch (error) {
       console.error("Error marking notification as read:", error);
-      toast.error("Failed to mark notification as read");
+      notify.error("Failed to mark notification as read");
     } finally {
       setMarkingAsRead(null);
     }
@@ -57,10 +57,10 @@ export default function NotificationsPage() {
       setNotifications(prev => 
         prev.map(notif => ({ ...notif, isRead: true }))
       );
-      toast.success("All notifications marked as read");
+      notify.success("All notifications marked as read");
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
-      toast.error("Failed to mark all notifications as read");
+      notify.error("Failed to mark all notifications as read");
     }
   };
 

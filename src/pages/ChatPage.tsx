@@ -548,7 +548,7 @@ export default function ChatPage() {
       selectedChat.type === "room"
     ) {
       if (!activeRoomId) {
-        toast.error("Connecting to room... please try again in a moment");
+        notify.error("Connecting to room... please try again in a moment");
         return;
       }
       // Handle community room message sending

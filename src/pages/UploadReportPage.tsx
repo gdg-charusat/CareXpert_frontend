@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "../components/ui/alert";
 import { reportAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
 import { Badge } from "../components/ui/badge";
+import { notify } from "@/lib/toast";
 
 export default function UploadReportPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -114,7 +115,7 @@ const handleSubmit = async () => {
       setStatus("FAILED");
       const msg = err instanceof Error ? err.message : "Upload failed";
       setErrorMessage(msg);
-      toast.error(msg);
+      notify.error(msg);
     }
   };
 

@@ -26,11 +26,11 @@ import {
   Loader2,
   Stethoscope,
 } from "lucide-react";
-import { toast } from "sonner";
 import { api } from "@/lib/api";
 import axios from "axios"; // Added this to fix the isAxiosError check
 import { useAuthStore } from "@/store/authstore";
 import EmptyState from "@/components/EmptyState";
+import { notify } from "@/lib/toast";
 
 /* ================= TYPES ================= */
 
@@ -121,9 +121,9 @@ const [sortBy, setSortBy] = useState("name-asc");
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+          notify.error(err.response.data?.message || "Something went wrong");
         } else {
-          toast.error("An unexpected error occurred.");
+          notify.error("An unexpected error occurred.");
         }
       } finally {
         setIsLoading(false);
@@ -214,7 +214,7 @@ useEffect(() => {
 
   const openBookingDialog = (doctor: FindDoctors) => {
     if (!user || user.role !== "PATIENT") {
-      toast.error("Please login as a patient to book appointments");
+      notify.error("Please login as a patient to book appointments");
       return;
     }
     setSelectedDoctor(doctor);
@@ -259,7 +259,7 @@ useEffect(() => {
       );
 
       if (res.data.success) {
-        toast.success("Appointment booked successfully!");
+        notify.success("Appointment booked successfully!");
         closeBookingDialog();
       }
     } catch (err) {

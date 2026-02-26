@@ -106,7 +106,7 @@ export default function BookAppointmentPage() {
           navigate("/doctors");
         }
       } catch (err: any) {
-        toast.error(err?.message || "Failed to fetch doctor details");
+        notify.error(err?.message || "Failed to fetch doctor details");
         navigate("/doctors");
       } finally {
         setLoading(false);
@@ -141,7 +141,7 @@ export default function BookAppointmentPage() {
       if (err instanceof Error) {
         toast.error(err.message || "Failed to book appointment");
       } else {
-        toast.error("An unexpected error occurred");
+        notify.error("An unexpected error occurred");
       }
     } finally {
       setBooking(false);

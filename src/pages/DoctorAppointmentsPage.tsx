@@ -21,6 +21,7 @@ import { useAuthStore } from "@/store/authstore";
 import { doctorAPI } from "@/services/endpoints/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { notify } from "@/lib/toast";
 import EmptyState from "@/components/EmptyState";
 import {
   Dialog,
@@ -79,7 +80,7 @@ export default function DoctorAppointmentsPage() {
       if (error instanceof Error) {
         toast.error(error.message || "Failed to fetch appointments");
       } else {
-        toast.error("Failed to fetch appointments");
+        notify.error("Failed to fetch appointments");
       }
     } finally {
       setLoading(false);
@@ -98,7 +99,7 @@ export default function DoctorAppointmentsPage() {
       if (error instanceof Error) {
         toast.error(error.message || "Failed to accept appointment");
       } else {
-        toast.error("Failed to accept appointment");
+        notify.error("Failed to accept appointment");
       }
     } finally {
       setProcessing(false);
@@ -107,7 +108,7 @@ export default function DoctorAppointmentsPage() {
 
   const handleSubmitPrescription = async () => {
     if (!prescriptionForAppointmentId || !prescriptionText.trim()) {
-      toast.error("Please enter prescription");
+      notify.error("Please enter prescription");
       return;
     }
     try {
@@ -130,7 +131,7 @@ export default function DoctorAppointmentsPage() {
       if (error instanceof Error) {
         toast.error(error.message || "Failed to save prescription");
       } else {
-        toast.error("Failed to save prescription");
+        notify.error("Failed to save prescription");
       }
     } finally {
       setProcessing(false);
@@ -162,7 +163,7 @@ export default function DoctorAppointmentsPage() {
 
   const handleRejectAppointment = async () => {
     if (!selectedAppointment || !rejectionReason.trim()) {
-      toast.error("Please provide a reason for rejection");
+      notify.error("Please provide a reason for rejection");
       return;
     }
 
@@ -185,7 +186,7 @@ export default function DoctorAppointmentsPage() {
       if (error instanceof Error) {
         toast.error(error.message || "Failed to reject appointment");
       } else {
-        toast.error("Failed to reject appointment");
+        notify.error("Failed to reject appointment");
       }
     } finally {
       setProcessing(false);
