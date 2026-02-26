@@ -13,6 +13,8 @@ export interface User {
 export interface Doctor {
   id: string;
   userId: string;
+  name: string;
+  profilePicture?: string;
   specialty: string;
   clinicLocation: string;
   experience: string;
@@ -20,7 +22,7 @@ export interface Doctor {
   bio?: string;
   languages: string[];
   consultationFee?: number;
-  user: User;
+  user?: User;
 }
 
 export interface Appointment {

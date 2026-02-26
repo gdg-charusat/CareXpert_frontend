@@ -67,6 +67,8 @@ export interface AuthenticatedProfileResponse {
 export interface Doctor {
   id: string;
   userId: string;
+  name: string;
+  profilePicture?: string;
   specialty: string;
   clinicLocation: string;
   experience: string;
@@ -74,7 +76,7 @@ export interface Doctor {
   bio?: string;
   languages: string[];
   consultationFee?: number;
-  user: User;
+  user?: User;
 }
 
 export interface UpdateDoctorRequest {
@@ -201,11 +203,11 @@ export interface UploadReportResponse {
 export interface Notification {
   id: string;
   type:
-    | 'APPOINTMENT_ACCEPTED'
-    | 'APPOINTMENT_REJECTED'
-    | 'APPOINTMENT_REMINDER'
-    | 'DOCTOR_MESSAGE'
-    | string;
+  | 'APPOINTMENT_ACCEPTED'
+  | 'APPOINTMENT_REJECTED'
+  | 'APPOINTMENT_REMINDER'
+  | 'DOCTOR_MESSAGE'
+  | string;
   title: string;
   message: string;
   isRead: boolean;

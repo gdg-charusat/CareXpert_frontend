@@ -200,7 +200,7 @@ export default function BookAppointmentPage() {
               Book an Appointment
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Schedule your consultation with {doctor.user.name}
+              Schedule your consultation with {doctor.name}
             </p>
           </div>
 
@@ -211,13 +211,13 @@ export default function BookAppointmentPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={doctor.user.profilePicture || "/placeholder.svg"} />
+                      <AvatarImage src={doctor.profilePicture || "/placeholder.svg"} />
                       <AvatarFallback>
-                        {doctor.user.name.split(" ").map(n => n[0]).join("")}
+                        {doctor.name.split(" ").map(n => n[0]).join("")}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="text-lg font-semibold">{doctor.user.name}</h3>
+                      <h3 className="text-lg font-semibold">{doctor.name}</h3>
                       <p className="text-sm text-blue-600 dark:text-blue-400">
                         {doctor.specialty}
                       </p>

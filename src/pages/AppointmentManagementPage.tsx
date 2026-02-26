@@ -42,8 +42,8 @@ export default function AppointmentManagementPage() {
         setIsLoading(true);
         const allAppointments = await patientAPI.getMyAppointments();
         const now = new Date();
-        
-        
+
+
         function parseAppointmentDateTime(dateStr: string, timeStr: string) {
           // If dateStr already contains 'T', assume it's ISO and just return new Date(dateStr)
           if (dateStr.includes('T')) {
@@ -65,7 +65,7 @@ export default function AppointmentManagementPage() {
           const appointmentDateTime = parseAppointmentDateTime(apt.date, apt.time);
           return appointmentDateTime < now;
         });
-        
+
         setUpcomingAppointments(upcoming);
         setPastAppointments(past);
       } catch (err) {
@@ -114,7 +114,7 @@ export default function AppointmentManagementPage() {
               Manage your upcoming and past appointments
             </p>
           </div>
-          <Button 
+          <Button
             onClick={() => navigate("/doctors")}
             className="bg-blue-600 hover:bg-blue-700 dark:text-white "
           >
@@ -157,10 +157,10 @@ export default function AppointmentManagementPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage
-                          src={appointment.doctor?.user?.profilePicture || "/placeholder.svg"}
+                          src={appointment.doctor?.profilePicture || "/placeholder.svg"}
                         />
                         <AvatarFallback>
-                          {(appointment.doctor?.user?.name || "D")
+                          {(appointment.doctor?.name || "D")
                             .split(" ")
                             .map((n: string) => n[0])
                             .join("")}
@@ -168,7 +168,7 @@ export default function AppointmentManagementPage() {
                       </Avatar>
                       <div>
                         <h4 className="font-semibold text-gray-900 dark:text-white">
-                          {appointment.doctor?.user?.name || 'Unknown Doctor'}
+                          {appointment.doctor?.name || 'Unknown Doctor'}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
                           {appointment.doctor?.specialty}
@@ -182,9 +182,9 @@ export default function AppointmentManagementPage() {
                           </Badge>
                           <Badge variant={
                             appointment.status === "PENDING" ? "outline" :
-                            appointment.status === "CONFIRMED" ? "default" :
-                            appointment.status === "COMPLETED" ? "secondary" :
-                            appointment.status === "REJECTED" ? "destructive" : "secondary"
+                              appointment.status === "CONFIRMED" ? "default" :
+                                appointment.status === "COMPLETED" ? "secondary" :
+                                  appointment.status === "REJECTED" ? "destructive" : "secondary"
                           }>
                             {appointment.status === "PENDING" ? "Request Sent" : appointment.status}
                           </Badge>
@@ -211,7 +211,7 @@ export default function AppointmentManagementPage() {
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
                     No upcoming appointments
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => navigate("/doctors")}
                     variant="outline"
                   >
@@ -256,10 +256,10 @@ export default function AppointmentManagementPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage
-                          src={appointment.doctor?.user?.profilePicture || "/placeholder.svg"}
+                          src={appointment.doctor?.profilePicture || "/placeholder.svg"}
                         />
                         <AvatarFallback>
-                          {(appointment.doctor?.user?.name || "D")
+                          {(appointment.doctor?.name || "D")
                             .split(" ")
                             .map((n: string) => n[0])
                             .join("")}
@@ -267,7 +267,7 @@ export default function AppointmentManagementPage() {
                       </Avatar>
                       <div>
                         <h4 className="font-semibold text-gray-900 dark:text-white">
-                          {appointment.doctor?.user?.name || 'Unknown Doctor'}
+                          {appointment.doctor?.name || 'Unknown Doctor'}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
                           {appointment.doctor?.specialty}
@@ -281,9 +281,9 @@ export default function AppointmentManagementPage() {
                           </Badge>
                           <Badge variant={
                             appointment.status === "PENDING" ? "outline" :
-                            appointment.status === "CONFIRMED" ? "default" :
-                            appointment.status === "COMPLETED" ? "secondary" :
-                            appointment.status === "REJECTED" ? "destructive" : "secondary"
+                              appointment.status === "CONFIRMED" ? "default" :
+                                appointment.status === "COMPLETED" ? "secondary" :
+                                  appointment.status === "REJECTED" ? "destructive" : "secondary"
                           }>
                             {appointment.status === "PENDING" ? "Request Sent" : appointment.status}
                           </Badge>

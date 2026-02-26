@@ -45,10 +45,8 @@ type FindDoctors = {
   bio: string;
   languages: string[];
   consultationFee: number;
-  user: {
-    name: string;
-    profilePicture: string;
-  };
+  name: string;
+  profilePicture: string;
 };
 
 type AppointmentBookingData = {
@@ -85,9 +83,9 @@ export default function DoctorsPage() {
   const user = useAuthStore((state) => state.user);
   const [searchParams, setSearchParams] = useSearchParams();
 
-const [currentPage, setCurrentPage] = useState(1);
-const [itemsPerPage] = useState(5);
-const [sortBy, setSortBy] = useState("name-asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+  const [sortBy, setSortBy] = useState("name-asc");
   /* ================= EFFECTS ================= */
 
   useEffect(() => {
@@ -121,25 +119,25 @@ const [sortBy, setSortBy] = useState("name-asc");
   }, [debouncedSearch]);
 
   useEffect(() => {
-  const page = Number(searchParams.get("page")) || 1;
-  const sort = searchParams.get("sort") || "name-asc";
-  const specialty = searchParams.get("specialty") || "all";
-  const location = searchParams.get("location") || "all";
+    const page = Number(searchParams.get("page")) || 1;
+    const sort = searchParams.get("sort") || "name-asc";
+    const specialty = searchParams.get("specialty") || "all";
+    const location = searchParams.get("location") || "all";
 
-  setCurrentPage(page);
-  setSortBy(sort);
-  setSelectedSpecialty(specialty);
-  setSelectedLocation(location);
-}, [searchParams]);
+    setCurrentPage(page);
+    setSortBy(sort);
+    setSelectedSpecialty(specialty);
+    setSelectedLocation(location);
+  }, [searchParams]);
 
-useEffect(() => {
-  setSearchParams({
-    page: String(currentPage),
-    sort: sortBy,
-    specialty: selectedSpecialty,
-    location: selectedLocation,
-  });
-}, [currentPage, sortBy, selectedSpecialty, selectedLocation, setSearchParams]);
+  useEffect(() => {
+    setSearchParams({
+      page: String(currentPage),
+      sort: sortBy,
+      specialty: selectedSpecialty,
+      location: selectedLocation,
+    });
+  }, [currentPage, sortBy, selectedSpecialty, selectedLocation, setSearchParams]);
   /* ================= FILTERS ================= */
 
   const specialties = [
@@ -171,30 +169,30 @@ useEffect(() => {
   });
 
   const sortedDoctors = [...filteredDoctors].sort((a, b) => {
-  if (sortBy === "name-asc") {
-    return a.user.name.localeCompare(b.user.name);
-  }
-  if (sortBy === "name-desc") {
-    return b.user.name.localeCompare(a.user.name);
-  }
-  if (sortBy === "fee-asc") {
-    return a.consultationFee - b.consultationFee;
-  }
-  if (sortBy === "fee-desc") {
-    return b.consultationFee - a.consultationFee;
-  }
-  return 0;
-});
+    if (sortBy === "name-asc") {
+      return a.name.localeCompare(b.name);
+    }
+    if (sortBy === "name-desc") {
+      return b.name.localeCompare(a.name);
+    }
+    if (sortBy === "fee-asc") {
+      return a.consultationFee - b.consultationFee;
+    }
+    if (sortBy === "fee-desc") {
+      return b.consultationFee - a.consultationFee;
+    }
+    return 0;
+  });
 
-const totalPages = Math.ceil(sortedDoctors.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedDoctors.length / itemsPerPage);
 
-const paginatedDoctors = sortedDoctors.slice(
-  (currentPage - 1) * itemsPerPage,
-  currentPage * itemsPerPage
-);
-useEffect(() => {
-  setCurrentPage(1);
-}, [selectedSpecialty, selectedLocation, debouncedSearch, sortBy]);
+  const paginatedDoctors = sortedDoctors.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedSpecialty, selectedLocation, debouncedSearch, sortBy]);
 
 
   /* ================= ACTIONS ================= */
@@ -333,17 +331,17 @@ useEffect(() => {
                 ))}
               </SelectContent>
             </Select>
-<Select value={sortBy} onValueChange={setSortBy}>
-  <SelectTrigger>
-    <SelectValue placeholder="Sort By" />
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem value="name-asc">Name A to Z</SelectItem>
-    <SelectItem value="name-desc">Name Z to A</SelectItem>
-    <SelectItem value="fee-asc">Fee Low to High</SelectItem>
-    <SelectItem value="fee-desc">Fee High to Low</SelectItem>
-  </SelectContent>
-</Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sort By" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name-asc">Name A to Z</SelectItem>
+                <SelectItem value="name-desc">Name Z to A</SelectItem>
+                <SelectItem value="fee-asc">Fee Low to High</SelectItem>
+                <SelectItem value="fee-desc">Fee High to Low</SelectItem>
+              </SelectContent>
+            </Select>
             <Button>
               <Filter className="h-4 w-4 mr-2" /> Apply
             </Button>
@@ -370,14 +368,14 @@ useEffect(() => {
                 <CardContent className="p-6 grid lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-8 flex gap-4">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src={doctor.user.profilePicture} />
+                      <AvatarImage src={doctor.profilePicture} />
                       <AvatarFallback>
-                        {doctor.user.name[0]}
+                        {doctor.name[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-semibold">
-                        {doctor.user.name}
+                        {doctor.name}
                       </h3>
                       <p className="text-blue-600">{doctor.specialty}</p>
                       <p className="text-sm">{doctor.clinicLocation}</p>
@@ -398,26 +396,26 @@ useEffect(() => {
             ))}
 
             <div className="flex justify-center items-center gap-4 mt-8">
-  <Button
-    variant="outline"
-    disabled={currentPage === 1}
-    onClick={() => setCurrentPage((prev) => prev - 1)}
-  >
-    Previous
-  </Button>
+              <Button
+                variant="outline"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+              >
+                Previous
+              </Button>
 
-  <span>
-    Page {currentPage} of {totalPages}
-  </span>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
 
-  <Button
-    variant="outline"
-    disabled={currentPage === totalPages}
-    onClick={() => setCurrentPage((prev) => prev + 1)}
-  >
-    Next
-  </Button>
-</div>
+              <Button
+                variant="outline"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         )}
       </div>

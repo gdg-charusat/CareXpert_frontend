@@ -59,7 +59,7 @@ export default function AppointmentHistoryPage() {
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(appointment =>
-        appointment.doctor?.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.doctor?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         appointment.doctor?.specialty?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -272,7 +272,7 @@ export default function AppointmentHistoryPage() {
                 No appointments found
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-center">
-                {appointments.length === 0 
+                {appointments.length === 0
                   ? "You don't have any appointments yet."
                   : "No appointments match your current filters."
                 }
@@ -296,7 +296,7 @@ export default function AppointmentHistoryPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                          {appointment.doctor?.user?.name || 'Unknown Doctor'}
+                          {appointment.doctor?.name || 'Unknown Doctor'}
                         </h3>
                         <p className="text-sm text-blue-600 dark:text-blue-400">
                           {appointment.doctor?.specialty}

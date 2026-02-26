@@ -367,7 +367,7 @@ export const patientAPI = {
     notes?: string
   ): Promise<Appointment> => {
     const response = await api.post<ApiResponse<Appointment>>(
-      '/api/patient/book-appointment',
+      '/api/patient/book-direct-appointment',
       {
         doctorId,
         date,
@@ -390,7 +390,7 @@ export const patientAPI = {
    */
   getMyAppointments: async (): Promise<Appointment[]> => {
     const response = await api.get<ApiResponse<Appointment[]>>(
-      '/api/patient/my-appointments',
+      '/api/patient/all-appointments',
       { withCredentials: true }
     );
 
