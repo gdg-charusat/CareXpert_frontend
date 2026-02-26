@@ -1311,7 +1311,7 @@ export default function ChatPage() {
                 {/* fix1 */}
                 <Button
                   onClick={handleSendMessage}
-                  className="px-6 rounded-x1"
+                  className="px-6 rounded-xl"
                   disabled={!message.trim() || (selectedChat === "ai" && isAiLoading)}
                 >
                   <Send className="h-4 w-4" />
