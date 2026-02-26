@@ -94,7 +94,7 @@ export const authAPI = {
    * Login user with email and password
    */
   login: async (email: string, password: string): Promise<LoginResponse> => {
-    const response = await api.post<ApiResponse<LoginResponse>>('/user/login', {
+    const response = await api.post<ApiResponse<LoginResponse>>('/api/user/login', {
       data: email,
       password,
     });
@@ -115,7 +115,7 @@ export const authAPI = {
     password: string,
     role: 'PATIENT' | 'DOCTOR' = 'PATIENT'
   ): Promise<LoginResponse> => {
-    const response = await api.post<ApiResponse<LoginResponse>>('/user/signup', {
+    const response = await api.post<ApiResponse<LoginResponse>>('/api/user/signup', {
       name,
       email,
       password,
@@ -134,7 +134,7 @@ export const authAPI = {
    */
   logout: async (): Promise<void> => {
     try {
-      await api.post('/user/logout', {});
+      await api.post('/api/user/logout', {});
     } catch (error) {
       // Logout errors are non-critical
       console.error('Logout error:', error);
@@ -152,7 +152,7 @@ export const userAPI = {
    */
   getAuthenticatedProfile: async (): Promise<AuthenticatedProfileResponse> => {
     const response = await api.get<ApiResponse<AuthenticatedProfileResponse>>(
-      '/user/authenticated-profile',
+      '/api/user/authenticated-profile',
       { withCredentials: true }
     );
 
@@ -168,7 +168,7 @@ export const userAPI = {
    */
   updatePatientProfile: async (formData: FormData): Promise<User> => {
     const response = await api.put<ApiResponse<{ user: User }>>(
-      '/user/update-patient',
+      '/api/user/update-patient',
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -188,7 +188,7 @@ export const userAPI = {
    */
   updateDoctorProfile: async (formData: FormData): Promise<User> => {
     const response = await api.put<ApiResponse<{ user: User }>>(
-      '/user/update-doctor',
+      '/api/user/update-doctor',
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -229,7 +229,7 @@ export const doctorAPI = {
    */
   getDoctorById: async (doctorId: string): Promise<Doctor> => {
     const response = await api.get<ApiResponse<Doctor>>(
-      `/doctor/${doctorId}`
+      `/api/doctor/${doctorId}`
     );
 
     if (!response.data.success) {
@@ -244,7 +244,7 @@ export const doctorAPI = {
    */
   getPendingRequests: async (): Promise<Appointment[]> => {
     const response = await api.get<ApiResponse<Appointment[]>>(
-      '/doctor/pending-requests',
+      '/api/doctor/pending-requests',
       { withCredentials: true }
     );
 
@@ -260,7 +260,7 @@ export const doctorAPI = {
    */
   getAllAppointments: async (): Promise<Appointment[]> => {
     const response = await api.get<ApiResponse<Appointment[]>>(
-      '/doctor/all-appointments',
+      '/api/doctor/all-appointments',
       { withCredentials: true }
     );
 
@@ -285,7 +285,7 @@ export const doctorAPI = {
         : { action };
 
     const response = await api.patch<ApiResponse<Appointment>>(
-      `/doctor/appointment-requests/${appointmentId}/respond`,
+      `/api/doctor/appointment-requests/${appointmentId}/respond`,
       payload,
       { withCredentials: true }
     );
@@ -305,7 +305,7 @@ export const doctorAPI = {
     prescriptionText: string
   ): Promise<Appointment> => {
     const response = await api.patch<ApiResponse<Appointment>>(
-      `/doctor/appointments/${appointmentId}/complete`,
+      `/api/doctor/appointments/${appointmentId}/complete`,
       { prescriptionText },
       { withCredentials: true }
     );
@@ -334,7 +334,7 @@ export const patientAPI = {
     notes?: string
   ): Promise<Appointment> => {
     const response = await api.post<ApiResponse<Appointment>>(
-      '/patient/book-appointment',
+      '/api/patient/book-appointment',
       {
         doctorId,
         date,
@@ -357,7 +357,7 @@ export const patientAPI = {
    */
   getMyAppointments: async (): Promise<Appointment[]> => {
     const response = await api.get<ApiResponse<Appointment[]>>(
-      '/patient/my-appointments',
+      '/api/patient/my-appointments',
       { withCredentials: true }
     );
 
@@ -373,7 +373,7 @@ export const patientAPI = {
    */
   cancelAppointment: async (appointmentId: string): Promise<void> => {
     const response = await api.patch(
-      `/patient/appointments/${appointmentId}/cancel`,
+      `/api/patient/appointments/${appointmentId}/cancel`,
       {},
       { withCredentials: true }
     );
@@ -388,7 +388,7 @@ export const patientAPI = {
    */
   getPrescriptions: async (): Promise<Prescription[]> => {
     const response = await api.get<ApiResponse<Prescription[]>>(
-      '/patient/view-Prescriptions',
+      '/api/patient/view-Prescriptions',
       { withCredentials: true }
     );
 
@@ -413,7 +413,7 @@ export const reportAPI = {
     formData.append('report', file);
 
     const response = await api.post<ApiResponse<UploadReportResponse>>(
-      '/report',
+      '/api/report',
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -433,7 +433,7 @@ export const reportAPI = {
    */
   getReport: async (reportId: string): Promise<Report> => {
     const response = await api.get<ApiResponse<Report>>(
-      `/report/${reportId}`,
+      `/api/report/${reportId}`,
       { withCredentials: true }
     );
 
@@ -449,7 +449,7 @@ export const reportAPI = {
    */
   deleteReport: async (reportId: string): Promise<void> => {
     const response = await api.delete(
-      `/report/${reportId}`,
+      `/api/report/${reportId}`,
       { withCredentials: true }
     );
 
@@ -472,7 +472,7 @@ export const prescriptionAPI = {
     prescriptionText: string
   ): Promise<PrescriptionResponse> => {
     const response = await api.post<ApiResponse<PrescriptionResponse>>(
-      '/prescription',
+      '/api/prescription',
       {
         appointmentId,
         prescriptionText,
@@ -492,7 +492,7 @@ export const prescriptionAPI = {
    */
   getPrescriptionPDF: async (prescriptionId: string): Promise<Blob> => {
     const response = await api.get(
-      `/prescription-pdf/${prescriptionId}`,
+      `/api/prescription-pdf/${prescriptionId}`,
       {
         responseType: 'blob',
         withCredentials: true,
@@ -513,7 +513,7 @@ export const notificationAPI = {
    */
   getNotifications: async (): Promise<Notification[]> => {
     const response = await api.get<ApiResponse<NotificationsResponse>>(
-      '/user/notifications',
+      '/api/user/notifications',
       { withCredentials: true }
     );
 
@@ -529,7 +529,7 @@ export const notificationAPI = {
    */
   markAsRead: async (notificationId: string): Promise<void> => {
     const response = await api.put(
-      `/user/notifications/${notificationId}/read`,
+      `/api/user/notifications/${notificationId}/read`,
       {},
       { withCredentials: true }
     );
@@ -544,7 +544,7 @@ export const notificationAPI = {
    */
   markAllAsRead: async (): Promise<void> => {
     const response = await api.put(
-      `/user/notifications/mark-all-read`,
+      `/api/user/notifications/mark-all-read`,
       {},
       { withCredentials: true }
     );
@@ -559,7 +559,7 @@ export const notificationAPI = {
    */
   deleteNotification: async (notificationId: string): Promise<void> => {
     const response = await api.delete(
-      `/user/notifications/${notificationId}`,
+      `/api/user/notifications/${notificationId}`,
       { withCredentials: true }
     );
 
@@ -583,7 +583,7 @@ export const chatAPI = {
     limit: number = 50
   ): Promise<ChatHistoryResponse> => {
     const response = await api.get<ApiResponse<ChatHistoryResponse>>(
-      `/chat/one-on-one/${otherUserId}`,
+      `/api/chat/one-on-one/${otherUserId}`,
       {
         params: { page, limit },
         withCredentials: true,
@@ -606,7 +606,7 @@ export const chatAPI = {
     limit: number = 50
   ): Promise<ChatHistoryResponse> => {
     const response = await api.get<ApiResponse<ChatHistoryResponse>>(
-      `/chat/city/${encodeURIComponent(cityName)}`,
+      `/api/chat/city/${encodeURIComponent(cityName)}`,
       {
         params: { page, limit },
         withCredentials: true,
@@ -629,7 +629,7 @@ export const chatAPI = {
     limit: number = 50
   ): Promise<ChatHistoryResponse> => {
     const response = await api.get<ApiResponse<ChatHistoryResponse>>(
-      `/chat/room/${roomId}`,
+      `/api/chat/room/${roomId}`,
       {
         params: { page, limit },
         withCredentials: true,
@@ -648,7 +648,7 @@ export const chatAPI = {
    */
   getDoctorConversations: async (): Promise<ChatHistoryResponse['messages']> => {
     const response = await api.get<any>(
-      `/chat/doctor/conversations`,
+      `/api/chat/doctor/conversations`,
       { withCredentials: true }
     );
 
@@ -664,7 +664,7 @@ export const chatAPI = {
    */
   getCommunityMembers: async (communityId: string): Promise<any[]> => {
     const response = await api.get<any>(
-      `/user/communities/${communityId}/members`,
+      `/api/user/communities/${communityId}/members`,
       { withCredentials: true }
     );
 
@@ -686,7 +686,7 @@ export const aiChatAPI = {
    */
   getHistory: async (): Promise<any> => {
     const response = await api.get<any>(
-      `/ai-chat/history`,
+      `/api/ai-chat/history`,
       { withCredentials: true }
     );
 
@@ -702,7 +702,7 @@ export const aiChatAPI = {
    */
   sendMessage: async (symptoms: string, language: string = 'en'): Promise<any> => {
     const response = await api.post<any>(
-      `/ai-chat/process`,
+      `/api/ai-chat/process`,
       { symptoms, language },
       { withCredentials: true, timeout: 15000 }
     );
@@ -719,7 +719,7 @@ export const aiChatAPI = {
    */
   clearHistory: async (): Promise<void> => {
     const response = await api.delete<any>(
-      `/ai-chat/history`,
+      `/api/ai-chat/history`,
       { withCredentials: true }
     );
 
@@ -738,7 +738,7 @@ export const communityAPI = {
    * Get city rooms
    */
   getCityRooms: async (role: 'DOCTOR' | 'PATIENT' = 'PATIENT'): Promise<any[]> => {
-    const endpoint = role === 'DOCTOR' ? `/doctor/city-rooms` : `/patient/city-rooms`;
+    const endpoint = role === 'DOCTOR' ? `/api/doctor/city-rooms` : `/api/patient/city-rooms`;
     const response = await api.get<any>(
       endpoint,
       { withCredentials: true }
@@ -757,7 +757,7 @@ export const communityAPI = {
    */
   getMembers: async (communityId: string): Promise<any[]> => {
     const response = await api.get<any>(
-      `/user/communities/${communityId}/members`,
+      `/api/user/communities/${communityId}/members`,
       { withCredentials: true }
     );
 
@@ -802,7 +802,7 @@ export const adminAPI = {
    */
   getDashboardStats: async () => {
     const response = await api.get(
-      '/admin/dashboard-stats',
+      '/api/admin/dashboard-stats',
       { withCredentials: true }
     );
 
@@ -818,7 +818,7 @@ export const adminAPI = {
    */
   getAllUsers: async () => {
     const response = await api.get(
-      '/admin/users',
+      '/api/admin/users',
       { withCredentials: true }
     );
 
