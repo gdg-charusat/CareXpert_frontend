@@ -4,6 +4,7 @@ import { ThemeProvider } from "./context/theme-context";
 import AppRoutes from "./routes";
 import { useAuthStore } from "./store/authstore";
 import { connectSocket, disconnectSocket } from "./sockets/socket";
+import SessionManager from "./components/SessionManager";
 
 function App() {
   const user = useAuthStore((state) => state.user);
@@ -26,6 +27,7 @@ function App() {
   return (
     <Router>
       <ThemeProvider>
+        <SessionManager />
         <AppRoutes />
       </ThemeProvider>
     </Router>
