@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
+import { sendAiMessage as sendAiMessageService, formatAiResponse as formatAiResponseService } from '@/lib/ChatService';
 
 export function AIChatBox() {
   const [message, setMessage] = useState("");
@@ -23,21 +24,33 @@ export function AIChatBox() {
     if (!message.trim()) return;
 
     // Add user message
-    setChatHistory((prev) => [...prev, { type: "user", content: message }]);
+    setChatHistory((prev) => [...prev, { type: 'user', content: message }]);
 
-    // Simulate AI response
-    setTimeout(() => {
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          type: "ai",
-          content:
-            "I'm a demo AI assistant. In the full version, I'll be able to help you with health-related questions!",
-        },
-      ]);
-    }, 1000);
+    // Send to centralized ChatService and append AI response when received
+    (async () => {
+      try {
+        const resp = await sendAiMessageService(message, 'en');
+        if (resp?.success) {
+          const aiData = resp.data;
+          setChatHistory((prev) => [
+            ...prev,
+            { type: 'ai', content: formatAiResponseService(aiData) },
+          ]);
+        } else {
+          setChatHistory((prev) => [
+            ...prev,
+            { type: 'ai', content: "I'm having trouble responding right now." },
+          ]);
+        }
+      } catch (err) {
+        setChatHistory((prev) => [
+          ...prev,
+          { type: 'ai', content: "I'm having trouble responding right now." },
+        ]);
+      }
+    })();
 
-    setMessage("");
+    setMessage('');
   };
 
   const handleClearChat = async () => {

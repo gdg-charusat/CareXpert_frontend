@@ -235,20 +235,20 @@ export default function ChatPage() {
     }
   }, [selectedChat]);
 
-  // Function to load AI chat history
+  // Load AI chat history (delegated to ChatService)
   const loadAiChatHistory = async () => {
     try {
-      const response = await api.get(`/ai-chat/history`);
-      if (response.data.success) {
-        const chats = response.data.data.chats || [];
+      const response = await import('@/lib/ChatService').then((m) => m.loadAiChatHistory());
+      if (response?.success) {
+        const chats = response.data.chats || [];
         if (chats.length === 0) {
           setAiMessages([
             {
-              id: "welcome",
-              type: "ai",
+              id: 'welcome',
+              type: 'ai',
               message:
                 "Hello! I'm CareXpert AI, your health assistant. Describe your symptoms and I'll help analyze them for you.",
-              time: "Just now",
+              time: 'Just now',
             },
           ]);
         } else {
@@ -256,14 +256,14 @@ export default function ChatPage() {
             .map((chat: any) => [
               {
                 id: `${chat.id}-user`,
-                type: "user",
+                type: 'user',
                 message: chat.userMessage,
                 time: relativeTime(chat.createdAt),
               },
               {
                 id: `${chat.id}-ai`,
-                type: "ai",
-                message: formatAiResponse(chat),
+                type: 'ai',
+                message: (require('@/lib/ChatService') as any).formatAiResponse(chat),
                 time: relativeTime(chat.createdAt),
                 aiData: chat,
               },
@@ -273,34 +273,20 @@ export default function ChatPage() {
         }
       }
     } catch (error) {
-      console.error("Error loading AI chat history:", error);
-      // Show welcome message if no history
+      console.error('Error loading AI chat history:', error);
       setAiMessages([
         {
-          id: "welcome",
-          type: "ai",
+          id: 'welcome',
+          type: 'ai',
           message:
             "Hello! I'm CareXpert AI, your health assistant. Describe your symptoms and I'll help analyze them for you.",
-          time: "Just now",
+          time: 'Just now',
         },
       ]);
     }
   };
 
-  // Function to format AI response for display
-  const formatAiResponse = (chat: any) => {
-    // Handle both API response format (probable_causes) and database format (probableCauses)
-    const probableCauses = chat.probable_causes || chat.probableCauses || [];
-    const { severity: _severity, recommendation, disclaimer } = chat;
-
-    let response = `**Probable Causes:**\n${probableCauses
-      .map((cause: string) => `• ${cause}`)
-      .join("\n")}\n\n`;
-    response += `**Recommendation:**\n${recommendation}\n\n`;
-    response += `**Disclaimer:**\n${disclaimer}`;
-
-    return response;
-  };
+  // formatAiResponse delegated to ChatService when needed in-line
 
   // Clear AI chat history
   const handleClearAiChat = async () => {
@@ -329,56 +315,42 @@ export default function ChatPage() {
     }
   };
 
-  // Function to send message to AI
+  // sendAiMessage delegated to ChatService
   const sendAiMessage = async (userMessage: string) => {
     try {
       setIsAiLoading(true);
 
-      // Add user message immediately
       const userMsg = {
         id: `user-${Date.now()}`,
-        type: "user",
+        type: 'user',
         message: userMessage,
         time: relativeTime(new Date()),
       };
       setAiMessages((prev) => [...prev, userMsg]);
+      setMessage('');
 
-      // Clear the input immediately
-      setMessage("");
+      const ChatService = await import('@/lib/ChatService');
+      const response = await ChatService.sendAiMessage(userMessage, selectedLanguage);
 
-      // Replaced with centralized API and retained timeout from main
-      const response = await api.post(
-        `/ai-chat/process`,
-        {
-          symptoms: userMessage,
-          language: selectedLanguage,
-        },
-        {
-          timeout: 15000,
-        }
-      );
-
-      if (response.data.success) {
-        const aiData = response.data.data;
+      if (response?.success) {
+        const aiData = response.data;
         const aiMsg = {
           id: `ai-${Date.now()}`,
-          type: "ai",
-          message: formatAiResponse(aiData),
+          type: 'ai',
+          message: ChatService.formatAiResponse(aiData),
           time: relativeTime(new Date()),
           aiData: aiData,
         };
         setAiMessages((prev) => [...prev, aiMsg]);
       }
     } catch (error) {
-      console.error("Error sending AI message:", error);
-      toast.error("Failed to get AI response. Please try again.");
+      console.error('Error sending AI message:', error);
+      toast.error('Failed to get AI response. Please try again.');
 
-      // Add error message
       const errorMsg = {
         id: `error-${Date.now()}`,
-        type: "ai",
-        message:
-          "Sorry, I'm having trouble processing your request. Please try again.",
+        type: 'ai',
+        message: "Sorry, I'm having trouble processing your request. Please try again.",
         time: relativeTime(new Date()),
       };
       setAiMessages((prev) => [...prev, errorMsg]);
