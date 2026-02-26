@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { authAPI } from "@/services/endpoints/api";
-import { disconnectSocket } from '@/sockets/socket';
+import { disconnectSocket } from "@/sockets/socket";
 import type { User } from "@/services/types/api";
 
 interface AuthState {
@@ -23,21 +23,21 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isLoading: true,
-      
+
       /**
        * Set user manually (used when updating profile)
        */
       setUser: (user) => set({ user }),
-      
+
       /**
        * Logout user and clean up
        */
       logout: () => {
         set({ user: null });
         disconnectSocket();
-        localStorage.removeItem('auth-storage');
+        localStorage.removeItem("auth-storage");
       },
-      
+
       /**
        * Login user with email and password
        * Uses centralized authAPI.login() from API service
@@ -46,16 +46,20 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const loginResponse = await authAPI.login(email, password);
-          
+
           const userData: User = {
             id: loginResponse.id,
             name: loginResponse.name,
             email: loginResponse.email,
             profilePicture: loginResponse.profilePicture,
-            role: (loginResponse.role as 'PATIENT' | 'DOCTOR' | 'ADMIN') || 'PATIENT',
+            role:
+              (loginResponse.role as
+                | "PATIENT"
+                | "DOCTOR"
+                | "ADMIN") || "PATIENT",
             refreshToken: loginResponse.refreshToken,
           };
-          
+
           set({ user: userData, isLoading: false });
         } catch (err) {
           set({ isLoading: false });
@@ -65,7 +69,7 @@ export const useAuthStore = create<AuthState>()(
           throw new Error("Unknown error occurred");
         }
       },
-      
+
       /**
        * Check authentication status
        * With Zustand persist, user is rehydrated from localStorage synchronously
@@ -77,6 +81,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "auth-storage",
       partialize: (state) => ({ user: state.user }),
-    },
-  ),
+    }
+  )
 );
