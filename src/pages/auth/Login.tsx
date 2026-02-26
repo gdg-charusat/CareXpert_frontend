@@ -59,6 +59,7 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     const newErrors: { email?: string; password?: string } = {};
     const rules = getPasswordRules(password);
 
