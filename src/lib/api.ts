@@ -3,8 +3,14 @@ import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
 import { notify } from "@/lib/toast";
 
+// Normalize base URL to ensure it always targets the /api path
+const rawBaseUrl = import.meta.env.VITE_BASE_URL || "";
+const normalizedBaseUrl = rawBaseUrl.endsWith("/api")
+  ? rawBaseUrl
+  : `${rawBaseUrl.replace(/\/+$/, "")}/api`;
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: normalizedBaseUrl,
   withCredentials: true,
 });
 
