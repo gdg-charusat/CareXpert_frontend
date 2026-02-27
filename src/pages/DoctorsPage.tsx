@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -25,11 +26,11 @@ import {
   Loader2,
   Stethoscope,
 } from "lucide-react";
-import { toast } from "sonner";
 import { api } from "@/lib/api";
 import axios from "axios"; // Added this to fix the isAxiosError check
 import { useAuthStore } from "@/store/authstore";
 import EmptyState from "@/components/EmptyState";
+import { notify } from "@/lib/toast";
 
 /* ================= TYPES ================= */
 
@@ -88,6 +89,12 @@ export default function DoctorsPage() {
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const user = useAuthStore((state) => state.user);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+const [currentPage, setCurrentPage] = useState(1);
+const [itemsPerPage] = useState(5);
+const [sortBy, setSortBy] = useState("name-asc");
+const [showScrollTop, setShowScrollTop] = useState(false);
   /* ================= EFFECTS ================= */
 
   useEffect(() => {
@@ -110,15 +117,14 @@ export default function DoctorsPage() {
             params: { search: debouncedSearch },
           }
         );
-
         if (res.data.success) {
           setDoctors(res.data.data);
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+          notify.error(err.response.data?.message || "Something went wrong");
         } else {
-          toast.error("An unexpected error occurred.");
+          notify.error("An unexpected error occurred.");
         }
       } finally {
         setIsLoading(false);
@@ -128,6 +134,26 @@ export default function DoctorsPage() {
     fetchDoctors();
   }, [debouncedSearch]);
 
+  useEffect(() => {
+  const page = Number(searchParams.get("page")) || 1;
+  const sort = searchParams.get("sort") || "name-asc";
+  const specialty = searchParams.get("specialty") || "all";
+  const location = searchParams.get("location") || "all";
+
+  setCurrentPage(page);
+  setSortBy(sort);
+  setSelectedSpecialty(specialty);
+  setSelectedLocation(location);
+}, [searchParams]);
+
+useEffect(() => {
+  setSearchParams({
+    page: String(currentPage),
+    sort: sortBy,
+    specialty: selectedSpecialty,
+    location: selectedLocation,
+  });
+}, [currentPage, sortBy, selectedSpecialty, selectedLocation, setSearchParams]);
   /* ================= FILTERS ================= */
 
   const specialties = [
@@ -158,11 +184,52 @@ export default function DoctorsPage() {
     return matchesSpecialty && matchesLocation;
   });
 
+  const sortedDoctors = [...filteredDoctors].sort((a, b) => {
+  if (sortBy === "name-asc") {
+    return a.user.name.localeCompare(b.user.name);
+  }
+  if (sortBy === "name-desc") {
+    return b.user.name.localeCompare(a.user.name);
+  }
+  if (sortBy === "fee-asc") {
+    return a.consultationFee - b.consultationFee;
+  }
+  if (sortBy === "fee-desc") {
+    return b.consultationFee - a.consultationFee;
+  }
+  return 0;
+});
+
+const totalPages = Math.ceil(sortedDoctors.length / itemsPerPage);
+
+const paginatedDoctors = sortedDoctors.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
+useEffect(() => {
+  setCurrentPage(1);
+}, [selectedSpecialty, selectedLocation, debouncedSearch, sortBy]);
+useEffect(() => {
+  const handleScroll = () => {
+    if (window.scrollY > 300) {
+      setShowScrollTop(true);
+    } else {
+      setShowScrollTop(false);
+    }
+  };
+
+  window.addEventListener("scroll", handleScroll);
+
+  return () => {
+    window.removeEventListener("scroll", handleScroll);
+  };
+}, []);
+
   /* ================= ACTIONS ================= */
 
   const openBookingDialog = (doctor: FindDoctors) => {
     if (!user || user.role !== "PATIENT") {
-      toast.error("Please login as a patient to book appointments");
+      notify.error("Please login as a patient to book appointments");
       return;
     }
     setSelectedDoctor(doctor);
@@ -207,7 +274,7 @@ export default function DoctorsPage() {
       );
 
       if (res.data.success) {
-        toast.success("Appointment booked successfully!");
+        notify.success("Appointment booked successfully!");
         closeBookingDialog();
       }
     } catch (err) {
@@ -222,7 +289,12 @@ export default function DoctorsPage() {
       setIsBooking(false);
     }
   };
-
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
   const generateTimeSlots = () => {
     const slots: string[] = [];
     for (let h = 9; h <= 17; h++) {
@@ -252,7 +324,7 @@ export default function DoctorsPage() {
 
         {/* Search */}
         <Card className="mb-8">
-          <CardContent className="p-6 grid md:grid-cols-4 gap-4">
+          <CardContent className="p-6 grid md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -293,7 +365,17 @@ export default function DoctorsPage() {
                 ))}
               </SelectContent>
             </Select>
-
+<Select value={sortBy} onValueChange={setSortBy}>
+  <SelectTrigger>
+    <SelectValue placeholder="Sort By" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="name-asc">Name A to Z</SelectItem>
+    <SelectItem value="name-desc">Name Z to A</SelectItem>
+    <SelectItem value="fee-asc">Fee Low to High</SelectItem>
+    <SelectItem value="fee-desc">Fee High to Low</SelectItem>
+  </SelectContent>
+</Select>
             <Button>
               <Filter className="h-4 w-4 mr-2" /> Apply
             </Button>
@@ -307,7 +389,7 @@ export default function DoctorsPage() {
               <Skeleton key={i} className="h-32 w-full" />
             ))}
           </div>
-        ) : filteredDoctors.length === 0 ? (
+        ) : sortedDoctors.length === 0 ? (
           <EmptyState
             title="No Doctors Found"
             description="Try adjusting your filters"
@@ -315,7 +397,7 @@ export default function DoctorsPage() {
           />
         ) : (
           <div className="grid gap-6">
-            {filteredDoctors.map((doctor) => (
+            {paginatedDoctors.map((doctor) => (
               <Card key={doctor.id}>
                 <CardContent className="p-6 grid lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-8 flex gap-4">
@@ -346,6 +428,28 @@ export default function DoctorsPage() {
                 </CardContent>
               </Card>
             ))}
+
+            <div className="flex justify-center items-center gap-4 mt-8">
+  <Button
+    variant="outline"
+    disabled={currentPage === 1}
+    onClick={() => setCurrentPage((prev) => prev - 1)}
+  >
+    Previous
+  </Button>
+
+  <span>
+    Page {currentPage} of {totalPages}
+  </span>
+
+  <Button
+    variant="outline"
+    disabled={currentPage === totalPages}
+    onClick={() => setCurrentPage((prev) => prev + 1)}
+  >
+    Next
+  </Button>
+</div>
           </div>
         )}
       </div>
@@ -411,6 +515,14 @@ export default function DoctorsPage() {
           )}
         </DialogContent>
       </Dialog>
+      {showScrollTop && (
+  <Button
+    onClick={scrollToTop}
+    className="fixed bottom-6 right-6 rounded-full h-12 w-12 shadow-lg z-50"
+  >
+    ↑
+  </Button>
+)}
     </div>
   );
 }

@@ -21,8 +21,8 @@ import {
 import { useAuthStore } from "@/store/authstore";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { notify } from "@/lib/toast";
 import EmptyState from "@/components/EmptyState";
 import {
   Dialog,
@@ -125,11 +125,11 @@ export default function DoctorAppointmentsPage() {
     } catch (error) {
       console.error("Error fetching appointments:", error);
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
+        notify.error(
           error.response.data?.message || "Failed to fetch appointments"
         );
       } else {
-        toast.error("Failed to fetch appointments");
+        notify.error("Failed to fetch appointments");
       }
     } finally {
       setLoading(false);
@@ -146,17 +146,17 @@ export default function DoctorAppointmentsPage() {
       );
 
       if (response.data.success) {
-        toast.success("Appointment accepted successfully!");
+        notify.success("Appointment accepted successfully!");
         fetchAppointments();
       }
     } catch (error) {
       console.error("Error accepting appointment:", error);
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
+        notify.error(
           error.response.data?.message || "Failed to accept appointment"
         );
       } else {
-        toast.error("Failed to accept appointment");
+        notify.error("Failed to accept appointment");
       }
     } finally {
       setProcessing(false);
@@ -165,7 +165,7 @@ export default function DoctorAppointmentsPage() {
 
   const handleSubmitPrescription = async () => {
     if (!prescriptionForAppointmentId || !prescriptionText.trim()) {
-      toast.error("Please enter prescription");
+      notify.error("Please enter prescription");
       return;
     }
     try {
@@ -176,7 +176,7 @@ export default function DoctorAppointmentsPage() {
         { withCredentials: true }
       );
       if (res.data.success) {
-        toast.success("Prescription saved");
+        notify.success("Prescription saved");
         // If we initiated from "Mark Completed", mark the appointment as completed now
         if (completeAfterPrescription && prescriptionForAppointmentId) {
           try {
@@ -186,15 +186,15 @@ export default function DoctorAppointmentsPage() {
               { withCredentials: true }
             );
             if (completeRes.data.success) {
-              toast.success("Appointment marked as completed");
+              notify.success("Appointment marked as completed");
             }
           } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-              toast.error(
+              notify.error(
                 error.response.data?.message || "Failed to mark as completed"
               );
             } else {
-              toast.error("Failed to mark as completed");
+              notify.error("Failed to mark as completed");
             }
           }
         }
@@ -207,11 +207,11 @@ export default function DoctorAppointmentsPage() {
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
+        notify.error(
           error.response.data?.message || "Failed to save prescription"
         );
       } else {
-        toast.error("Failed to save prescription");
+        notify.error("Failed to save prescription");
       }
     } finally {
       setProcessing(false);
@@ -243,7 +243,7 @@ export default function DoctorAppointmentsPage() {
 
   const handleRejectAppointment = async () => {
     if (!selectedAppointment || !rejectionReason.trim()) {
-      toast.error("Please provide a reason for rejection");
+      notify.error("Please provide a reason for rejection");
       return;
     }
 
@@ -259,7 +259,7 @@ export default function DoctorAppointmentsPage() {
       );
 
       if (response.data.success) {
-        toast.success("Appointment request rejected");
+        notify.success("Appointment request rejected");
         setRejectDialogOpen(false);
         setRejectionReason("");
         setSelectedAppointment(null);
@@ -268,11 +268,11 @@ export default function DoctorAppointmentsPage() {
     } catch (error) {
       console.error("Error rejecting appointment:", error);
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
+        notify.error(
           error.response.data?.message || "Failed to reject appointment"
         );
       } else {
-        toast.error("Failed to reject appointment");
+        notify.error("Failed to reject appointment");
       }
     } finally {
       setProcessing(false);
