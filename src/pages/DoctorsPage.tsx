@@ -26,6 +26,7 @@ import {
   Loader2,
   Stethoscope,
 } from "lucide-react";
+import { patientAPI, NormalizedDoctor } from "@/lib/services";
 import { api } from "@/lib/api";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
@@ -34,26 +35,8 @@ import { notify } from "@/lib/toast";
 
 /* ================= TYPES ================= */
 
-type FindDoctors = {
-  id: string;
-  userId: string;
-  specialty: string;
-  clinicLocation: string;
-  experience: string;
-  education: string;
-  bio: string;
-  languages: string[];
-  consultationFee: number;
-  name: string;
-  profilePicture: string;
-};
+type FindDoctors = NormalizedDoctor;
 
-type FindDoctorsApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: FindDoctors[];
-};
 
 type AppointmentBookingData = {
   doctorId: string;
@@ -113,12 +96,7 @@ export default function DoctorsPage() {
     const fetchDoctors = async () => {
       setIsLoading(true);
       try {
-        const res = await api.get<FindDoctorsApiResponse>(
-          `/patient/fetchAllDoctors`,
-          {
-            params: { search: debouncedSearch },
-          }
-        );
+        const res = await patientAPI.getAllDoctors();
         if (res.data.success) {
           setDoctors(res.data.data);
         }

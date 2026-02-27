@@ -30,6 +30,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { patientAPI, NormalizedDoctor } from "@/lib/services";
 import axios from "axios"; // Needed for axios.isAxiosError
 import {
   FormattedMessage,
@@ -47,14 +48,9 @@ import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
 import { notify } from "@/lib/toast";
 
-type DoctorData = {
-  id: string;
-  specialty: string;
-  clinicLocation: string;
-  name: string;
-  profilePicture: string;
-  userId: string;
-};
+// Uses the normalized flat shape from patientAPI so name/profilePicture
+// are always at the top level regardless of backend payload shape.
+type DoctorData = NormalizedDoctor;
 
 type SelectedChat =
   | "ai"
@@ -109,7 +105,7 @@ export default function ChatPage() {
   useEffect(() => {
     async function fetchAllDoctors() {
       try {
-        const res = await api.get(`/patient/fetchAllDoctors`);
+        const res = await patientAPI.getAllDoctors();
         if (res.data.success) {
           setDoctors(res.data.data);
         }
@@ -412,8 +408,13 @@ export default function ChatPage() {
         userId: conversation.otherUser.id,
         specialty: "Patient",
         clinicLocation: "",
-        name: conversation.otherUser.name,
-        profilePicture: conversation.otherUser.profilePicture,
+        name: conversation.otherUser.name ?? "",
+        profilePicture: conversation.otherUser.profilePicture ?? "",
+        experience: "",
+        education: "",
+        bio: "",
+        languages: [],
+        consultationFee: 0,
       },
     });
     setMessages([]);

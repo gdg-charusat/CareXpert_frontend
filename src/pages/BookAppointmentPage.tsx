@@ -32,6 +32,7 @@ import {
 import { Textarea } from "../components/ui/textarea";
 import { MapPin, Clock, Star, Video, User } from "lucide-react";
 import { api } from "@/lib/api";
+import { patientAPI, NormalizedDoctor } from "@/lib/services";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
 import { notify } from "@/lib/toast";
@@ -57,20 +58,8 @@ const appointmentSchema = z.object({
 // Type inference from Zod schema
 type AppointmentFormData = z.infer<typeof appointmentSchema>;
 
-// Type for Doctor data from API
-type Doctor = {
-  id: string;
-  userId: string;
-  specialty: string;
-  clinicLocation: string;
-  experience: string;
-  education: string;
-  bio: string;
-  languages: string[];
-  consultationFee: number;
-  name: string;
-  profilePicture: string;
-};
+// Type for Doctor data — uses the normalized flat shape from patientAPI
+type Doctor = NormalizedDoctor;
 
 export default function BookAppointmentPage() {
   const { id: doctorId } = useParams<{ id: string }>();
@@ -114,9 +103,7 @@ export default function BookAppointmentPage() {
 
     const fetchDoctor = async () => {
       try {
-        const res = await api.get<{ success: boolean; data: Doctor[] }>(
-          `/patient/fetchAllDoctors`
-        );
+        const res = await patientAPI.getAllDoctors();
 
         if (res.data.success) {
           const foundDoctor = (res.data.data as Doctor[]).find((d) => d.id === doctorId);
