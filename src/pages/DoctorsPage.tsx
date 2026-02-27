@@ -150,14 +150,6 @@ export default function DoctorsPage() {
     setSelectedSpecialty(specialty);
     setSelectedLocation(location);
   }, [searchParams]);
-  useEffect(() => {
-    setSearchParams({
-      page: String(currentPage),
-      sort: sortBy,
-      specialty: selectedSpecialty,
-      location: selectedLocation,
-    });
-  }, [currentPage, sortBy, selectedSpecialty, selectedLocation, setSearchParams]);
 
   // Reset page on filter change
   useEffect(() => {
@@ -209,18 +201,6 @@ export default function DoctorsPage() {
     if (sortBy === "name-desc") return b.user.name.localeCompare(a.user.name);
     if (sortBy === "fee-asc") return a.consultationFee - b.consultationFee;
     if (sortBy === "fee-desc") return b.consultationFee - a.consultationFee;
-    if (sortBy === "name-asc") {
-      return a.user.name.localeCompare(b.user.name);
-    }
-    if (sortBy === "name-desc") {
-      return b.user.name.localeCompare(a.user.name);
-    }
-    if (sortBy === "fee-asc") {
-      return a.consultationFee - b.consultationFee;
-    }
-    if (sortBy === "fee-desc") {
-      return b.consultationFee - a.consultationFee;
-    }
     return 0;
   });
 
