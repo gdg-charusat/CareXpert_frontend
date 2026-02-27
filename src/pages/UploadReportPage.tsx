@@ -85,7 +85,7 @@ export default function UploadReportPage() {
           setStatus(parsedLast.status || "COMPLETED");
         }
       }
-    } catch {}
+    } catch { }
 
     return () => stopPolling();
   }, []);
@@ -121,7 +121,7 @@ export default function UploadReportPage() {
     }, 2000);
   };
 
-const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!file) return;
     setErrorMessage(null);
     setResult(null);

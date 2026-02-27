@@ -627,7 +627,7 @@ export default function ChatPage() {
       offMessage();
     };
   }, [selectedChat, user]);
-  
+
   return (
     <div className="h-[calc(100%-1rem)] overflow-hidden flex flex-col mt-4">
       {/* Mobile Header */}
