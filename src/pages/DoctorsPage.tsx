@@ -210,24 +210,7 @@ export default function DoctorsPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedSpecialty, selectedLocation, debouncedSearch, sortBy]);
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+  // ...existing code...
 
   /* ================= ACTIONS ================= */
 
