@@ -92,7 +92,7 @@ export default function DoctorsPage() {
 
   const user = useAuthStore((state) => state.user);
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [sortBy, setSortBy] = useState("name-asc");
