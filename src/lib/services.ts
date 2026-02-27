@@ -124,10 +124,59 @@ export interface BookAppointmentPayload {
     appointmentType: "ONLINE" | "OFFLINE";
 }
 
+/**
+ * The backend /patient/fetchAllDoctors (and related endpoints) still returns
+ * doctor display fields nested under a `user` sub-object:
+ *   { id, specialty, ..., user: { name, profilePicture } }
+ *
+ * This helper hoists those fields onto the root of the doctor object so that
+ * pages can use the flat shape (doctor.name / doctor.profilePicture) without
+ * ever crashing on undefined, regardless of which backend version is running.
+ */
+export interface NormalizedDoctor {
+    id: string;
+    userId: string;
+    specialty: string;
+    clinicLocation: string;
+    experience: string;
+    education: string;
+    bio: string;
+    languages: string[];
+    consultationFee: number;
+    name: string;
+    profilePicture: string;
+}
+
+// Raw shape returned by the backend (still nested under user)
+type RawDoctor = Record<string, unknown> & {
+    user?: { name?: string; profilePicture?: string };
+    name?: string;
+    profilePicture?: string;
+};
+
+function normalizeDoctorData(doctor: RawDoctor): NormalizedDoctor {
+    return {
+        ...(doctor as unknown as NormalizedDoctor),
+        // Prefer top-level fields (future-proof); fall back to nested user object
+        name: doctor.name ?? doctor.user?.name ?? "",
+        profilePicture: doctor.profilePicture ?? doctor.user?.profilePicture ?? "",
+    };
+}
+
 export const patientAPI = {
-    /** GET /patient/fetchAllDoctors */
-    getAllDoctors: () =>
-        api.get<ApiResponse>("/patient/fetchAllDoctors"),
+    /**
+     * GET /patient/fetchAllDoctors
+     * Response is normalized so that name/profilePicture are always at the
+     * top level of each doctor object, regardless of backend payload shape.
+     */
+    getAllDoctors: async (): Promise<{ data: { success: boolean; data: NormalizedDoctor[] } }> => {
+        const res = await api.get<ApiResponse<RawDoctor[]>>("/patient/fetchAllDoctors");
+        if (res.data?.success && Array.isArray(res.data.data)) {
+            (res as unknown as { data: { data: NormalizedDoctor[] } }).data.data =
+                (res.data.data as RawDoctor[]).map(normalizeDoctorData);
+        }
+        return res as unknown as { data: { success: boolean; data: NormalizedDoctor[] } };
+    },
 
     /** POST /patient/book-direct-appointment */
     bookAppointment: (payload: BookAppointmentPayload) =>
