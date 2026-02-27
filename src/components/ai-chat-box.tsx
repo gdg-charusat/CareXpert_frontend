@@ -5,7 +5,6 @@ import axios from "axios";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authstore";
 import { notify } from "@/lib/toast";
-import { logger } from "@/lib/logger";
 
 interface ChatMessage {
   id: string;

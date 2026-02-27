@@ -6,6 +6,7 @@ import { Bell, Check, CheckCheck, Calendar, Stethoscope } from "lucide-react";
 import { api } from "@/lib/api";
 import { relativeTime } from "@/lib/utils";
 import { notify } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 interface Notification {
   id: string;
@@ -26,23 +27,31 @@ export default function NotificationsPage() {
   useEffect(() => {
     const controller = new AbortController();
 
-  const fetchNotifications = async () => {
-    try {
-      const response = await api.get(
-        `/user/notifications`,
-        { withCredentials: true }
-      );
-      
-      if (response.data.success) {
-        setNotifications(response.data.data.notifications);
+    const fetchNotifications = async () => {
+      try {
+        const response = await api.get(
+          `/user/notifications`,
+          { withCredentials: true }
+        );
+        
+        if (response.data.success) {
+          setNotifications(response.data.data.notifications);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+        notify.error("Failed to fetch notifications");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      notify.error("Failed to fetch notifications");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    // call the fetch function and handle cleanup
+    fetchNotifications();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
   const markAsRead = async (notificationId: string) => {
     setMarkingAsRead(notificationId);
