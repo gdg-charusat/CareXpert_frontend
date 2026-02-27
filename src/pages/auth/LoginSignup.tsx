@@ -20,7 +20,7 @@ import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Heart, User, Stethoscope, MapPin, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Heart, User, Stethoscope, MapPin, Eye, EyeOff, Phone } from "lucide-react";
 import { useAuthStore } from "../../store/authstore";
 import { api } from "@/lib/api";
 import axios from "axios";

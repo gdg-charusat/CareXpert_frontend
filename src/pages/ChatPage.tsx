@@ -624,14 +624,9 @@ export default function ChatPage() {
     onMessage(handleIncomingMessage);
 
     return () => {
-      offMessage(handleIncomingMessage);
+      offMessage();
     };
   }, [selectedChat, user]);
-
-  return () => {
-    offMessage();
-  };
-}, [selectedChat, user]);
   
   return (
     <div className="h-[calc(100%-1rem)] overflow-hidden flex flex-col mt-4">

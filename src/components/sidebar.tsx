@@ -47,7 +47,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onToggle }: SidebarProps)
       fetchUnreadCount();
 
       // Poll every 10 seconds for real-time updates
-      intervalRef.current = setInterval(fetchUnreadCount, 10000) as unknown as number;
+      intervalRef.current = setInterval(fetchUnreadCount, 10000);
 
       return () => {
         if (intervalRef.current) {
