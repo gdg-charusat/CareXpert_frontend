@@ -53,3 +53,15 @@ export interface Pharmacy {
   latitude?: number;
   longitude?: number;
 }
+
+export interface BlockedDate {
+  id: string;
+  doctorId: string;
+  date: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  reason?: string | null;
+  isFullDay: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
