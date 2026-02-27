@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -68,6 +69,7 @@ type AppointmentApiResponse = {
 };
 
 export default function DoctorAppointmentsPage() {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<AppointmentRequest[]>([]);
   const [pendingRequests, setPendingRequests] = useState<AppointmentRequest[]>(
     []
@@ -85,6 +87,10 @@ export default function DoctorAppointmentsPage() {
     useState<string | null>(null);
   const [completeAfterPrescription, setCompleteAfterPrescription] =
     useState(false);
+
+  const apiBase = useMemo(() => {
+    return (api.defaults.baseURL || "/api").replace(/\/+$/, "");
+  }, []);
 
   const user = useAuthStore((state) => state.user);
   useEffect(() => {
@@ -350,21 +356,19 @@ export default function DoctorAppointmentsPage() {
         <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
           <button
             onClick={() => setActiveTab("requests")}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "requests"
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "requests"
                 ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            }`}
+              }`}
           >
             Pending Requests ({pendingRequests.length})
           </button>
           <button
             onClick={() => setActiveTab("all")}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "all"
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "all"
                 ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            }`}
+              }`}
           >
             All Appointments ({appointments.length})
           </button>
@@ -669,7 +673,7 @@ export default function DoctorAppointmentsPage() {
                             variant="secondary"
                             onClick={() =>
                               window.open(
-                                `/patient/prescription-pdf/${appointment.prescriptionId}`,
+                                `${apiBase}/doctor/prescription-pdf/${appointment.prescriptionId}`,
                                 "_blank"
                               )
                             }
@@ -677,6 +681,14 @@ export default function DoctorAppointmentsPage() {
                             View Prescription
                           </Button>
                         )}
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            navigate(`/doctor/reports?patientId=${appointment.patient.id}`)
+                          }
+                        >
+                          View Reports
+                        </Button>
                         {canMarkCompleted(appointment) && (
                           <Button
                             className="bg-blue-600 hover:bg-blue-700 text-white"

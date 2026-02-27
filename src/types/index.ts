@@ -36,7 +36,6 @@ export interface Appointment {
   patient?: User; // Depending on if you're fetching from Doctor or Patient side
   doctor?: Doctor;
 }
-
 export interface Pharmacy {
   id: string;
   name: string;
@@ -53,7 +52,6 @@ export interface Pharmacy {
   latitude?: number;
   longitude?: number;
 }
-
 export interface BlockedDate {
   id: string;
   doctorId: string;
