@@ -26,3 +26,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated build/lint logs
+build_output.txt
+build_errors.txt
+full_build_output.txt
+current_lint.txt
+lint_results.txt
