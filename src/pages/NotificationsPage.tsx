@@ -6,6 +6,7 @@ import { Bell, Check, CheckCheck, Calendar, Stethoscope } from "lucide-react";
 import { api } from "@/lib/api";
 import { relativeTime } from "@/lib/utils";
 import { notify } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 interface Notification {
   id: string;
@@ -37,7 +38,7 @@ export default function NotificationsPage() {
         setNotifications(response.data.data.notifications);
       }
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      logger.error("Error fetching notifications:", error as Error);
       notify.error("Failed to fetch notifications");
     } finally {
       setLoading(false);
@@ -62,7 +63,7 @@ export default function NotificationsPage() {
       );
       notify.success("Notification marked as read");
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      logger.error("Error marking notification as read:", error as Error);
       notify.error("Failed to mark notification as read");
     } finally {
       setMarkingAsRead(null);
@@ -82,7 +83,7 @@ export default function NotificationsPage() {
       );
       notify.success("All notifications marked as read");
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      logger.error("Error marking all notifications as read:", error as Error);
       notify.error("Failed to mark all notifications as read");
     }
   };

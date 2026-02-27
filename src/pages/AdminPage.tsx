@@ -31,6 +31,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useAuthStore } from "../store/authstore";
+import { logger } from "@/lib/logger";
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -152,13 +153,13 @@ export default function AdminPage() {
     },
   ];
 
-  const handleApproveDoctor = (doctorId: number) => {
-    console.log("Approving doctor:", doctorId);
+  const handleApproveDoctor = (_doctorId: number) => {
+    logger.debug("Doctor approval initiated", { safe: true });
     alert("Doctor approved successfully!");
   };
 
-  const handleRejectDoctor = (doctorId: number) => {
-    console.log("Rejecting doctor:", doctorId);
+  const handleRejectDoctor = (_doctorId: number) => {
+    logger.debug("Doctor rejection initiated", { safe: true });
     alert("Doctor application rejected.");
   };
 

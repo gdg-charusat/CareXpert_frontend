@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
 import { notify } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 export function AIChatBox() {
   const [message, setMessage] = useState("");
@@ -65,7 +66,7 @@ export function AIChatBox() {
         notify.success("Demo chat cleared");
       }
     } catch (error) {
-      console.error("Error clearing backend chat history:", error);
+      logger.error("Error clearing backend chat history:", error as Error);
       // Don't show error toast if it's just a demo/guest session
       // or at least make the failure non-blocking for the UI
       if (axios.isAxiosError(error) && error.response?.status !== 401) {

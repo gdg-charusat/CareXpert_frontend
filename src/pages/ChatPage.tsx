@@ -46,6 +46,7 @@ import {
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
 import { notify } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 type DoctorData = {
   id: string;
@@ -274,7 +275,7 @@ export default function ChatPage() {
         }
       }
     } catch (error) {
-      console.error("Error loading AI chat history:", error);
+      logger.error("Error loading AI chat history:", error as Error);
       // Show welcome message if no history
       setAiMessages([
         {
@@ -323,7 +324,7 @@ export default function ChatPage() {
       await api.delete(`/ai-chat/history`);
       notify.success("AI chat history cleared");
     } catch (error) {
-      console.error("Error clearing AI chat history:", error);
+      logger.error("Error clearing AI chat history:", error as Error);
       notify.error("Failed to sync clear with server");
     } finally {
       setIsClearingAi(false);
@@ -371,7 +372,7 @@ export default function ChatPage() {
         setAiMessages((prev) => [...prev, aiMsg]);
       }
     } catch (error) {
-      console.error("Error sending AI message:", error);
+      logger.error("Error sending AI message:", error as Error);
       notify.error("Failed to get AI response. Please try again.");
 
       // Add error message
@@ -400,7 +401,7 @@ export default function ChatPage() {
         setDmConversations(response.data.data.conversations);
       }
     } catch (error) {
-      console.error("Error fetching DM conversations:", error);
+      logger.error("Error fetching DM conversations:", error as Error);
     }
   };
 
@@ -446,7 +447,7 @@ export default function ChatPage() {
         setMessages(formattedMessages);
       }
     } catch (error) {
-      console.error("Error loading conversation history:", error);
+      logger.error("Error loading conversation history:", error as Error);
     }
   };
 
@@ -459,7 +460,7 @@ export default function ChatPage() {
         setCommunityMembers(response.data.data.members);
       }
     } catch (error) {
-      console.error("Error fetching community members:", error);
+      logger.error("Error fetching community members:", error as Error);
     }
   };
 
@@ -541,7 +542,7 @@ export default function ChatPage() {
         }
       } catch (error) {
         if (isMounted) {
-          console.error("Error loading chat history:", error);
+          logger.error("Error loading chat history:", error as Error);
           setMessages([]);
         }
       }

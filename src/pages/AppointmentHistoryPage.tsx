@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { notify } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 import { Input } from "../components/ui/input";
 import {
   Select,
@@ -78,7 +79,7 @@ export default function AppointmentHistoryPage() {
         setAppointments(response.data.data);
       }
     } catch (error) {
-      console.error("Error fetching appointment history:", error);
+      logger.error("Error fetching appointment history:", error as Error);
       if (axios.isAxiosError(error) && error.response) {
         notify.error(error.response.data?.message || "Failed to fetch appointment history");
       } else {
