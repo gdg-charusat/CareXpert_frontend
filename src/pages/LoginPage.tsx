@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -9,28 +8,34 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import { useAuthStore } from "../store/authstore";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
+  const isLoading = useAuthStore((state) => state.isLoading);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:3001/api/auth/login",
-        {
-          email,
-          password,
+      await login(email, password);
+      
+      const user = useAuthStore.getState().user;
+      if (user) {
+        if (user.role === "PATIENT") {
+          navigate("/dashboard/patient");
+        } else if (user.role === "DOCTOR") {
+          navigate("/dashboard/doctor");
+        } else if (user.role === "ADMIN") {
+          navigate("/admin");
         }
-      );
-
-      localStorage.setItem("token", response.data.token);
-      navigate("/dashboard/patient");
-    } catch (error) {
-      setError("Invalid credentials");
+      }
+      toast.success("Login successful!");
+    } catch (error: any) {
+      toast.error(error.message || "Invalid credentials");
       console.error("Login error:", error);
     }
   };
@@ -61,9 +66,8 @@ export default function LoginPage() {
                 required
               />
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>

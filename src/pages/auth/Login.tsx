@@ -12,7 +12,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import * as React from "react";
 import { toast } from "sonner";
-import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
 
 export default function Login() {

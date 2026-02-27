@@ -15,7 +15,7 @@ import { toast } from "sonner";
 export default function LoginSignup() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"PATIENT" | "DOCTOR" | null>(null);
   
   // Form states
@@ -37,37 +37,29 @@ export default function LoginSignup() {
   });
 
   const navigate = useNavigate();
-  const { setUser } = useAuthStore();
+  const { login, user } = useAuthStore();
+  const storeIsLoading = useAuthStore((state) => state.isLoading);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/user/login`,
-        loginData,
-        { withCredentials: true }
-      );
-
-      if (response.data.success) {
-        setUser(response.data.data);
-        toast.success("Login successful!");
-        
-        // Navigate based on role
-        const role = response.data.data.role;
-        if (role === "DOCTOR") {
+      await login(loginData.data, loginData.password);
+      toast.success("Login successful!");
+      
+      // Get user from store after login
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        if (currentUser.role === "DOCTOR") {
           navigate("/dashboard/doctor");
-        } else if (role === "PATIENT") {
+        } else if (currentUser.role === "PATIENT") {
           navigate("/dashboard/patient");
-        } else if (role === "ADMIN") {
+        } else if (currentUser.role === "ADMIN") {
           navigate("/admin");
         }
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Login failed");
-    } finally {
-      setIsLoading(false);
+      toast.error(error.message || "Login failed");
     }
   };
 
@@ -84,7 +76,7 @@ export default function LoginSignup() {
       return;
     }
 
-    setIsLoading(true);
+    setSignupLoading(true);
 
     try {
       const payload = {
@@ -126,7 +118,7 @@ export default function LoginSignup() {
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Signup failed");
     } finally {
-      setIsLoading(false);
+      setSignupLoading(false);
     }
   };
 
@@ -203,8 +195,8 @@ export default function LoginSignup() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                  <Button type="submit" className="w-full" disabled={storeIsLoading}>
+                    {storeIsLoading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </TabsContent>
@@ -369,8 +361,8 @@ export default function LoginSignup() {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading || !selectedRole}>
-                    {isLoading ? "Creating account..." : "Create Account"}
+                  <Button type="submit" className="w-full" disabled={signupLoading || !selectedRole}>
+                    {signupLoading ? "Creating account..." : "Create Account"}
                   </Button>
                 </form>
               </TabsContent>

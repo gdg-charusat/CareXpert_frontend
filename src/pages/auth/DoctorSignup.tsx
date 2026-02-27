@@ -30,6 +30,7 @@ import { useState } from "react";
 import * as React from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/authstore";
 
 export default function DoctorSignup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,6 +43,7 @@ export default function DoctorSignup() {
   const [location, setLocation] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { setUser } = useAuthStore();
 
   // Mock data for specialties
   const specialties = [
@@ -79,6 +81,17 @@ export default function DoctorSignup() {
   
       if (res.data.success) {
         toast.success("Doctor account created successfully!");
+        
+        // Auto-login by setting user data in auth store
+        setUser({
+          id: res.data.data.id,
+          name: res.data.data.name,
+          email: res.data.data.email,
+          profilePicture: res.data.data.profilePicture,
+          role: res.data.data.role,
+          refreshToken: res.data.data.refreshToken,
+        });
+        
         navigate("/dashboard/doctor");
       } else {
         toast.error(res.data.message || "Signup failed");

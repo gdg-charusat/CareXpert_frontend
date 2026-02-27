@@ -18,6 +18,7 @@ interface AuthState {
     logout: () => void;
     login: (email: string, password: string) => Promise<void>;
     checkAuth: () => Promise<void>;
+    clearLoading: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -28,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
             setUser: (user) => set({ user }),
             logout: () => {
                 set({ user: null });
+                localStorage.removeItem('auth-storage');
             },
             login: async (email: string, password: string) => {
                 set({ isLoading: true });
@@ -62,6 +64,9 @@ export const useAuthStore = create<AuthState>()(
             checkAuth: async () => {
                 // With Zustand persist, the user is already rehydrated from localStorage synchronously.
                 // We just mark loading as complete. If a backend check is needed later, add API call here.
+                set({ isLoading: false });
+            },
+            clearLoading: () => {
                 set({ isLoading: false });
             }
         }),
