@@ -136,7 +136,9 @@ export default function UploadReportPage() {
           setStatus(parsedLast.status || "COMPLETED");
         }
       }
-    } catch { }
+    } catch {
+      /* ignore */
+    }
 
     // ✅ Always cleanup on unmount
     return () => {
