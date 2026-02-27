@@ -94,6 +94,7 @@ export default function DoctorsPage() {
 const [currentPage, setCurrentPage] = useState(1);
 const [itemsPerPage] = useState(5);
 const [sortBy, setSortBy] = useState("name-asc");
+const [showScrollTop, setShowScrollTop] = useState(false);
   /* ================= EFFECTS ================= */
 
   useEffect(() => {
@@ -208,7 +209,21 @@ const paginatedDoctors = sortedDoctors.slice(
 useEffect(() => {
   setCurrentPage(1);
 }, [selectedSpecialty, selectedLocation, debouncedSearch, sortBy]);
+useEffect(() => {
+  const handleScroll = () => {
+    if (window.scrollY > 300) {
+      setShowScrollTop(true);
+    } else {
+      setShowScrollTop(false);
+    }
+  };
 
+  window.addEventListener("scroll", handleScroll);
+
+  return () => {
+    window.removeEventListener("scroll", handleScroll);
+  };
+}, []);
 
   /* ================= ACTIONS ================= */
 
@@ -274,7 +289,12 @@ useEffect(() => {
       setIsBooking(false);
     }
   };
-
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
   const generateTimeSlots = () => {
     const slots: string[] = [];
     for (let h = 9; h <= 17; h++) {
@@ -495,6 +515,14 @@ useEffect(() => {
           )}
         </DialogContent>
       </Dialog>
+      {showScrollTop && (
+  <Button
+    onClick={scrollToTop}
+    className="fixed bottom-6 right-6 rounded-full h-12 w-12 shadow-lg z-50"
+  >
+    ↑
+  </Button>
+)}
     </div>
   );
 }
