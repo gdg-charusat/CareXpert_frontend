@@ -44,10 +44,8 @@ type FindDoctors = {
   bio: string;
   languages: string[];
   consultationFee: number;
-  user: {
-    name: string;
-    profilePicture: string;
-  };
+  name: string;
+  profilePicture: string;
 };
 
 type FindDoctorsApiResponse = {
@@ -197,8 +195,8 @@ export default function DoctorsPage() {
   });
 
   const sortedDoctors = [...filteredDoctors].sort((a, b) => {
-    if (sortBy === "name-asc") return a.user.name.localeCompare(b.user.name);
-    if (sortBy === "name-desc") return b.user.name.localeCompare(a.user.name);
+    if (sortBy === "name-asc") return a.name.localeCompare(b.name);
+    if (sortBy === "name-desc") return b.name.localeCompare(a.name);
     if (sortBy === "fee-asc") return a.consultationFee - b.consultationFee;
     if (sortBy === "fee-desc") return b.consultationFee - a.consultationFee;
     return 0;
@@ -389,14 +387,14 @@ export default function DoctorsPage() {
                 <CardContent className="p-6 grid lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-8 flex gap-4">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src={doctor.user.profilePicture} />
+                      <AvatarImage src={doctor.profilePicture} />
                       <AvatarFallback>
-                        {doctor.user.name[0]}
+                        {doctor.name[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-semibold">
-                        {doctor.user.name}
+                        {doctor.name}
                       </h3>
                       <p className="text-blue-600">{doctor.specialty}</p>
                       <p className="text-sm">{doctor.clinicLocation}</p>

@@ -51,10 +51,8 @@ type DoctorData = {
   id: string;
   specialty: string;
   clinicLocation: string;
-  user: {
-    name: string;
-    profilePicture: string;
-  };
+  name: string;
+  profilePicture: string;
   userId: string;
 };
 
@@ -414,10 +412,8 @@ export default function ChatPage() {
         userId: conversation.otherUser.id,
         specialty: "Patient",
         clinicLocation: "",
-        user: {
-          name: conversation.otherUser.name,
-          profilePicture: conversation.otherUser.profilePicture,
-        },
+        name: conversation.otherUser.name,
+        profilePicture: conversation.otherUser.profilePicture,
       },
     });
     setMessages([]);
@@ -764,11 +760,11 @@ export default function ChatPage() {
                             <Avatar className="h-10 w-10">
                               <AvatarImage
                                 src={
-                                  chat.user.profilePicture || "/placeholder.svg"
+                                  chat.profilePicture || "/placeholder.svg"
                                 }
                               />
                               <AvatarFallback>
-                                {chat.user.name
+                                {chat.name
                                   .split(" ")
                                   .map((n) => n[0])
                                   .join("")}
@@ -777,7 +773,7 @@ export default function ChatPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                              {chat.user.name}
+                              {chat.name}
                             </h4>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               {chat.specialty}
@@ -982,18 +978,18 @@ export default function ChatPage() {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage
-                        src={selectedChat.data.user.profilePicture}
+                        src={selectedChat.data.profilePicture}
                       />
                       <AvatarFallback>
-                        {selectedChat.data.user.name
+                        {selectedChat.data.name
                           .split(" ")
-                          .map((n) => n[0])
+                          .map((n: string) => n[0])
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <CardTitle className="text-lg">
-                        {selectedChat.data.user.name}
+                        {selectedChat.data.name}
                       </CardTitle>
                       <CardDescription>
                         {selectedChat.data.specialty} • Online
