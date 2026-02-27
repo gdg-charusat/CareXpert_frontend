@@ -21,7 +21,6 @@ export const Navbar = memo(function Navbar() {
 
   const handleLogout = async () => {
     logout();
-    localStorage.removeItem("auth-storage");
     navigate("/");
   };
 

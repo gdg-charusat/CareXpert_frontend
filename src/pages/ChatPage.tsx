@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import axios from "axios"; // Needed for axios.isAxiosError
-import { toast } from "sonner";
 import {
   FormattedMessage,
   joinRoom,
@@ -46,6 +45,7 @@ import {
 } from "@/sockets/socket";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
+import { notify } from "@/lib/toast";
 
 type DoctorData = {
   id: string;
@@ -117,9 +117,9 @@ export default function ChatPage() {
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+          notify.error(err.response.data?.message || "Something went wrong");
         } else {
-          toast.error("Unknown error occurred");
+          notify.error("Unknown error occurred");
         }
       }
     }
@@ -144,9 +144,9 @@ export default function ChatPage() {
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+          notify.error(err.response.data?.message || "Something went wrong");
         } else {
-          toast.error("Unknown error ocurred");
+          notify.error("Unknown error ocurred");
         }
       }
     }
@@ -321,10 +321,10 @@ export default function ChatPage() {
 
     try {
       await api.delete(`/ai-chat/history`);
-      toast.success("AI chat history cleared");
+      notify.success("AI chat history cleared");
     } catch (error) {
       console.error("Error clearing AI chat history:", error);
-      toast.error("Failed to sync clear with server");
+      notify.error("Failed to sync clear with server");
     } finally {
       setIsClearingAi(false);
     }
@@ -372,7 +372,7 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error("Error sending AI message:", error);
-      toast.error("Failed to get AI response. Please try again.");
+      notify.error("Failed to get AI response. Please try again.");
 
       // Add error message
       const errorMsg = {
@@ -582,7 +582,7 @@ export default function ChatPage() {
       selectedChat.type === "room"
     ) {
       if (!activeRoomId) {
-        toast.error("Connecting to room... please try again in a moment");
+        notify.error("Connecting to room... please try again in a moment");
         return;
       }
       // Handle community room message sending
@@ -624,7 +624,7 @@ export default function ChatPage() {
     onMessage(handleIncomingMessage);
 
     return () => {
-      offMessage(handleIncomingMessage);
+      offMessage();
     };
   }, [selectedChat, user]);
 
