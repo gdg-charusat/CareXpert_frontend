@@ -97,10 +97,6 @@ export default function DoctorsPage() {
   const [itemsPerPage] = useState(5);
   const [sortBy, setSortBy] = useState("name-asc");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
-  const [sortBy, setSortBy] = useState("name-asc");
-  const [showScrollTop, setShowScrollTop] = useState(false);
   /* ================= EFFECTS ================= */
 
   // Debounce search query
