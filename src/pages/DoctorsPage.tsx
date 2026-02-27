@@ -60,15 +60,12 @@ type AppointmentBookingData = {
 
 export default function DoctorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
-  const [doctors , setDoctors] = useState<FindDoctors[]>([]);
-  
-//fix1
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-const [isSearching, setIsSearching] = useState(false);
+  const [doctors, setDoctors] = useState<FindDoctors[]>([]);
+
   // Booking dialog state
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<FindDoctors | null>(null);
@@ -83,59 +80,47 @@ const [isSearching, setIsSearching] = useState(false);
 
   const user = useAuthStore((state) => state.user);
   const url = `${import.meta.env.VITE_BASE_URL}/api/patient`;
-//fix2
- useEffect(() => {
-  const timer = setTimeout(() => {
-    setDebouncedSearch(searchQuery);
-  }, 400);
-
-  return () => clearTimeout(timer);
-}, [searchQuery]);
-
-useEffect(() => {
-  const fetchDoctors = async () => {
-    try {
-      setIsSearching(true);
 
   // Debounce search query
   useEffect(() => {
-    if (searchQuery !== debouncedSearchQuery) {
+    if (searchQuery !== debouncedSearch) {
       setIsSearching(true);
     }
-
     const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-      setIsSearching(false);
+      setDebouncedSearch(searchQuery);
     }, 400);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, [searchQuery]);
-      const res = await axios.get<FindDoctorsApiResponse>(
-        `${url}/fetchAllDoctors`,
-        {
-          params: { search: debouncedSearch },
-          withCredentials: true,
+
+  // Fetch doctors when debounced search changes
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setIsSearching(true);
+        const res = await axios.get<FindDoctorsApiResponse>(
+          `${url}/fetchAllDoctors`,
+          {
+            params: { search: debouncedSearch },
+            withCredentials: true,
+          }
+        );
+
+        if (res.data.success) {
+          setDoctors(res.data.data);
         }
-      );
-
-      if (res.data.success) {
-        setDoctors(res.data.data);
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response) {
+          toast.error(err.response.data?.message || "Something went wrong");
+        } else {
+          toast.error("An unexpected error occurred.");
+        }
+      } finally {
+        setIsSearching(false);
       }
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Something went wrong");
-      } else {
-        toast.error("An unexpected error occurred.");
-      }
-    } finally {
-      setIsSearching(false);
-    }
-  };
+    };
 
-  fetchDoctors();
-}, [debouncedSearch]);
+    fetchDoctors();
+  }, [debouncedSearch]);
   const specialties = [
     "Cardiology",
     "Dermatology",
@@ -155,25 +140,14 @@ useEffect(() => {
     "Miami, FL",
     "Seattle, WA",
   ];
-//fix 3
   const filteredDoctors = doctors.filter((doctor) => {
-    const matchesSearch =
-      doctor.user.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-      doctor.specialty.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
     const matchesSpecialty =
       selectedSpecialty === "all" || doctor.specialty === selectedSpecialty;
     const matchesLocation =
       selectedLocation === "all" || doctor.clinicLocation === selectedLocation;
 
-    return matchesSearch && matchesSpecialty && matchesLocation;
+    return matchesSpecialty && matchesLocation;
   });
-  const matchesSpecialty =
-    selectedSpecialty === "all" || doctor.specialty === selectedSpecialty;
-  const matchesLocation =
-    selectedLocation === "all" || doctor.clinicLocation === selectedLocation;
-
-  return matchesSpecialty && matchesLocation;
-});
 
   const openBookingDialog = (doctor: FindDoctors) => {
     if (!user || user.role !== "PATIENT") {
