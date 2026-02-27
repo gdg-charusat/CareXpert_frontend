@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
-import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
@@ -13,16 +9,15 @@ import {
   Calendar,
   Clock,
   FileText,
-  User,
   Mail,
-  Filter,
   Search,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
+import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Input } from "../components/ui/input";
+import { notify } from "@/lib/toast";
 import {
   Select,
   SelectContent,
@@ -72,8 +67,6 @@ export default function DoctorAppointmentHistoryPage() {
   const [dateFilter, setDateFilter] = useState<string>('all');
 
   const user = useAuthStore((state) => state.user);
-  const url = `${import.meta.env.VITE_BASE_URL}/api`;
-
   useEffect(() => {
     if (user?.role === "DOCTOR") {
       fetchAppointmentHistory();
@@ -87,8 +80,8 @@ export default function DoctorAppointmentHistoryPage() {
   const fetchAppointmentHistory = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<AppointmentApiResponse>(
-        `${url}/doctor/all-appointments`,
+      const response = await api.get<AppointmentApiResponse>(
+        `/doctor/all-appointments`,
         { withCredentials: true }
       );
 
@@ -98,9 +91,9 @@ export default function DoctorAppointmentHistoryPage() {
     } catch (error) {
       console.error("Error fetching appointment history:", error);
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(error.response.data?.message || "Failed to fetch appointment history");
+        notify.error(error.response.data?.message || "Failed to fetch appointment history");
       } else {
-        toast.error("Failed to fetch appointment history");
+        notify.error("Failed to fetch appointment history");
       }
     } finally {
       setLoading(false);

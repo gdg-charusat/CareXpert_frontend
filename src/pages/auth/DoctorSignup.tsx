@@ -1,3 +1,13 @@
+/**
+ * DoctorSignup.tsx - Refactored to use react-hook-form with Zod validation
+ * * Changes made:
+ * 1. Replaced multiple useState hooks with useForm hook from react-hook-form
+ * 2. Added Zod schema (doctorSignupSchema) for type-safe validation
+ * 3. Removed manual onChange handlers - now using register() and Controller for Select
+ * 4. Added inline error messages for each field
+ * 5. Centralized validation in Zod schema
+ * 6. Used zodResolver to connect Zod schema with react-hook-form
+ */
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -23,57 +33,40 @@ import {
   CreditCard,
   MapPin,
   User,
-  Loader2,
 } from "lucide-react";
 import { InputWithIcon } from "../../components/ui/input-with-icon";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
-import * as React from "react";
+import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
+import { notify } from "@/lib/toast";
 
-interface FieldErrors {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  specialty?: string;
-  location?: string;
-  password?: string;
-}
+/**
+ * Zod Schema for Doctor Signup Form
+ * Defines validation rules for all doctor signup fields
+ */
+const doctorSignupSchema = z.object({
+  firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  specialty: z.string().min(1, "Please select a specialty"),
+  experience: z.string().optional(),
+  license: z.string().optional(),
+  location: z.string().min(1, "Location is required"),
+  password: z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters"),
+});
 
-function getPasswordStrength(password: string): { label: string; color: string; width: string } {
-  if (!password) return { label: "", color: "", width: "0%" };
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-  if (score <= 2) return { label: "Weak", color: "bg-red-500", width: "33%" };
-  if (score <= 3) return { label: "Moderate", color: "bg-yellow-500", width: "66%" };
-  return { label: "Strong", color: "bg-green-500", width: "100%" };
-}
+// Type inference from Zod schema
+type DoctorSignupFormData = z.infer<typeof doctorSignupSchema>;
 
 export default function DoctorSignup() {
   const [showPassword, setShowPassword] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [specialty, setSpecialty] = useState("");
-  const [experience, setExperience] = useState("");
-  const [license, setLicense] = useState("");
-  const [location, setLocation] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const navigate = useNavigate();
 
-  const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
-
-  const clearError = (field: keyof FieldErrors) => {
-    if (fieldErrors[field]) setFieldErrors((p) => ({ ...p, [field]: undefined }));
-  };
-
+  // Mock data for specialties
   const specialties = [
     "Cardiology",
     "Dermatology",
@@ -86,63 +79,57 @@ export default function DoctorSignup() {
     "Other",
   ];
 
-  const validateForm = (): boolean => {
-    const errors: FieldErrors = {};
-    if (!firstName.trim()) errors.firstName = "First name is required";
-    if (!lastName.trim()) errors.lastName = "Last name is required";
-    if (!email.trim()) errors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Invalid email format";
-    if (!specialty) errors.specialty = "Specialty is required";
-    if (!location.trim()) errors.location = "Location is required";
-    if (!password) errors.password = "Password is required";
-    else if (password.length < 8) errors.password = "Password must be at least 8 characters";
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  /**
+   * Doctor Signup Form - using react-hook-form with Zod resolver
+   */
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<DoctorSignupFormData>({
+    resolver: zodResolver(doctorSignupSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      specialty: "",
+      experience: "",
+      license: "",
+      location: "",
+      password: "",
+    },
+  });
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    setIsLoading(true);
+  /**
+   * Handle form submission - simplified with react-hook-form
+   * Validation is handled automatically by zodResolver
+   */
+  const onSubmit = async (data: DoctorSignupFormData) => {
     try {
-      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/signup`, {
-        firstName,
-        lastName,
-        email,
-        password,
+      const res = await api.post(`/user/signup`, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
         role: "DOCTOR",
-        specialty,
-        clinicLocation: location,
-      }, {
-        withCredentials: true,
+        specialty: data.specialty,
+        clinicLocation: data.location,
       });
 
       if (res.data.success) {
-        toast.success("Doctor account created successfully!");
+        notify.success("Doctor account created successfully!");
         navigate("/dashboard/doctor");
       } else {
-        toast.error(res.data.message || "Signup failed");
+        notify.error(res.data.message || "Signup failed");
       }
-    } catch (err: any) {
+    } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        const data = err.response.data;
-        if (data?.errors && typeof data.errors === "object") {
-          const be: FieldErrors = {};
-          for (const key of Object.keys(data.errors)) {
-            if (["firstName", "lastName", "email", "specialty", "location", "password"].includes(key)) {
-              (be as any)[key] = data.errors[key];
-            }
-          }
-          if (Object.keys(be).length > 0) setFieldErrors(be);
-        }
-        toast.error(data?.message || "Something went wrong");
+        notify.error(err.response.data?.message || "Something went wrong");
       } else {
-        toast.error("Unknown error occurred.");
+        notify.error("Unknown error occurred.");
       }
       console.error(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -159,7 +146,8 @@ export default function DoctorSignup() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-6" onSubmit={handleSignup}>
+          {/* Form using react-hook-form's handleSubmit */}
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label
@@ -172,11 +160,13 @@ export default function DoctorSignup() {
                   id="firstName"
                   type="text"
                   placeholder="Dr. John"
-                  value={firstName}
-                  onChange={(e) => { setFirstName(e.target.value); clearError("firstName"); }}
+                  {...register("firstName")}
                   icon={<User className="h-4 w-4 text-gray-400" />}
                 />
-                {fieldErrors.firstName && <p className="text-sm text-red-500">{fieldErrors.firstName}</p>}
+                {/* Display validation error from Zod schema */}
+                {errors.firstName && (
+                  <p className="text-sm text-red-500">{errors.firstName.message}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label
@@ -189,11 +179,12 @@ export default function DoctorSignup() {
                   id="lastName"
                   type="text"
                   placeholder="Smith"
-                  value={lastName}
-                  onChange={(e) => { setLastName(e.target.value); clearError("lastName"); }}
+                  {...register("lastName")}
                   icon={<User className="h-4 w-4 text-gray-400" />}
                 />
-                {fieldErrors.lastName && <p className="text-sm text-red-500">{fieldErrors.lastName}</p>}
+                {errors.lastName && (
+                  <p className="text-sm text-red-500">{errors.lastName.message}</p>
+                )}
               </div>
             </div>
 
@@ -208,11 +199,12 @@ export default function DoctorSignup() {
                 id="email"
                 type="email"
                 placeholder="dr.smith@hospital.com"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); clearError("email"); }}
+                {...register("email")}
                 icon={<Mail className="h-4 w-4 text-gray-400" />}
               />
-              {fieldErrors.email && <p className="text-sm text-red-500">{fieldErrors.email}</p>}
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -223,19 +215,28 @@ export default function DoctorSignup() {
                 >
                   Specialty
                 </label>
-                <Select value={specialty} onValueChange={(val) => { setSpecialty(val); clearError("specialty"); }}>
-                  <SelectTrigger id="specialty">
-                    <SelectValue placeholder="Select specialty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {specialties.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {fieldErrors.specialty && <p className="text-sm text-red-500">{fieldErrors.specialty}</p>}
+                {/* Using Controller for Select component */}
+                <Controller
+                  name="specialty"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="specialty">
+                        <SelectValue placeholder="Select specialty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {specialties.map((spec) => (
+                          <SelectItem key={spec} value={spec}>
+                            {spec}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.specialty && (
+                  <p className="text-sm text-red-500">{errors.specialty.message}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label
@@ -248,8 +249,7 @@ export default function DoctorSignup() {
                   id="experience"
                   type="text"
                   placeholder="5 years"
-                  value={experience}
-                  onChange={(e) => setExperience(e.target.value)}
+                  {...register("experience")}
                   icon={<BriefcaseBusiness className="h-4 w-4 text-gray-400" />}
                 />
               </div>
@@ -267,8 +267,7 @@ export default function DoctorSignup() {
                   id="license"
                   type="text"
                   placeholder="MD123456"
-                  value={license}
-                  onChange={(e) => setLicense(e.target.value)}
+                  {...register("license")}
                   icon={<CreditCard className="h-4 w-4 text-gray-400" />}
                 />
               </div>
@@ -283,11 +282,12 @@ export default function DoctorSignup() {
                   id="location"
                   type="text"
                   placeholder="New York, NY"
-                  value={location}
-                  onChange={(e) => { setLocation(e.target.value); clearError("location"); }}
+                  {...register("location")}
                   icon={<MapPin className="h-4 w-4 text-gray-400" />}
                 />
-                {fieldErrors.location && <p className="text-sm text-red-500">{fieldErrors.location}</p>}
+                {errors.location && (
+                  <p className="text-sm text-red-500">{errors.location.message}</p>
+                )}
               </div>
             </div>
 
@@ -303,8 +303,7 @@ export default function DoctorSignup() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
+                  {...register("password")}
                   icon={<Lock className="h-4 w-4 text-gray-400" />}
                 />
                 <button
@@ -319,35 +318,17 @@ export default function DoctorSignup() {
                   )}
                 </button>
               </div>
-              {password && (
-                <div className="space-y-1">
-                  <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
-                      style={{ width: passwordStrength.width }}
-                    />
-                  </div>
-                  <p className={`text-xs ${passwordStrength.color.replace("bg-", "text-")}`}>
-                    {passwordStrength.label}
-                  </p>
-                </div>
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
               )}
-              {fieldErrors.password && <p className="text-sm text-red-500">{fieldErrors.password}</p>}
             </div>
 
             <Button
               type="submit"
               className="w-full bg-green-600 hover:bg-green-700"
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                "Create Doctor Account"
-              )}
+              {isSubmitting ? "Creating Account..." : "Create Doctor Account"}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">

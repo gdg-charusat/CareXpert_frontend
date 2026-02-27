@@ -1,3 +1,13 @@
+/**
+ * PatientSignup.tsx - Refactored to use react-hook-form with Zod validation
+ * * Changes made:
+ * 1. Replaced multiple useState hooks with useForm hook from react-hook-form
+ * 2. Added Zod schema (patientSignupSchema) for type-safe validation
+ * 3. Removed manual onChange handlers - now using register()
+ * 4. Added inline error messages for each field
+ * 5. Password confirmation validation done via Zod refine
+ * 6. Used zodResolver to connect Zod schema with react-hook-form
+ */
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -6,116 +16,100 @@ import {
   CardTitle,
   CardDescription,
 } from "../../components/ui/card";
-import { Mail, Lock, Eye, EyeOff, Heart, User, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Heart, User } from "lucide-react";
 import { InputWithIcon } from "../../components/ui/input-with-icon";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
-import * as React from "react";
-import { toast } from "sonner";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { api } from "@/lib/api";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
+import { notify } from "@/lib/toast";
 
-interface FieldErrors {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
-}
+/**
+ * Zod Schema for Patient Signup Form
+ * Includes password confirmation validation via refine
+ */
+const patientSignupSchema = z.object({
+  firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  password: z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
-function getPasswordStrength(password: string): { label: string; color: string; width: string } {
-  if (!password) return { label: "", color: "", width: "0%" };
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-  if (score <= 2) return { label: "Weak", color: "bg-red-500", width: "33%" };
-  if (score <= 3) return { label: "Moderate", color: "bg-yellow-500", width: "66%" };
-  return { label: "Strong", color: "bg-green-500", width: "100%" };
-}
+// Type inference from Zod schema
+type PatientSignupFormData = z.infer<typeof patientSignupSchema>;
 
 export default function PatientSignup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const navigate = useNavigate();
 
-  const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+  /**
+   * Patient Signup Form - using react-hook-form with Zod resolver
+   */
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<PatientSignupFormData>({
+    resolver: zodResolver(patientSignupSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-  const clearError = (field: keyof FieldErrors) => {
-    if (fieldErrors[field]) setFieldErrors((p) => ({ ...p, [field]: undefined }));
-  };
-
-  const validateForm = (): boolean => {
-    const errors: FieldErrors = {};
-    if (!firstName.trim()) errors.firstName = "First name is required";
-    if (!lastName.trim()) errors.lastName = "Last name is required";
-    if (!email.trim()) errors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Invalid email format";
-    if (!password) errors.password = "Password is required";
-    else if (password.length < 8) errors.password = "Password must be at least 8 characters";
-    if (!confirmPassword) errors.confirmPassword = "Please confirm your password";
-    else if (password !== confirmPassword) errors.confirmPassword = "Passwords do not match";
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    setIsLoading(true);
+  /**
+   * Handle form submission - simplified with react-hook-form
+   * Validation is handled automatically by zodResolver
+   */
+  const onSubmit = async (data: PatientSignupFormData) => {
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/user/signup`,
-        { firstName, lastName, email, password },
-        { withCredentials: true }
+      const res = await api.post(
+        `/user/signup`,
+        {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          password: data.password,
+        }
       );
 
       if (res.data.success) {
-        toast.success("Account created successfully!");
+        notify.success("Account created successfully!");
+
         useAuthStore.getState().setUser({
           id: res.data.data.id,
           name: res.data.data.name,
           email: res.data.data.email,
           profilePicture: res.data.data.profilePicture,
           role: res.data.data.role,
-          refreshToken: res.data.data.refreshToken,
         });
+
         if (res.data.data.role === "PATIENT") {
           navigate("/dashboard/patient");
         } else {
           navigate("/dashboard/doctor");
         }
       } else {
-        toast.error(res.data.message || "Signup failed");
+        notify.error(res.data.message || "Signup failed");
       }
-    } catch (err: any) {
+    } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        const data = err.response.data;
-        if (data?.errors && typeof data.errors === "object") {
-          const be: FieldErrors = {};
-          for (const key of Object.keys(data.errors)) {
-            if (key in fieldErrors || ["firstName", "lastName", "email", "password", "confirmPassword"].includes(key)) {
-              (be as any)[key] = data.errors[key];
-            }
-          }
-          if (Object.keys(be).length > 0) setFieldErrors(be);
-        }
-        toast.error(data?.message || "Something went wrong");
+        notify.error(err.response.data?.message || "Something went wrong");
       } else {
-        toast.error("Unknown error occurred");
+        notify.error("Unknown error occurred");
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -132,7 +126,8 @@ export default function PatientSignup() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-6" onSubmit={handleSignup}>
+          {/* Form using react-hook-form's handleSubmit */}
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="firstName" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -142,11 +137,13 @@ export default function PatientSignup() {
                   id="firstName"
                   type="text"
                   placeholder="John"
-                  value={firstName}
-                  onChange={(e) => { setFirstName(e.target.value); clearError("firstName"); }}
+                  {...register("firstName")}
                   icon={<User className="h-4 w-4 text-gray-400" />}
                 />
-                {fieldErrors.firstName && <p className="text-sm text-red-500">{fieldErrors.firstName}</p>}
+                {/* Display validation error from Zod schema */}
+                {errors.firstName && (
+                  <p className="text-sm text-red-500">{errors.firstName.message}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label htmlFor="lastName" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -156,11 +153,12 @@ export default function PatientSignup() {
                   id="lastName"
                   type="text"
                   placeholder="Doe"
-                  value={lastName}
-                  onChange={(e) => { setLastName(e.target.value); clearError("lastName"); }}
+                  {...register("lastName")}
                   icon={<User className="h-4 w-4 text-gray-400" />}
                 />
-                {fieldErrors.lastName && <p className="text-sm text-red-500">{fieldErrors.lastName}</p>}
+                {errors.lastName && (
+                  <p className="text-sm text-red-500">{errors.lastName.message}</p>
+                )}
               </div>
             </div>
 
@@ -172,11 +170,12 @@ export default function PatientSignup() {
                 id="email"
                 type="email"
                 placeholder="john.doe@example.com"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); clearError("email"); }}
+                {...register("email")}
                 icon={<Mail className="h-4 w-4 text-gray-400" />}
               />
-              {fieldErrors.email && <p className="text-sm text-red-500">{fieldErrors.email}</p>}
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -188,8 +187,7 @@ export default function PatientSignup() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
+                  {...register("password")}
                   icon={<Lock className="h-4 w-4 text-gray-400" />}
                 />
                 <button
@@ -200,20 +198,9 @@ export default function PatientSignup() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {password && (
-                <div className="space-y-1">
-                  <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
-                      style={{ width: passwordStrength.width }}
-                    />
-                  </div>
-                  <p className={`text-xs ${passwordStrength.color.replace("bg-", "text-")}`}>
-                    {passwordStrength.label}
-                  </p>
-                </div>
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
               )}
-              {fieldErrors.password && <p className="text-sm text-red-500">{fieldErrors.password}</p>}
             </div>
 
             <div className="space-y-2">
@@ -225,8 +212,7 @@ export default function PatientSignup() {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => { setConfirmPassword(e.target.value); clearError("confirmPassword"); }}
+                  {...register("confirmPassword")}
                   icon={<Lock className="h-4 w-4 text-gray-400" />}
                 />
                 <button
@@ -237,18 +223,13 @@ export default function PatientSignup() {
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {fieldErrors.confirmPassword && <p className="text-sm text-red-500">{fieldErrors.confirmPassword}</p>}
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+              )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                "Create Account"
-              )}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">

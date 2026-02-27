@@ -18,9 +18,10 @@ import {
   Plus,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
+import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { notify } from "@/lib/toast";
 
 type Appointment = {
   id: string;
@@ -57,8 +58,6 @@ export default function AppointmentManagementPage() {
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
   const [pastAppointments, setPastAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const url = `${import.meta.env.VITE_BASE_URL}/api/patient`;
-
   useEffect(() => {
     if (!user || user.role !== "PATIENT") {
       navigate("/auth/login");
@@ -69,7 +68,7 @@ export default function AppointmentManagementPage() {
     async function fetchAppointments() {
       try {
         setIsLoading(true);
-        const res = await axios.get<AppointmentApiResponse>(`${url}/all-appointments`, { withCredentials: true });
+        const res = await api.get<AppointmentApiResponse>(`/patient/all-appointments`, { withCredentials: true });
         if (res.data.success) {
           const allAppointments = res.data.data;
           const now = new Date();
@@ -102,9 +101,9 @@ export default function AppointmentManagementPage() {
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data.message);
+          notify.error(err.response.data.message);
         } else {
-          toast.error("Unknown error occurred..");
+          notify.error("Unknown error occurred..");
         }
       } finally {
         setIsLoading(false);
@@ -112,7 +111,7 @@ export default function AppointmentManagementPage() {
     }
 
     fetchAppointments();
-  }, [url]);
+  }, []);
 
   useEffect(() => {
     console.log(upcomingAppointments);
