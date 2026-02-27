@@ -84,6 +84,7 @@ export default function UploadReportPage() {
           stopPolling();
           setStatus("FAILED");
           setErrorMessage("Connection error - please try again");
+          setIsUploading(false); // ensure UI unlocks if polling finally dies
           notify.error("Failed to check report status");
         }
       }
