@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/layout";
 import DashboardLayout from "./components/DashboardLayout";
@@ -13,8 +13,6 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AppointmentManagementPage = lazy(() => import("./pages/AppointmentManagementPage"));
 const DoctorAppointmentsPage = lazy(() => import("./pages/DoctorAppointmentsPage"));
 const DoctorAppointmentHistoryPage = lazy(() => import("./pages/DoctorAppointmentHistoryPage"));
-const DoctorPrescriptionsPage = lazy(() => import("./pages/DoctorPrescriptionsPage"));
-const DoctorReportsPage = lazy(() => import("./pages/DoctorReportsPage"));
 const PrescriptionsPage = lazy(() => import("./pages/PrescriptionsPage"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const DoctorPendingRequestsPage = lazy(() => import("./pages/DoctorPendingRequestsPage"));
@@ -39,7 +37,7 @@ const PageLoader = () => (
   </div>
 );
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const user = useAuthStore((state) => state.user);
   if (!user) {
     return <Navigate to="/auth/login" replace />;
@@ -88,63 +86,6 @@ export default function AppRoutes() {
           <Route path="/pharmacy" element={<PharmacyPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/start-call" element={<StartCall />} />
-          
-        <Route path="/appointments" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<AppointmentManagementPage />} />
-        </Route>
-        <Route path="/doctor/appointments" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorAppointmentsPage />} />
-        </Route>
-        <Route path="/doctor/appointment-history" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorAppointmentHistoryPage />} />
-        </Route>
-        <Route path="/doctor/prescriptions" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorPrescriptionsPage />} />
-        </Route>
-        <Route path="/doctor/reports" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorReportsPage />} />
-        </Route>
-        <Route path="/prescriptions" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<PrescriptionsPage />} />
-        </Route>
-        <Route path="/notifications" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<NotificationsPage />} />
-        </Route>
-        <Route path="/pending-requests" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorPendingRequestsPage />} />
-        </Route>
-        <Route path="/profile" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<ProfilePage />} />
-        </Route>
-        <Route path="/doctors" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorsPage />} />
-        </Route>
-        <Route path="/doctors/:id" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DoctorProfilePage />} />
-        </Route>
-        <Route path="/book-appointment/:id" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<BookAppointmentPage />} />
-        </Route>
-        <Route path="/chat" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<ChatPage />} />
-        </Route>
-        <Route path="/upload-report" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<UploadReportPage />} />
-        </Route>
-        <Route path="/appointment-history" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<AppointmentHistoryPage />} />
-        </Route>
-        <Route path="/appointment-status" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<AppointmentStatusPage />} />
-        </Route>
-        <Route path="/pharmacy" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<PharmacyPage />} />
-        </Route>
-        <Route path="/admin" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<AdminPage />} />
-        </Route>
-        <Route path="/start-call" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<StartCall />} />
         </Route>
 
         {/* 404 */}
