@@ -40,7 +40,7 @@ export default function UploadReportPage() {
   const [status, setStatus] = useState<
     "IDLE" | "PROCESSING" | "COMPLETED" | "FAILED"
   >("IDLE");
-  const [result, setResult] = useState<any | null>(null);
+  const [result, setResult] = useState<ReportAnalysisResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const pollRef = useRef<number | null>(null);
