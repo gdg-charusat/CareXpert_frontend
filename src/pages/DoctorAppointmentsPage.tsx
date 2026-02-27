@@ -16,7 +16,6 @@ import {
   CheckCircle,
   XCircle,
   Mail,
-  RefreshCw,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import axios from "axios";
