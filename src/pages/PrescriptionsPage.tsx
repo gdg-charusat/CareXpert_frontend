@@ -20,10 +20,11 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
+import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
 import EmptyState from "@/components/EmptyState";
+import { notify } from "@/lib/toast";
 
 type Prescription = {
   id: string;
@@ -46,8 +47,6 @@ export default function PrescriptionsPage() {
   const user = useAuthStore((state) => state.user);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const url = `${import.meta.env.VITE_BASE_URL}/api/patient`;
-
   useEffect(() => {
     if (!user || user.role !== "PATIENT") {
       navigate("/auth/login");
@@ -58,22 +57,22 @@ export default function PrescriptionsPage() {
     async function fetchPrescriptions() {
       try {
         setIsLoading(true);
-        const res = await axios.get<PrescriptionApiResponse>(`${url}/view-prescriptions`, { withCredentials: true });
+        const res = await api.get<PrescriptionApiResponse>(`/patient/view-Prescriptions`, { withCredentials: true });
         if (res.data.success) {
           setPrescriptions(res.data.data);
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          toast.error(err.response.data?.message || "Something went wrong");
+          notify.error(err.response.data?.message || "Something went wrong");
         } else {
-          toast.error("Unknown error occurred");
+          notify.error("Unknown error occurred");
         }
       } finally {
         setIsLoading(false);
       }
     }
     fetchPrescriptions();
-  }, [url]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -147,7 +146,7 @@ export default function PrescriptionsPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(`${url}/prescription-pdf/${prescription.id}`, "_blank")}
+                          onClick={() => window.open(`/prescription-pdf/${prescription.id}`, "_blank")}
                         >
                           <Download className="h-4 w-4 mr-1" />
                           Download PDF

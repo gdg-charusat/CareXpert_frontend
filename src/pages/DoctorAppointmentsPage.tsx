@@ -18,9 +18,10 @@ import {
   Mail,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
+import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { notify } from "@/lib/toast";
 import EmptyState from "@/components/EmptyState";
 import {
   Dialog,
@@ -86,8 +87,6 @@ export default function DoctorAppointmentsPage() {
     useState(false);
 
   const user = useAuthStore((state) => state.user);
-  const url = `${import.meta.env.VITE_BASE_URL}/api`;
-
   useEffect(() => {
     if (user?.role === "DOCTOR") {
       fetchAppointments();
@@ -99,14 +98,14 @@ export default function DoctorAppointmentsPage() {
       setLoading(true);
 
       // Fetch pending requests
-      const pendingResponse = await axios.get<AppointmentApiResponse>(
-        `${url}/doctor/pending-requests`,
+      const pendingResponse = await api.get<AppointmentApiResponse>(
+        `/doctor/pending-requests`,
         { withCredentials: true }
       );
 
       // Fetch all appointments
-      const allResponse = await axios.get<AppointmentApiResponse>(
-        `${url}/doctor/all-appointments`,
+      const allResponse = await api.get<AppointmentApiResponse>(
+        `/doctor/all-appointments`,
         { withCredentials: true }
       );
 
@@ -120,11 +119,11 @@ export default function DoctorAppointmentsPage() {
     } catch (error) {
       console.error("Error fetching appointments:", error);
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
+        notify.error(
           error.response.data?.message || "Failed to fetch appointments"
         );
       } else {
-        toast.error("Failed to fetch appointments");
+        notify.error("Failed to fetch appointments");
       }
     } finally {
       setLoading(false);
@@ -134,24 +133,24 @@ export default function DoctorAppointmentsPage() {
   const handleAcceptAppointment = async (appointmentId: string) => {
     try {
       setProcessing(true);
-      const response = await axios.patch(
-        `${url}/doctor/appointment-requests/${appointmentId}/respond`,
+      const response = await api.patch(
+        `/doctor/appointment-requests/${appointmentId}/respond`,
         { action: "accept" },
         { withCredentials: true }
       );
 
       if (response.data.success) {
-        toast.success("Appointment accepted successfully!");
+        notify.success("Appointment accepted successfully!");
         fetchAppointments();
       }
     } catch (error) {
       console.error("Error accepting appointment:", error);
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
+        notify.error(
           error.response.data?.message || "Failed to accept appointment"
         );
       } else {
-        toast.error("Failed to accept appointment");
+        notify.error("Failed to accept appointment");
       }
     } finally {
       setProcessing(false);
@@ -160,36 +159,36 @@ export default function DoctorAppointmentsPage() {
 
   const handleSubmitPrescription = async () => {
     if (!prescriptionForAppointmentId || !prescriptionText.trim()) {
-      toast.error("Please enter prescription");
+      notify.error("Please enter prescription");
       return;
     }
     try {
       setProcessing(true);
-      const res = await axios.post(
-        `${url}/doctor/appointments/${prescriptionForAppointmentId}/prescription`,
+      const res = await api.post(
+        `/doctor/appointments/${prescriptionForAppointmentId}/prescription`,
         { prescriptionText: prescriptionText.trim() },
         { withCredentials: true }
       );
       if (res.data.success) {
-        toast.success("Prescription saved");
+        notify.success("Prescription saved");
         // If we initiated from "Mark Completed", mark the appointment as completed now
         if (completeAfterPrescription && prescriptionForAppointmentId) {
           try {
-            const completeRes = await axios.patch(
-              `${url}/doctor/appointments/${prescriptionForAppointmentId}/complete`,
+            const completeRes = await api.patch(
+              `/doctor/appointments/${prescriptionForAppointmentId}/complete`,
               {},
               { withCredentials: true }
             );
             if (completeRes.data.success) {
-              toast.success("Appointment marked as completed");
+              notify.success("Appointment marked as completed");
             }
           } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-              toast.error(
+              notify.error(
                 error.response.data?.message || "Failed to mark as completed"
               );
             } else {
-              toast.error("Failed to mark as completed");
+              notify.error("Failed to mark as completed");
             }
           }
         }
@@ -202,11 +201,11 @@ export default function DoctorAppointmentsPage() {
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
+        notify.error(
           error.response.data?.message || "Failed to save prescription"
         );
       } else {
-        toast.error("Failed to save prescription");
+        notify.error("Failed to save prescription");
       }
     } finally {
       setProcessing(false);
@@ -238,14 +237,14 @@ export default function DoctorAppointmentsPage() {
 
   const handleRejectAppointment = async () => {
     if (!selectedAppointment || !rejectionReason.trim()) {
-      toast.error("Please provide a reason for rejection");
+      notify.error("Please provide a reason for rejection");
       return;
     }
 
     try {
       setProcessing(true);
-      const response = await axios.patch(
-        `${url}/doctor/appointment-requests/${selectedAppointment.id}/respond`,
+      const response = await api.patch(
+        `/doctor/appointment-requests/${selectedAppointment.id}/respond`,
         {
           action: "reject",
           rejectionReason: rejectionReason.trim(),
@@ -254,7 +253,7 @@ export default function DoctorAppointmentsPage() {
       );
 
       if (response.data.success) {
-        toast.success("Appointment request rejected");
+        notify.success("Appointment request rejected");
         setRejectDialogOpen(false);
         setRejectionReason("");
         setSelectedAppointment(null);
@@ -263,11 +262,11 @@ export default function DoctorAppointmentsPage() {
     } catch (error) {
       console.error("Error rejecting appointment:", error);
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
+        notify.error(
           error.response.data?.message || "Failed to reject appointment"
         );
       } else {
-        toast.error("Failed to reject appointment");
+        notify.error("Failed to reject appointment");
       }
     } finally {
       setProcessing(false);
@@ -670,7 +669,7 @@ export default function DoctorAppointmentsPage() {
                             variant="secondary"
                             onClick={() =>
                               window.open(
-                                `${url}/patient/prescription-pdf/${appointment.prescriptionId}`,
+                                `/patient/prescription-pdf/${appointment.prescriptionId}`,
                                 "_blank"
                               )
                             }
