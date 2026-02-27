@@ -6,12 +6,11 @@ import {
   CardTitle,
   CardDescription,
 } from "../components/ui/card";
-import {useEffect,useRef,useState}from "react";
+import {useEffect,useRef,useState,lazy, Suspense}from "react";
 import { Heart, Users, Clock, Shield, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "../components/navbar";
 import { Footer } from "../components/footer";
-import { lazy, Suspense } from "react";
 import { SampleCredentials } from "../components/sample-credentials";
 
 const AIChatBox = lazy(() => import("../components/ai-chat-box").then(module => ({ default: module.AIChatBox })));
@@ -21,9 +20,10 @@ export default function HomePage() {
   const [isVisible, setIsVisible] = useState(false);
   useEffect(() => {
   const observer = new IntersectionObserver(
-    ([entry]) => {
+    ([entry], obs) => {
       if (entry.isIntersecting) {
         setIsVisible(true);
+        obs.disconnect();
       }
     },
     { threshold: 0.2 }
@@ -34,9 +34,7 @@ export default function HomePage() {
   }
 
   return () => {
-    if (sectionRef.current) {
-      observer.unobserve(sectionRef.current);
-    }
+    observer.disconnect();
   };
 }, []);
   return (
@@ -116,7 +114,6 @@ export default function HomePage() {
       className={`container mx-auto px-4 py-16 transition-all duration-700 ease-out ${
      isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
      }`}
-     style={{marginTop:"500px"}}
     >
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
