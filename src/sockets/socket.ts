@@ -154,12 +154,12 @@ export const loadRoomChatHistory = async (
 };
 
 export const loadDmChatHistory = async (
-  roomId: string,
+  otherUserId: string,
   page: number = 1,
   limit: number = 50
 ) => {
   try {
-    const response = await api.get(`/chat/dm/${roomId}`, {
+    const response = await api.get(`/chat/one-on-one/${otherUserId}`, {
       params: { page, limit },
       withCredentials: true,
     });
