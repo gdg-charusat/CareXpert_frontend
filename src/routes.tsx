@@ -31,6 +31,7 @@ const PharmacyPage = lazy(() => import("./pages/PharmacyPage"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const HealthMetricsDashboardPage = lazy(() => import("./pages/HealthMetricsDashboardPage"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -120,6 +121,9 @@ export default function AppRoutes() {
         </Route>
         <Route path="/start-call" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<StartCall />} />
+        </Route>
+        <Route path="/patient/:patientId/health-metrics" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route index element={<HealthMetricsDashboardPage />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

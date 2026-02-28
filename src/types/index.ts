@@ -63,3 +63,74 @@ export interface BlockedDate {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// Health Metrics Types
+export type MetricStatus = 'NORMAL' | 'ABNORMAL' | 'CRITICAL';
+export type TrendDirection = 'up' | 'down' | 'stable';
+
+export interface PatientHealthMetric {
+  id: string;
+  patientId: string;
+  metricType: string;
+  value: number;
+  unit: string;
+  status: MetricStatus;
+  notes?: string;
+  recordedAt: string;
+  recordedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MetricFilters {
+  metricType?: string;
+  status?: MetricStatus;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface MetricsResponse {
+  success: boolean;
+  data: PatientHealthMetric[];
+  pagination?: {
+    total: number;
+    limit: number;
+    offset: number;
+  };
+}
+
+export interface LatestMetrics {
+  [metricType: string]: PatientHealthMetric;
+}
+
+export interface TrendData {
+  metricType: string;
+  trend: TrendDirection;
+  percentageChange: number;
+  average: number;
+  min: number;
+  max: number;
+  dataPoints: Array<{
+    date: string;
+    value: number;
+    status: MetricStatus;
+  }>;
+}
+
+export interface MetricAlert {
+  id: string;
+  metric: PatientHealthMetric;
+  severity: 'warning' | 'critical';
+  message: string;
+  dismissed: boolean;
+}
+
+export interface NewMetric {
+  metricType: string;
+  value: number;
+  unit: string;
+  notes?: string;
+  recordedAt?: string;
+}
