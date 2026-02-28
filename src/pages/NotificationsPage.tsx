@@ -33,10 +33,11 @@ export default function NotificationsPage() {
           signal: controller.signal,
           withCredentials: true,
         });
-        setNotifications(response.data || []);
+        // API returns { data: { notifications: Notification[] } }
+        setNotifications(response.data?.data?.notifications || []);
       } catch (error) {
         if (error instanceof Error && error.message !== "canceled") {
-          console.error("Error fetching notifications:", error);
+          logger.error("Error fetching notifications:", error);
           notify.error("Failed to load notifications");
         }
       } finally {
