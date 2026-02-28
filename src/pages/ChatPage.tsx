@@ -108,7 +108,7 @@ type AiMessage = {
   type: "ai" | "user";
   message: string;
   time: string;
-  aiData?: any;
+  aiData?: AiChat;
 };
 
 // conversation summary shape for doctor-side DM list
@@ -1122,21 +1122,21 @@ export default function ChatPage() {
                                 <div className="mb-3">
                                   <Badge
                                     variant={
-                                      normalizeSeverity(msg.aiData.severity) ===
+                                      normalizeSeverity(msg.aiData?.severity || "") ===
                                         "severe"
                                         ? "destructive"
                                         : normalizeSeverity(
-                                          msg.aiData.severity
+                                          msg.aiData?.severity || ""
                                         ) === "moderate"
                                           ? "default"
                                           : "secondary"
                                     }
                                     className="mb-2"
                                   >
-                                    {msg.aiData.severity
-                                      .charAt(0)
-                                      .toUpperCase() +
-                                      msg.aiData.severity.slice(1)}{" "}
+                                    {msg.aiData?.severity
+                                      ? msg.aiData.severity.charAt(0).toUpperCase() +
+                                        msg.aiData.severity.slice(1)
+                                      : "Unknown"}{" "}
                                     Severity
                                   </Badge>
                                 </div>

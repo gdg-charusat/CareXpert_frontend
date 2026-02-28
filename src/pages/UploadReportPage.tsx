@@ -335,24 +335,31 @@ export default function UploadReportPage() {
                       <div className="font-semibold mb-2">Abnormal Values</div>
                       <div className="space-y-3">
                         {result.abnormalValues
-                          .map((raw: any, i: number) => {
+                          .map((raw: unknown, i: number) => {
+                            const obj = raw as Record<string, unknown>;
                             const name =
-                              (raw.test_name as string) ||
-                              (raw.testName as string) ||
-                              (raw.parameter as string) ||
+                              (obj.test_name as string) ||
+                              (obj.testName as string) ||
+                              (obj.parameter as string) ||
                               `Result ${i + 1}`;
                             const value =
-                              (raw.value as string | number) ??
-                              (raw.measured_value as string | number) ??
-                              (raw.measuredValue as string | number);
-                            const unit = (raw.unit as string) || (raw.units as string) || "";
+                              (obj.value as string | number) ??
+                              (obj.measured_value as string | number) ??
+                              (obj.measuredValue as string | number);
+                            const unit =
+                              (obj.unit as string) ||
+                              (obj.units as string) ||
+                              "";
                             const normal =
-                              (raw.normal_range as string) ||
-                              (raw.normalRange as string) ||
-                              (raw.reference as string) ||
+                              (obj.normal_range as string) ||
+                              (obj.normalRange as string) ||
+                              (obj.reference as string) ||
                               "";
                             const issue =
-                              (raw.issue as string) || (raw.reason as string) || (raw.flag as string) || "";
+                              (obj.issue as string) ||
+                              (obj.reason as string) ||
+                              (obj.flag as string) ||
+                              "";
                             return { name, value, unit, normal, issue };
                           })
                           .map((v, idx: number) => (

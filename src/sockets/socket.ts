@@ -50,7 +50,7 @@ export interface FormattedMessage {
   // optional extensions used by various parts of the app
   id?: string;
   type?: string;
-  aiData?: any;
+  aiData?: unknown;
   sender?: string;
   timestamp?: string;
   // unreadCount isn't really part of a message but some code added it accidentally
