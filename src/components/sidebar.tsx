@@ -13,7 +13,8 @@ import {
   X,
   Bell,
   MessageCircle,
-  Star
+  Star,
+  BookTemplate
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -71,6 +72,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onToggle }: SidebarProps)
         { href: "/doctor/appointments", label: "Appointment Requests", icon: Calendar },
         { href: "/doctor/appointment-history", label: "Appointment History", icon: Clock },
         { href: "/doctor/prescriptions", label: "Prescriptions", icon: Pill },
+        { href: "/doctor/prescription-templates", label: "Prescription Templates", icon: BookTemplate },
         { href: "/doctor/reports", label: "Patient Reports", icon: FileText },
         { href: "/doctor/reviews", label: "My Reviews", icon: Star },
         { href: "/chat", label: "Chat", icon: MessageCircle },

@@ -207,6 +207,12 @@ export interface SubmitPrescriptionPayload {
     prescriptionText: string;
 }
 
+export interface PrescriptionTemplateQueryParams {
+    search?: string;
+    tag?: string;
+    isActive?: boolean;
+}
+
 export const doctorAPI = {
     /** GET /doctor/all-appointments */
     getAllAppointments: () =>
@@ -255,6 +261,14 @@ export const doctorAPI = {
     /** DELETE /doctor/block-date/:id */
     deleteBlockedDate: (blockedDateId: string) =>
         api.delete<ApiResponse>(`/doctor/block-date/${blockedDateId}`),
+
+    /** GET /doctor/prescription-templates */
+    getPrescriptionTemplates: (params?: PrescriptionTemplateQueryParams) =>
+        api.get<ApiResponse>("/doctor/prescription-templates", { params }),
+
+    /** GET /doctor/prescription-templates/tags */
+    getPrescriptionTemplateTags: () =>
+        api.get<ApiResponse>("/doctor/prescription-templates/tags"),
 };
 
 // ---------------------------------------------------------------------------
