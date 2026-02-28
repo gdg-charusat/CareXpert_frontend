@@ -134,3 +134,14 @@ export interface NewMetric {
   notes?: string;
   recordedAt?: string;
 }
+export interface PrescriptionTemplate {
+  id: string;
+  doctorId: string;
+  name: string;
+  description?: string | null;
+  prescriptionText: string;
+  isActive: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
