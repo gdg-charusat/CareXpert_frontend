@@ -112,9 +112,7 @@ export default function UploadReportPage() {
     }, 2000);
   }, []);
 
-  // ✅ Comprehensive cleanup on mount/unmount
   useEffect(() => {
-    // Load saved state
     try {
       const saved = localStorage.getItem(LS_REPORT_STATE_KEY);
       if (saved) {
@@ -137,16 +135,9 @@ export default function UploadReportPage() {
           setStatus(parsedLast.status || "COMPLETED");
         }
       }
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
 
-    // ✅ Always cleanup on unmount
-    return () => {
-      stopPolling();
-      // Clear any pending state updates
-      setIsUploading(false);
-    };
+    return () => stopPolling();
   }, [startPolling]);
 
   // ✅ Also cleanup when file changes
