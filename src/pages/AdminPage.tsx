@@ -154,12 +154,12 @@ export default function AdminPage() {
     },
   ];
 
-  const handleApproveDoctor = (_doctorId: number) => {
+  const handleApproveDoctor = () => {
     logger.debug("Doctor approval initiated", { safe: true });
     alert("Doctor approved successfully!");
   };
 
-  const handleRejectDoctor = (_doctorId: number) => {
+  const handleRejectDoctor = () => {
     logger.debug("Doctor rejection initiated", { safe: true });
     alert("Doctor application rejected.");
   };
@@ -535,7 +535,7 @@ export default function AdminPage() {
                               <Button
                                 size="sm"
                                 className="w-full bg-green-600 hover:bg-green-700"
-                                onClick={() => handleApproveDoctor(request.id)}
+                                onClick={() => handleApproveDoctor()}
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
                                 Approve
@@ -544,7 +544,7 @@ export default function AdminPage() {
                                 variant="destructive"
                                 size="sm"
                                 className="w-full"
-                                onClick={() => handleRejectDoctor(request.id)}
+                                onClick={() => handleRejectDoctor()}
                               >
                                 <XCircle className="h-4 w-4 mr-2" />
                                 Reject

@@ -38,7 +38,7 @@ interface ReportAnalysisResult {
 export default function UploadReportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [_reportId, setReportId] = useState<string | null>(null);
+  const [, setReportId] = useState<string | null>(null);
   const [status, setStatus] = useState<
     "IDLE" | "PROCESSING" | "COMPLETED" | "FAILED"
   >("IDLE");
