@@ -66,8 +66,6 @@ export default function DoctorsPage() {
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [doctors, setDoctors] = useState<FindDoctors[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
   // Booking dialog state
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<FindDoctors | null>(null);
@@ -208,19 +206,6 @@ export default function DoctorsPage() {
     } finally {
       setIsBooking(false);
     }
-  };
-  const handleApplyFilters = async () => {
-  if (isApplyingFilters) return;
-  setIsApplyingFilters(true);
-  setTimeout(() => {
-    setIsApplyingFilters(false);
-  }, 500);
-};
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
   };
   const generateTimeSlots = () => {
     const slots = [];
