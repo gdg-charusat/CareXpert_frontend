@@ -93,11 +93,14 @@ export interface MetricFilters {
 
 export interface MetricsResponse {
   success: boolean;
-  data: PatientHealthMetric[];
-  pagination?: {
-    total: number;
-    limit: number;
-    offset: number;
+  data: {
+    metrics: PatientHealthMetric[];
+    pagination: {
+      total: number;
+      limit: number;
+      offset: number;
+      hasMore: boolean;
+    };
   };
 }
 
@@ -121,10 +124,22 @@ export interface TrendData {
 
 export interface MetricAlert {
   id: string;
-  metric: PatientHealthMetric;
-  severity: 'warning' | 'critical';
-  message: string;
-  dismissed: boolean;
+  patientId: string;
+  metricType: string;
+  value: number;
+  unit: string;
+  notes?: string;
+  recordedAt: string;
+  recordedBy?: string;
+  isAbnormal: boolean;
+  createdAt: string;
+  updatedAt: string;
+  recordedByUser?: {
+    id: string;
+    name: string;
+    role: string;
+  };
+  severity: 'normal' | 'abnormal' | 'critical';
 }
 
 export interface NewMetric {

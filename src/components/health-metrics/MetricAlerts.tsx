@@ -20,14 +20,15 @@ export function MetricAlerts({ patientId, compact = false }: MetricAlertsProps) 
     fetchAlerts(patientId);
   }, [patientId, fetchAlerts]);
 
-  const activeAlerts = alerts.filter(alert => !alert.dismissed);
+  // Backend returns all abnormal metrics, no need to filter by dismissed
+  const activeAlerts = alerts;
 
   if (activeAlerts.length === 0) {
     return null;
   }
 
   const criticalAlerts = activeAlerts.filter(a => a.severity === 'critical');
-  const warningAlerts = activeAlerts.filter(a => a.severity === 'warning');
+  const warningAlerts = activeAlerts.filter(a => a.severity === 'abnormal');
 
   if (compact) {
     return (
@@ -78,7 +79,7 @@ export function MetricAlerts({ patientId, compact = false }: MetricAlertsProps) 
             key={alert.id}
             variant={alert.severity === 'critical' ? 'destructive' : 'default'}
             className={cn(
-              alert.severity === 'warning' && 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950'
+              alert.severity === 'abnormal' && 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950'
             )}
           >
             {alert.severity === 'critical' ? (
@@ -89,22 +90,22 @@ export function MetricAlerts({ patientId, compact = false }: MetricAlertsProps) 
             <div className="flex-1">
               <AlertTitle className="flex items-center justify-between">
                 <span>
-                  {alert.metric.metricType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  {alert.metricType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </span>
                 <span className="text-sm font-normal">
-                  {format(new Date(alert.metric.recordedAt), 'PPp')}
+                  {format(new Date(alert.recordedAt), 'PPp')}
                 </span>
               </AlertTitle>
               <AlertDescription className={cn(
-                alert.severity === 'warning' && 'text-orange-600 dark:text-orange-400'
+                alert.severity === 'abnormal' && 'text-orange-600 dark:text-orange-400'
               )}>
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-semibold">
-                      {alert.metric.value} {alert.metric.unit}
+                      {alert.value} {alert.unit}
                     </span>
                     {' - '}
-                    {alert.message}
+                    {alert.severity === 'critical' ? 'Critical reading detected' : 'Abnormal reading detected'}
                   </div>
                   <Button
                     variant="ghost"
@@ -118,8 +119,8 @@ export function MetricAlerts({ patientId, compact = false }: MetricAlertsProps) 
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                {alert.metric.notes && (
-                  <p className="mt-1 text-xs">{alert.metric.notes}</p>
+                {alert.notes && (
+                  <p className="mt-1 text-xs">{alert.notes}</p>
                 )}
               </AlertDescription>
             </div>

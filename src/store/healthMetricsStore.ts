@@ -22,7 +22,7 @@ interface HealthMetricsState {
   // Actions
   fetchMetrics: (patientId: string, filters?: MetricFilters) => Promise<void>;
   fetchLatestMetrics: (patientId: string) => Promise<void>;
-  fetchTrends: (patientId: string, metricType: string, period: '7d' | '30d' | '90d' | '180d' | '1y') => Promise<void>;
+  fetchTrends: (patientId: string, metricTypes: string[], period: '7d' | '30d' | '90d' | '180d' | '1y') => Promise<void>;
   fetchAlerts: (patientId: string) => Promise<void>;
   addMetric: (patientId: string, data: NewMetric) => Promise<void>;
   updateMetric: (patientId: string, metricId: string, data: Partial<NewMetric>) => Promise<void>;
@@ -43,7 +43,7 @@ export const useHealthMetricsStore = create<HealthMetricsState>((set, get) => ({
     try {
       const response = await healthMetricsAPI.getMetrics(patientId, filters);
       set({ 
-        metrics: response.data,
+        metrics: response.data.metrics,
         loading: false 
       });
     } catch (error) {
@@ -68,14 +68,14 @@ export const useHealthMetricsStore = create<HealthMetricsState>((set, get) => ({
     }
   },
 
-  fetchTrends: async (patientId: string, metricType: string, period: '7d' | '30d' | '90d' | '180d' | '1y') => {
+  fetchTrends: async (patientId: string, metricTypes: string[], period: '7d' | '30d' | '90d' | '180d' | '1y') => {
     set({ loading: true, error: null });
     try {
-      const trendData = await healthMetricsAPI.getTrends(patientId, { metricType, period });
+      const trendsData = await healthMetricsAPI.getTrends(patientId, { metricTypes, period });
       set(state => ({
         trends: {
           ...state.trends,
-          [metricType]: trendData
+          ...trendsData
         },
         loading: false
       }));

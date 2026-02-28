@@ -15,7 +15,7 @@ interface QueryParams extends MetricFilters {
 }
 
 interface TrendParams {
-  metricType: string;
+  metricTypes: string[];
   period: '7d' | '30d' | '90d' | '180d' | '1y';
 }
 
@@ -50,7 +50,7 @@ export const healthMetricsService = {
   async getTrends(
     patientId: string,
     params: TrendParams
-  ): Promise<TrendData> {
+  ): Promise<Record<string, TrendData>> {
     const response = await api.get(
       `/patient/${patientId}/health-metrics/trends`,
       { params }
@@ -90,7 +90,7 @@ export const healthMetricsService = {
     metricId: string,
     data: Partial<NewMetric>
   ): Promise<PatientHealthMetric> {
-    const response = await api.patch(
+    const response = await api.put(
       `/patient/${patientId}/health-metrics/${metricId}`,
       data
     );

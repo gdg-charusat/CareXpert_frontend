@@ -464,7 +464,7 @@ interface HealthMetricQueryParams extends MetricFilters {
 }
 
 interface TrendParams {
-  metricType: string;
+  metricTypes: string[];
   period: '7d' | '30d' | '90d' | '180d' | '1y';
 }
 
@@ -478,7 +478,7 @@ export const healthMetricsAPI = {
     api.get(`/patient/${patientId}/health-metrics/latest`).then(res => res.data.data),
 
   /** GET /patient/:patientId/health-metrics/trends - Get trend data for a specific metric type */
-  getTrends: (patientId: string, params: TrendParams): Promise<TrendData> =>
+  getTrends: (patientId: string, params: TrendParams): Promise<Record<string, TrendData>> =>
     api.get(`/patient/${patientId}/health-metrics/trends`, { params }).then(res => res.data.data),
 
   /** GET /patient/:patientId/health-metrics/alerts - Get alerts for abnormal metrics */
@@ -489,9 +489,9 @@ export const healthMetricsAPI = {
   createMetric: (patientId: string, data: NewMetric): Promise<PatientHealthMetric> =>
     api.post(`/patient/${patientId}/health-metrics`, data).then(res => res.data.data),
 
-  /** PATCH /patient/:patientId/health-metrics/:metricId - Update an existing health metric */
+  /** PUT /patient/:patientId/health-metrics/:metricId - Update an existing health metric */
   updateMetric: (patientId: string, metricId: string, data: Partial<NewMetric>): Promise<PatientHealthMetric> =>
-    api.patch(`/patient/${patientId}/health-metrics/${metricId}`, data).then(res => res.data.data),
+    api.put(`/patient/${patientId}/health-metrics/${metricId}`, data).then(res => res.data.data),
 
   /** DELETE /patient/:patientId/health-metrics/:metricId - Delete a health metric */
   deleteMetric: (patientId: string, metricId: string): Promise<void> =>

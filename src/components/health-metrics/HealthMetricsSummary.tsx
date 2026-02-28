@@ -30,7 +30,7 @@ export function HealthMetricsSummary({ patientId, maxItems = 4 }: HealthMetricsS
   }, [patientId, fetchLatestMetrics, fetchAlerts]);
 
   const metricsArray = Object.values(latestMetrics).slice(0, maxItems);
-  const activeAlerts = alerts.filter(a => !a.dismissed);
+  const activeAlerts = alerts; // Backend only returns abnormal metrics
   const criticalAlerts = activeAlerts.filter(a => a.severity === 'critical');
 
   const handleViewAll = () => {

@@ -66,7 +66,7 @@ export function HealthMetricChart({
   const { trends, fetchTrends, loading } = useHealthMetricsStore();
 
   useEffect(() => {
-    fetchTrends(patientId, metricType, period);
+    fetchTrends(patientId, [metricType], period);
   }, [patientId, metricType, period, fetchTrends]);
 
   const trendData = trends[metricType];
