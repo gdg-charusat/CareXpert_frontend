@@ -1,4 +1,3 @@
-import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -113,27 +112,10 @@ export default function DoctorsPage() {
     fetchDoctors();
   }, [debouncedSearch]);
 
-  // Sync URL search params to state
   useEffect(() => {
-    const page = Number(searchParams.get("page")) || 1;
-    const sort = searchParams.get("sort") || "name-asc";
-    const specialty = searchParams.get("specialty") || "all";
-    const location = searchParams.get("location") || "all";
+    setCurrentPage(1);
+  }, [selectedSpecialty, selectedLocation, debouncedSearch, sortBy]);
 
-    setCurrentPage(page);
-    setSortBy(sort);
-    setSelectedSpecialty(specialty);
-    setSelectedLocation(location);
-  }, [searchParams]);
-
-  useEffect(() => {
-    setSearchParams({
-      page: String(currentPage),
-      sort: sortBy,
-      specialty: selectedSpecialty,
-      location: selectedLocation,
-    });
-  }, [currentPage, sortBy, selectedSpecialty, selectedLocation, setSearchParams]);
   /* ================= FILTERS ================= */
 
   const specialties = [
@@ -166,10 +148,10 @@ export default function DoctorsPage() {
 
   const sortedDoctors = [...filteredDoctors].sort((a, b) => {
     if (sortBy === "name-asc") {
-      return a.user.name.localeCompare(b.user.name);
+      return a.name.localeCompare(b.name);
     }
     if (sortBy === "name-desc") {
-      return b.user.name.localeCompare(a.user.name);
+      return b.name.localeCompare(a.name);
     }
     if (sortBy === "fee-asc") {
       return a.consultationFee - b.consultationFee;
@@ -186,9 +168,6 @@ export default function DoctorsPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedSpecialty, selectedLocation, debouncedSearch, sortBy]);
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 300) {
