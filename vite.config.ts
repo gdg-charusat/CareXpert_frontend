@@ -4,22 +4,18 @@ import path from "path"
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    {
-      name: 'csp-headers',
-      transformIndexHtml(html) {
-        return html.replace(
-          '<head>',
-          `<head>
-            <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https:; font-src 'self' data:;">`
-        );
-      },
-    },
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     },
   },
 })
