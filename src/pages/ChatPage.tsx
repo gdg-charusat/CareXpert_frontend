@@ -49,6 +49,7 @@ import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
 import { notify } from "@/lib/toast";
 import { logger } from "@/lib/logger";
+import { sanitizeText, sanitizeImageUrl } from "@/lib/sanitize";
 
 // Uses the normalized flat shape from patientAPI so name/profilePicture
 // are always at the top level regardless of backend payload shape.

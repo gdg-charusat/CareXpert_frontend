@@ -6,10 +6,6 @@ import { Bell, Check, CheckCheck, Calendar, Stethoscope } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/utils";
-import { api } from "@/lib/api";
-import { relativeTime } from "@/lib/utils";
-import { notify } from "@/lib/toast";
-import { logger } from "@/lib/logger";
 
 interface Notification {
   id: string;

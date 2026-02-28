@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -138,7 +138,7 @@ export default function UploadReportPage() {
         }
       }
     }, 2000);
-  }, []);
+  };
 
   // ✅ Comprehensive cleanup on mount/unmount
   useEffect(() => {
