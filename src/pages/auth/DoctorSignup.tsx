@@ -83,13 +83,14 @@ export default function DoctorSignup() {
         toast.success("Doctor account created successfully!");
         
         // Auto-login by setting user data in auth store
+        const userData = res.data.data.user || res.data.data;
         setUser({
-          id: res.data.data.id,
-          name: res.data.data.name,
-          email: res.data.data.email,
-          profilePicture: res.data.data.profilePicture,
-          role: res.data.data.role,
-          refreshToken: res.data.data.refreshToken,
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          profilePicture: userData.profilePicture,
+          role: userData.role,
+          refreshToken: userData.refreshToken,
         });
         
         navigate("/dashboard/doctor");

@@ -3,7 +3,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { User } from "lucide-react";
+import { Badge } from "../components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../components/ui/dialog";
-import { Search, Filter, Video, Loader2 } from "lucide-react";
+import { Search, Filter, Video, Loader2, MapPin, Clock, User } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -312,7 +312,107 @@ useEffect(() => {
         key={doctor.id}
         className="overflow-hidden hover:shadow-lg transition-shadow"
       >
-        {/* paste your original card content here */}
+        <CardContent className="p-6">
+          <div className="grid lg:grid-cols-12 gap-6 items-start">
+            {/* Doctor Info - Takes 8 columns */}
+            <div className="lg:col-span-8">
+              <div className="flex gap-4">
+                <Avatar className="h-20 w-20 flex-shrink-0">
+                  <AvatarImage
+                    src={doctor.user.profilePicture || "/placeholder.svg"}
+                  />
+                  <AvatarFallback>
+                    {doctor.user.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white truncate">
+                      {doctor.user.name}
+                    </h3>
+                  </div>
+
+                  <p className="text-blue-600 dark:text-blue-400 font-medium mb-2">
+                    {doctor.specialty}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-300 mb-2">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{doctor.clinicLocation}</span>
+                    </div>
+
+                    <span className="whitespace-nowrap">
+                      {doctor.experience} experience
+                    </span>
+                  </div>
+
+                  <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                    {doctor.bio}
+                  </p>
+
+                  <div className="flex flex-col gap-2">
+                    {doctor.education && (
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {doctor.education}
+                        </Badge>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {doctor.languages?.map((lang) => (
+                        <Badge key={lang} variant="outline" className="text-xs">
+                          {lang}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Booking Info - Takes 4 columns */}
+            <div className="lg:col-span-4">
+              <div className="flex flex-col h-full">
+                <div className="text-center mb-4">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    ${doctor.consultationFee || "0"}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Consultation fee
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  <Clock className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span>Available for booking</span>
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    setSelectedDoctor(doctor);
+                    setBookingData({
+                      doctorId: doctor.id,
+                      date: "",
+                      time: "",
+                      appointmentType: "OFFLINE",
+                      notes: "",
+                    });
+                    setIsBookingDialogOpen(true);
+                  }}
+                >
+                  <Video className="h-4 w-4 mr-2" />
+                  Book Appointment
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     ))}
   </div>
