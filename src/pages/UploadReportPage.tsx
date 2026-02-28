@@ -16,7 +16,6 @@ import { Badge } from "../components/ui/badge";
 export default function UploadReportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [reportId, setReportId] = useState<string | null>(null);
   const [status, setStatus] = useState<
     "IDLE" | "PROCESSING" | "COMPLETED" | "FAILED"
   >("IDLE");
@@ -51,7 +50,6 @@ export default function UploadReportPage() {
           status?: string;
         };
         if (parsed?.reportId) {
-          setReportId(parsed.reportId);
           setStatus(parsed.status === "PROCESSING" ? "PROCESSING" : "IDLE");
           startPolling(parsed.reportId);
         }
@@ -119,7 +117,6 @@ export default function UploadReportPage() {
 
       if (res.data?.success && res.data?.data?.reportId) {
         const id = res.data.data.reportId as string;
-        setReportId(id);
         startPolling(id);
         toast.message("Report uploaded", {
           description: "Analyzing in background...",

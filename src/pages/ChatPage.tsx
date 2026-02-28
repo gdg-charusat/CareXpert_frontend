@@ -631,7 +631,7 @@ useEffect(() => {
   onMessage(handleIncomingMessage);
 
   return () => {
-    offMessage(handleIncomingMessage);
+    offMessage();
   };
 }, [selectedChat, user]);
   

@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Badge } from "../../components/ui/badge";
 import { Heart, User, Stethoscope, MapPin, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../../store/authstore";
 import axios from "axios";
@@ -37,7 +36,7 @@ export default function LoginSignup() {
   });
 
   const navigate = useNavigate();
-  const { login, user } = useAuthStore();
+  const { login } = useAuthStore();
   const storeIsLoading = useAuthStore((state) => state.isLoading);
 
   const handleLogin = async (e: React.FormEvent) => {

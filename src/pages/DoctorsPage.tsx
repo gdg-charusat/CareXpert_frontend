@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { SearchX } from "lucide-react";
+import { User } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,10 +20,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../components/ui/dialog";
-import { Search, MapPin, Clock, Filter, Heart, Video, User, Loader2 } from "lucide-react";
+import { Search, Filter, Video, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
-import { useAuthStore } from "@/store/authstore";
 
 
 type FindDoctors = {
@@ -80,7 +78,6 @@ export default function DoctorsPage() {
   });
   const [isBooking, setIsBooking] = useState(false);
 
-  const user = useAuthStore((state) => state.user);
   const url = `${import.meta.env.VITE_BASE_URL}/api/patient`;
 //fix2
 useEffect(() => {
@@ -153,23 +150,6 @@ useEffect(() => {
 
   return matchesSearch && matchesSpecialty && matchesLocation;
 });
-
-  const openBookingDialog = (doctor: FindDoctors) => {
-    if (!user || user.role !== "PATIENT") {
-      toast.error("Please login as a patient to book appointments");
-      return;
-    }
-    
-    setSelectedDoctor(doctor);
-    setBookingData({
-      doctorId: doctor.id,
-      date: "",
-      time: "",
-      appointmentType: "OFFLINE",
-      notes: "",
-    });
-    setIsBookingDialogOpen(true);
-  };
 
   const closeBookingDialog = () => {
     setIsBookingDialogOpen(false);
