@@ -2,6 +2,8 @@ import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Calendar, Clock, User, MapPin, FileText, Search, Star, Trash2 , ChevronRight } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authstore";
 import { api } from "@/lib/api";
 import axios from "axios";
@@ -109,44 +111,93 @@ export default function AppointmentHistoryPage() {
   }, [user, navigate]);
 
   const filterAppointments = useCallback(() => {
-    let filtered = [...appointments];
+    useEffect(() => {
+      filterAppointments();
+    }, [filterAppointments]);
 
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(appointment =>
-        appointment.doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appointment.doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    const fetchAppointmentHistory = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get<AppointmentApiResponse>(
+          `/patient/all-appointments`,
+          { withCredentials: true }
+        );
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(appointment => appointment.status === statusFilter);
-    }
-
-    // Sort by date (most recent first)
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    setFilteredAppointments(filtered);
-  }, [appointments, searchTerm, statusFilter]);
-
-  useEffect(() => {
-    filterAppointments();
-  }, [filterAppointments]);
-
-  const fetchAppointmentHistory = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get<AppointmentApiResponse>(
-        `/patient/all-appointments`,
-        { withCredentials: true }
-      );
-
-      if (response.data.success) {
-        setAppointments(response.data.data);
+        if (response.data.success) {
+          setAppointments(response.data.data);
+        }
+      } catch (error) {
+        logger.error("Error fetching appointment history:", error as Error);
+        if (axios.isAxiosError(error) && error.response) {
+          notify.error(error.response.data?.message || "Failed to fetch appointment history");
+        } else {
+          notify.error("Failed to fetch appointment history");
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      logger.error("Error fetching appointment history:", error as Error);
+    };
+
+    const openReviewDialog = (appointment: Appointment) => {
+      setSelectedAppointment(appointment);
+      setReviewRating(appointment.review?.rating ?? 5);
+      setReviewComment(appointment.review?.comment ?? "");
+      setReviewAnonymous(Boolean(appointment.review?.isAnonymous));
+      setIsReviewDialogOpen(true);
+    };
+
+    const closeReviewDialog = () => {
+      if (isSubmittingReview) {
+        return;
+      }
+      setIsReviewDialogOpen(false);
+      setSelectedAppointment(null);
+    };
+
+    const updateAppointmentReviewLocally = (appointmentId: string, review: Appointment["review"]) => {
+      setAppointments((prev) =>
+        prev.map((appointment) =>
+          appointment.id === appointmentId
+            ? {
+                ...appointment,
+                review,
+              }
+            : appointment
+        )
+      );
+    };
+
+    const submitReview = async () => {
+      if (!selectedAppointment) {
+        return;
+      }
+
+      if (reviewRating < 1 || reviewRating > 5) {
+        notify.error("Please select a rating between 1 and 5");
+        return;
+      }
+
+      if (reviewComment.trim().length > 1000) {
+        notify.error("Comment must be 1000 characters or fewer");
+        return;
+      }
+
+      try {
+        setIsSubmittingReview(true);
+        const payload = {
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+          isAnonymous: reviewAnonymous,
+        };
+
+        if (selectedAppointment.review?.id) {
+          const response = await reviewAPI.updateReview(selectedAppointment.review.id, payload);
+          if (response.data.success) {
+            const updated = response.data.data;
+            updateAppointmentReviewLocally(selectedAppointment.id, {
+              id: updated.id,
+              rating: updated.rating,
+              comment: updated.comment,
       if (axios.isAxiosError(error) && error.response) {
         notify.error(error.response.data?.message || "Failed to fetch appointment history");
       } else {
@@ -155,199 +206,6 @@ export default function AppointmentHistoryPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const openReviewDialog = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setReviewRating(appointment.review?.rating ?? 5);
-    setReviewComment(appointment.review?.comment ?? "");
-    setReviewAnonymous(Boolean(appointment.review?.isAnonymous));
-    setIsReviewDialogOpen(true);
-  };
-
-  const closeReviewDialog = () => {
-    if (isSubmittingReview) {
-      return;
-    }
-    setIsReviewDialogOpen(false);
-    setSelectedAppointment(null);
-  };
-
-  const updateAppointmentReviewLocally = (appointmentId: string, review: Appointment["review"]) => {
-    setAppointments((prev) =>
-      prev.map((appointment) =>
-        appointment.id === appointmentId
-          ? {
-              ...appointment,
-              review,
-            }
-          : appointment
-      )
-    );
-  };
-
-  const submitReview = async () => {
-    if (!selectedAppointment) {
-      return;
-    }
-
-    if (reviewRating < 1 || reviewRating > 5) {
-      notify.error("Please select a rating between 1 and 5");
-      return;
-    }
-
-    if (reviewComment.trim().length > 1000) {
-      notify.error("Comment must be 1000 characters or fewer");
-      return;
-    }
-
-    try {
-      setIsSubmittingReview(true);
-      const payload = {
-        rating: reviewRating,
-        comment: reviewComment.trim(),
-        isAnonymous: reviewAnonymous,
-      };
-
-      if (selectedAppointment.review?.id) {
-        const response = await reviewAPI.updateReview(selectedAppointment.review.id, payload);
-        if (response.data.success) {
-          const updated = response.data.data;
-          updateAppointmentReviewLocally(selectedAppointment.id, {
-            id: updated.id,
-            rating: updated.rating,
-            comment: updated.comment,
-            isAnonymous: updated.isAnonymous,
-            createdAt: updated.createdAt,
-            updatedAt: updated.updatedAt,
-          });
-          notify.success("Review updated successfully");
-          closeReviewDialog();
-        }
-        return;
-      }
-
-      const response = await reviewAPI.createReview({
-        appointmentId: selectedAppointment.id,
-        ...payload,
-      });
-
-      if (response.data.success) {
-        const created = response.data.data;
-        updateAppointmentReviewLocally(selectedAppointment.id, {
-          id: created.id,
-          rating: created.rating,
-          comment: created.comment,
-          isAnonymous: created.isAnonymous,
-          createdAt: created.createdAt,
-          updatedAt: created.updatedAt,
-        });
-        notify.success("Review submitted successfully");
-        closeReviewDialog();
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        notify.error(error.response.data?.message || "Failed to save review");
-      } else {
-        notify.error("Failed to save review");
-      }
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
-
-  const deleteReview = async () => {
-    if (!selectedAppointment?.review?.id) {
-      return;
-    }
-
-    try {
-      setIsSubmittingReview(true);
-      const response = await reviewAPI.deleteReview(selectedAppointment.review.id);
-      if (response.data.success) {
-        updateAppointmentReviewLocally(selectedAppointment.id, null);
-        notify.success("Review deleted successfully");
-        closeReviewDialog();
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        notify.error(error.response.data?.message || "Failed to delete review");
-      } else {
-        notify.error("Failed to delete review");
-      }
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
-
-  const filterAppointments = () => {
-    let filtered = [...appointments];
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(appointment =>
-        appointment.doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appointment.doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(appointment => appointment.status === statusFilter);
-    }
-
-    // Sort by date (most recent first)
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    setFilteredAppointments(filtered);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const base =
-      "backdrop-blur-sm rounded-full px-2.5 py-1 border shadow-sm text-xs font-medium";
-    const map: Record<string, { label: string; cls: string }> = {
-      PENDING: {
-        label: "Pending",
-        cls:
-          "bg-gradient-to-r from-amber-400/15 to-yellow-500/15 text-amber-700 dark:text-amber-200 border-amber-400/30",
-      },
-      CONFIRMED: {
-        label: "Confirmed",
-        cls:
-          "bg-gradient-to-r from-emerald-400/15 to-teal-500/15 text-emerald-700 dark:text-emerald-200 border-emerald-400/30",
-      },
-      COMPLETED: {
-        label: "Completed",
-        cls:
-          "bg-gradient-to-r from-sky-400/15 to-indigo-500/15 text-sky-700 dark:text-sky-200 border-sky-400/30",
-      },
-      CANCELLED: {
-        label: "Cancelled",
-        cls:
-          "bg-gradient-to-r from-rose-400/15 to-red-500/15 text-rose-700 dark:text-rose-200 border-rose-400/30",
-      },
-      REJECTED: {
-        label: "Rejected",
-        cls:
-          "bg-gradient-to-r from-rose-400/15 to-red-500/15 text-rose-700 dark:text-rose-200 border-rose-400/30",
-      },
-    };
-
-    const cfg = map[status] || map["PENDING"];
-    return (
-      <Badge variant="outline" className={`${base} ${cfg.cls}`}>
-        {cfg.label}
-      </Badge>
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
   };
 
   const formatTime = (timeString: string) => {

@@ -335,7 +335,7 @@ export default function UploadReportPage() {
                       <div className="font-semibold mb-2">Abnormal Values</div>
                       <div className="space-y-3">
                         {result.abnormalValues
-                          .map((raw: Record<string, unknown>, i: number) => {
+                          .map((raw: any, i: number) => {
                             const name =
                               (raw.test_name as string) ||
                               (raw.testName as string) ||

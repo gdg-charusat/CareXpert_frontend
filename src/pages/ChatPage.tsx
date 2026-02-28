@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -52,7 +52,11 @@ import { logger } from "@/lib/logger";
 
 // Uses the normalized flat shape from patientAPI so name/profilePicture
 // are always at the top level regardless of backend payload shape.
+// doctor info normalized by patientAPI
+
 type DoctorData = NormalizedDoctor;
+
+// chat target selection
 
 type SelectedChat =
   | "ai"
@@ -63,13 +67,20 @@ type SelectedChat =
     name: string;
     members: UserData[];
     admin: UserData[];
-  }; // Added type for community room
+  }; // community room
+
+// user object returned in various endpoints; some fields are optional depending on context
 
 type UserData = {
   id: string;
   name: string;
   profilePicture: string;
+  role?: string;
+  specialty?: string;
+  location?: string;
 };
+
+// rooms for city/community chats
 
 type CityRoomData = {
   id: string;
@@ -77,6 +88,37 @@ type CityRoomData = {
   members: UserData[];
   admin: UserData[];
 };
+
+// messages coming from backend history endpoints (not the socket payload)
+
+type ApiChatMessage = {
+  senderId: string;
+  receiverId?: string;
+  sender: { name: string };
+  message: string;
+  timestamp: string;
+  messageType?: string;
+  imageUrl?: string;
+};
+
+// AI-specific chat entries used in the AI tab
+
+type AiMessage = {
+  id: string;
+  type: "ai" | "user";
+  message: string;
+  time: string;
+  aiData?: any;
+};
+
+// conversation summary shape for doctor-side DM list
+
+type DMConversation = {
+  otherUser: UserData;
+  lastMessage?: { message: string; timestamp: string };
+  unreadCount?: number;
+};
+
 
 type CityRoomApiResponse = {
   statuscode: number;
@@ -110,12 +152,6 @@ type ChatHistoryEntry = {
   imageUrl?: string;
 };
 
-// conversation shape used for doctor-patient direct messages
-type DMConversation = {
-  otherUser: UserData;
-  lastMessage?: string;
-  // additional fields may exist but are not required for rendering
-};
 
 export default function ChatPage() {
   const [message, setMessage] = useState("");
@@ -182,7 +218,7 @@ export default function ChatPage() {
   }, [user]);
 
   // AI Chat state
-  const [aiMessages, setAiMessages] = useState<FormattedMessage[]>([]);
+  const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isClearingAi, setIsClearingAi] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
@@ -275,7 +311,7 @@ export default function ChatPage() {
             },
           ]);
         } else {
-          const formattedMessages: FormattedMessage[] = chats
+          const formattedMessages: AiMessage[] = chats
             .map((chat: AiChat) => [
               {
                 id: `${chat.id}-user`,
@@ -288,6 +324,7 @@ export default function ChatPage() {
                 type: "ai",
                 message: chat.aiMessage,
                 time: relativeTime(chat.createdAt),
+                aiData: chat,
               },
             ])
             .flat();
@@ -353,7 +390,7 @@ export default function ChatPage() {
       setIsAiLoading(true);
 
       // Add user message immediately
-      const userMsg = {
+      const userMsg: AiMessage = {
         id: `user-${Date.now()}`,
         type: "user",
         message: userMessage,
@@ -378,7 +415,7 @@ export default function ChatPage() {
 
       if (response.data.success) {
         const aiData = response.data.data;
-        const aiMsg = {
+        const aiMsg: AiMessage = {
           id: `ai-${Date.now()}`,
           type: "ai",
           message: formatAiResponse(aiData),
@@ -392,7 +429,7 @@ export default function ChatPage() {
       notify.error("Failed to get AI response. Please try again.");
 
       // Add error message
-      const errorMsg = {
+      const errorMsg: AiMessage = {
         id: `error-${Date.now()}`,
         type: "ai",
         message:
@@ -455,7 +492,7 @@ export default function ChatPage() {
     try {
       const response = await loadOneOnOneChatHistory(patientId);
       if (response.success) {
-        const formattedMessages = response.data.messages.map((msg: FormattedMessage) => ({
+        const formattedMessages = response.data.messages.map((msg: ApiChatMessage) => ({
           roomId: generateRoomId(user?.id || "", patientId),
           senderId: msg.senderId,
           receiverId: msg.receiverId,
@@ -871,13 +908,15 @@ export default function ChatPage() {
                                   {conversation.otherUser.name}
                                 </h4>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                  {conversation.lastMessage.message}
+                                  {conversation.lastMessage?.message}
                                 </p>
                                 <p className="text-xs text-gray-400 dark:text-gray-500">
-                                  {relativeTime(conversation.lastMessage.timestamp)}
+                                  {conversation.lastMessage
+                                    ? relativeTime(conversation.lastMessage.timestamp)
+                                    : ""}
                                 </p>
                               </div>
-                              {conversation.unreadCount > 0 && (
+                              {conversation.unreadCount && conversation.unreadCount > 0 && (
                                 <Badge
                                   variant="destructive"
                                   className="text-xs"
