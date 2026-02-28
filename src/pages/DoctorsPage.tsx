@@ -385,6 +385,26 @@ export default function DoctorsPage() {
                             ))}
                           </div>
                         </div>
+            {paginatedDoctors.map((doctor) => (
+              <Card key={doctor.id}>
+                <CardContent className="p-6 grid lg:grid-cols-12 gap-6">
+                  <div className="lg:col-span-8 flex gap-4">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={doctor.profilePicture} />
+                      <AvatarFallback>
+                        {doctor.name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="text-xl font-semibold">
+                        {doctor.name}
+                      </h3>
+                      <p className="text-blue-600">{doctor.specialty}</p>
+                      <p className="text-sm">{doctor.clinicLocation}</p>
+                      <div className="flex items-center gap-1 mt-1 text-sm text-amber-600">
+                        <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                        <span>{doctor.averageRating.toFixed(1)}</span>
+                        <span className="text-gray-500 dark:text-gray-400">({doctor.totalReviews} reviews)</span>
                       </div>
                     </div>
                   </div>
