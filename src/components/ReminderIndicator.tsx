@@ -18,12 +18,6 @@ export default function ReminderIndicator({
   size = "md",
   compact = false,
 }: ReminderIndicatorProps) {
-  const bellSizeMap = {
-    sm: "h-3 w-3",
-    md: "h-4 w-4",
-    lg: "h-5 w-5",
-  };
-
   const textSizeMap = {
     sm: "text-xs",
     md: "text-sm",
