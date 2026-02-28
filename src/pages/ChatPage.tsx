@@ -46,6 +46,7 @@ import {
 import { useAuthStore } from "@/store/authstore";
 import { relativeTime } from "@/lib/utils";
 import { notify } from "@/lib/toast";
+import { sanitizeText, sanitizeImageUrl } from "@/lib/sanitize";
 
 type DoctorData = {
   id: string;
@@ -437,11 +438,11 @@ export default function ChatPage() {
           roomId: generateRoomId(user?.id || "", patientId),
           senderId: msg.senderId,
           receiverId: msg.receiverId,
-          username: msg.sender.name,
-          text: msg.message,
+          username: sanitizeText(msg.sender.name),
+          text: sanitizeText(msg.message),
           time: relativeTime(msg.timestamp),
           messageType: msg.messageType,
-          imageUrl: msg.imageUrl,
+          imageUrl: msg.imageUrl ? sanitizeImageUrl(msg.imageUrl) : undefined,
         }));
         setMessages(formattedMessages);
       }
@@ -488,14 +489,14 @@ export default function ChatPage() {
                 roomId: roomId,
                 senderId: msg.senderId,
                 receiverId: msg.receiverId,
-                username: msg.sender.name,
-                text: msg.message,
+                username: sanitizeText(msg.sender.name),
+                text: sanitizeText(msg.message),
                 time: new Date(msg.timestamp).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 }),
                 messageType: msg.messageType,
-                imageUrl: msg.imageUrl,
+                imageUrl: msg.imageUrl ? sanitizeImageUrl(msg.imageUrl) : undefined,
               })
             );
             setMessages(formattedMessages);
@@ -521,14 +522,14 @@ export default function ChatPage() {
                 roomId: roomId,
                 senderId: msg.senderId,
                 receiverId: null,
-                username: msg.sender.name,
-                text: msg.message,
+                username: sanitizeText(msg.sender.name),
+                text: sanitizeText(msg.message),
                 time: new Date(msg.timestamp).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 }),
                 messageType: msg.messageType,
-                imageUrl: msg.imageUrl,
+                imageUrl: msg.imageUrl ? sanitizeImageUrl(msg.imageUrl) : undefined,
               })
             );
 
@@ -557,6 +558,12 @@ export default function ChatPage() {
   const handleSendMessage = async () => {
     if (!message.trim() || !selectedChat || !user) return;
 
+    const sanitizedMessage = sanitizeText(message.trim());
+    if (!sanitizedMessage) {
+      notify.error('Invalid message content');
+      return;
+    }
+
     if (typeof selectedChat === "object" && selectedChat.type === "doctor") {
       const roomId = generateRoomId(user.id, selectedChat.data.userId);
 
@@ -565,7 +572,7 @@ export default function ChatPage() {
         senderId: user.id,
         receiverId: selectedChat.data.userId,
         username: user.name,
-        text: message.trim(),
+        text: sanitizedMessage,
         messageType: "TEXT",
         time: relativeTime(new Date()),
       };
@@ -576,7 +583,7 @@ export default function ChatPage() {
       setMessage("");
     } else if (selectedChat === "ai") {
       // Handle AI message sending
-      await sendAiMessage(message.trim());
+      await sendAiMessage(sanitizedMessage);
     } else if (
       typeof selectedChat === "object" &&
       selectedChat.type === "room"
@@ -590,7 +597,7 @@ export default function ChatPage() {
         roomId: activeRoomId,
         senderId: user.id,
         username: user.name,
-        text: message.trim(),
+        text: sanitizedMessage,
         messageType: "TEXT",
         time: relativeTime(new Date()),
       };
@@ -1107,7 +1114,7 @@ export default function ChatPage() {
                             </div>
                           ) : (
                             <p className="text-sm whitespace-pre-wrap">
-                              {msg.message}
+                              {sanitizeText(msg.message)}
                             </p>
                           )}
                           <p
@@ -1184,13 +1191,13 @@ export default function ChatPage() {
                           >
                             {msg.messageType === "IMAGE" && msg.imageUrl ? (
                               <img
-                                src={msg.imageUrl}
+                                src={sanitizeImageUrl(msg.imageUrl)}
                                 alt="sent-img"
                                 className="rounded mb-1 max-w-full h-auto"
                               />
                             ) : (
                               <p className="text-sm whitespace-pre-wrap">
-                                {msg.text}
+                                {sanitizeText(msg.text)}
                               </p>
                             )}
                             <p className="text-xs mt-1 text-right text-gray-400">
