@@ -53,6 +53,10 @@ export default function NotificationsPage() {
     return () => controller.abort(); // Cancel on unmount
   }, []);
 
+    fetchNotifications();
+    return () => controller.abort(); // Cancel on unmount
+  }, []);
+
   const markAsRead = async (notificationId: string) => {
     setMarkingAsRead(notificationId);
     try {

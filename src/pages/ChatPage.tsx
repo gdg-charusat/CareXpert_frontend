@@ -30,6 +30,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { patientAPI, NormalizedDoctor } from "@/lib/services";
 import axios from "axios"; // Needed for axios.isAxiosError
 import {
   FormattedMessage,
@@ -48,16 +49,9 @@ import { relativeTime } from "@/lib/utils";
 import { notify } from "@/lib/toast";
 import { sanitizeText, sanitizeImageUrl } from "@/lib/sanitize";
 
-type DoctorData = {
-  id: string;
-  specialty: string;
-  clinicLocation: string;
-  user: {
-    name: string;
-    profilePicture: string;
-  };
-  userId: string;
-};
+// Uses the normalized flat shape from patientAPI so name/profilePicture
+// are always at the top level regardless of backend payload shape.
+type DoctorData = NormalizedDoctor;
 
 type SelectedChat =
   | "ai"
@@ -112,7 +106,7 @@ export default function ChatPage() {
   useEffect(() => {
     async function fetchAllDoctors() {
       try {
-        const res = await api.get(`/patient/fetchAllDoctors`);
+        const res = await patientAPI.getAllDoctors();
         if (res.data.success) {
           setDoctors(res.data.data);
         }
@@ -415,10 +409,13 @@ export default function ChatPage() {
         userId: conversation.otherUser.id,
         specialty: "Patient",
         clinicLocation: "",
-        user: {
-          name: conversation.otherUser.name,
-          profilePicture: conversation.otherUser.profilePicture,
-        },
+        name: conversation.otherUser.name ?? "",
+        profilePicture: conversation.otherUser.profilePicture ?? "",
+        experience: "",
+        education: "",
+        bio: "",
+        languages: [],
+        consultationFee: 0,
       },
     });
     setMessages([]);
@@ -771,11 +768,11 @@ export default function ChatPage() {
                             <Avatar className="h-10 w-10">
                               <AvatarImage
                                 src={
-                                  chat.user.profilePicture || "/placeholder.svg"
+                                  chat.profilePicture || "/placeholder.svg"
                                 }
                               />
                               <AvatarFallback>
-                                {chat.user.name
+                                {chat.name
                                   .split(" ")
                                   .map((n) => n[0])
                                   .join("")}
@@ -784,7 +781,7 @@ export default function ChatPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                              {chat.user.name}
+                              {chat.name}
                             </h4>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               {chat.specialty}
@@ -989,18 +986,18 @@ export default function ChatPage() {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage
-                        src={selectedChat.data.user.profilePicture}
+                        src={selectedChat.data.profilePicture}
                       />
                       <AvatarFallback>
-                        {selectedChat.data.user.name
+                        {selectedChat.data.name
                           .split(" ")
-                          .map((n) => n[0])
+                          .map((n: string) => n[0])
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <CardTitle className="text-lg">
-                        {selectedChat.data.user.name}
+                        {selectedChat.data.name}
                       </CardTitle>
                       <CardDescription>
                         {selectedChat.data.specialty} • Online

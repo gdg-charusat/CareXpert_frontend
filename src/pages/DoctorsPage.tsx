@@ -26,36 +26,17 @@ import {
   Loader2,
   Stethoscope,
 } from "lucide-react";
+import { patientAPI, NormalizedDoctor } from "@/lib/services";
 import { api } from "@/lib/api";
-import axios from "axios"; // Added this to fix the isAxiosError check
+import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
 import EmptyState from "@/components/EmptyState";
 import { notify } from "@/lib/toast";
 
 /* ================= TYPES ================= */
 
-type FindDoctors = {
-  id: string;
-  userId: string;
-  specialty: string;
-  clinicLocation: string;
-  experience: string;
-  education: string;
-  bio: string;
-  languages: string[];
-  consultationFee: number;
-  user: {
-    name: string;
-    profilePicture: string;
-  };
-};
+type FindDoctors = NormalizedDoctor;
 
-type FindDoctorsApiResponse = {
-  statusCode: number;
-  message: string;
-  success: boolean;
-  data: FindDoctors[];
-};
 
 type AppointmentBookingData = {
   doctorId: string;
@@ -76,6 +57,7 @@ export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<FindDoctors[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Booking dialog state
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] =
     useState<FindDoctors | null>(null);
@@ -88,8 +70,8 @@ export default function DoctorsPage() {
   });
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState("");
+
   const user = useAuthStore((state) => state.user);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -97,6 +79,7 @@ export default function DoctorsPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   /* ================= EFFECTS ================= */
 
+  // Debounce search query
   useEffect(() => {
     setIsSearching(true);
     const timer = setTimeout(() => {
@@ -107,16 +90,12 @@ export default function DoctorsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Fetch doctors when debounced search changes
   useEffect(() => {
     const fetchDoctors = async () => {
       setIsLoading(true);
       try {
-        const res = await api.get<FindDoctorsApiResponse>(
-          `/patient/fetchAllDoctors`,
-          {
-            params: { search: debouncedSearch },
-          }
-        );
+        const res = await patientAPI.getAllDoctors();
         if (res.data.success) {
           setDoctors(res.data.data);
         }
@@ -134,6 +113,7 @@ export default function DoctorsPage() {
     fetchDoctors();
   }, [debouncedSearch]);
 
+  // Sync URL search params to state
   useEffect(() => {
     const page = Number(searchParams.get("page")) || 1;
     const sort = searchParams.get("sort") || "name-asc";
@@ -402,14 +382,14 @@ export default function DoctorsPage() {
                 <CardContent className="p-6 grid lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-8 flex gap-4">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src={doctor.user.profilePicture} />
+                      <AvatarImage src={doctor.profilePicture} />
                       <AvatarFallback>
-                        {doctor.user.name[0]}
+                        {doctor.name[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-semibold">
-                        {doctor.user.name}
+                        {doctor.name}
                       </h3>
                       <p className="text-blue-600">{doctor.specialty}</p>
                       <p className="text-sm">{doctor.clinicLocation}</p>
