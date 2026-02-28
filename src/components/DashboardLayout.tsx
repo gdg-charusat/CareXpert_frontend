@@ -12,17 +12,24 @@ export default function DashboardLayout() {
 
   return (
     <div className="h-screen bg-slate-50 dark:bg-zinc-900 flex flex-col overflow-hidden">
-      {/* Fixed Top Navbar */}
       <Navbar />
-      
-      {/* Fixed Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-      
-      {/* Main Content Area */}
+
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-64">
+        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      </div>
+
+      {/* Mobile Sidebar */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+        </div>
+      )}
+
       <div className="flex-1 flex pt-16 md:ml-64 overflow-hidden">
         {/* Mobile Menu Button */}
         {user && (
-          <div className="md:hidden fixed top-16 left-4 z-30">
+          <div className="md:hidden fixed top-16 left-4 z-50">
             <Button
               variant="ghost"
               size="sm"
@@ -34,7 +41,6 @@ export default function DashboardLayout() {
           </div>
         )}
 
-        {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto scrollbar-hide">
           <Outlet />
         </main>

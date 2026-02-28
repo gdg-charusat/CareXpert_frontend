@@ -126,7 +126,7 @@ export default function Login() {
 
   return (
     <div className="flex justify-center items-center min-h-[80vh]">
-      <Card className="w-full max-w-md">
+      <Card className="w-full">
         <CardHeader className="flex flex-col items-center space-y-2">
           <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
             <Heart className="h-6 w-6 text-white" />

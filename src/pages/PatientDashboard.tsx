@@ -60,7 +60,11 @@ export default function PatientDashboard() {
   ];
 
   return (
+
+  <div className="container mx-auto max-w-7xl p-6 md:p-8">
+
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+
           {/* Welcome Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -133,7 +137,7 @@ export default function PatientDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8"
           >
             {/* View Prescriptions */}
             <motion.div
