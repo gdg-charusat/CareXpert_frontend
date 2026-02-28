@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Textarea } from "../components/ui/textarea";
-import { MapPin, Clock, Star, Video, User } from "lucide-react";
+import { MapPin, Clock, Star, Video, User,Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { patientAPI, NormalizedDoctor } from "@/lib/services";
 import axios from "axios";
@@ -251,6 +251,11 @@ export default function BookAppointmentPage() {
                     <span>${doctor.consultationFee} consultation fee</span>
                   </div>
 
+                  <div className="flex items-center gap-2 text-sm">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-400" />
+                    <span>{doctor.averageRating.toFixed(1)} ({doctor.totalReviews} reviews)</span>
+                  </div>
+
                   {doctor.education && (
                     <div className="text-sm">
                       <p className="font-medium mb-1">Education:</p>
@@ -390,12 +395,18 @@ export default function BookAppointmentPage() {
                       >
                         Cancel
                       </Button>
-                      <Button
-                        type="submit"
-                        disabled={booking}
-                        className="flex-1"
-                      >
-                        {booking ? "Sending Request..." : "Send Appointment Request"}
+                      <Button type="submit"
+                       disabled={booking}
+                     className="flex-1"
+                  >
+                   {booking ? (
+                <span className="flex items-center justify-center gap-2">
+                       <Loader2 className="h-4 w-4 animate-spin" />
+                              Sending Request...
+                          </span>
+                     ) : (
+                   "Send Appointment Request"
+                      )}
                       </Button>
                     </div>
                   </form>

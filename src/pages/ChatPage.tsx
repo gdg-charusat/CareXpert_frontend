@@ -28,6 +28,7 @@ import {
   User,
   Stethoscope,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { patientAPI, NormalizedDoctor } from "@/lib/services";
@@ -184,6 +185,7 @@ export default function ChatPage() {
   const [aiMessages, setAiMessages] = useState<FormattedMessage[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isClearingAi, setIsClearingAi] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
     // Load language from localStorage or default to English
     return localStorage.getItem("ai-chat-language") || "en";
@@ -436,6 +438,8 @@ export default function ChatPage() {
         bio: "",
         languages: [],
         consultationFee: 0,
+        averageRating: 0,
+        totalReviews: 0,
       },
     });
     setMessages([]);
@@ -573,8 +577,12 @@ export default function ChatPage() {
   }, [selectedChat, user]);
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !selectedChat || !user) return;
+  if (!message.trim() || !selectedChat || !user) return;
+  if (isSendingMessage) return;
 
+  setIsSendingMessage(true);
+
+  try {
     if (typeof selectedChat === "object" && selectedChat.type === "doctor") {
       const roomId = generateRoomId(user.id, selectedChat.data.userId);
 
@@ -589,12 +597,12 @@ export default function ChatPage() {
       };
 
       sendMessage(payload);
-      // Optimistically add the sent message to the UI
       setMessages((prev) => [...prev, { ...payload, type: "user" }]);
       setMessage("");
+
     } else if (selectedChat === "ai") {
-      // Handle AI message sending
       await sendAiMessage(message.trim());
+
     } else if (
       typeof selectedChat === "object" &&
       selectedChat.type === "room"
@@ -603,7 +611,7 @@ export default function ChatPage() {
         notify.error("Connecting to room... please try again in a moment");
         return;
       }
-      // Handle community room message sending
+
       const payload = {
         roomId: activeRoomId,
         senderId: user.id,
@@ -612,12 +620,15 @@ export default function ChatPage() {
         messageType: "TEXT",
         time: relativeTime(new Date()),
       };
+
       SendMessageToRoom(payload);
       setMessages((prev) => [...prev, { ...payload, type: "user" }]);
       setMessage("");
     }
-  };
-
+  } finally {
+    setIsSendingMessage(false);
+  }
+};
   // Listen for incoming messages
   //Changed this for preventing duplicate listeners
   useEffect(() => {
@@ -1320,13 +1331,20 @@ export default function ChatPage() {
                   className="flex-1"
                 />
                 {/* fix1 */}
-                <Button
-                  onClick={handleSendMessage}
-                  className="px-6"
-                  disabled={!message.trim() || (selectedChat === "ai" && isAiLoading)}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
+                <Button onClick={handleSendMessage}
+  className="px-6"
+  disabled={
+    !message.trim() ||
+    isSendingMessage ||
+    (selectedChat === "ai" && isAiLoading)
+  }
+>
+  {isSendingMessage ? (
+    <Loader2 className="h-4 w-4 animate-spin" />
+  ) : (
+    <Send className="h-4 w-4" />
+  )}
+</Button>
               </div>
             </div>
           </Card>

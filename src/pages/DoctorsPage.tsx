@@ -25,6 +25,7 @@ import {
   Heart,
   Loader2,
   Stethoscope,
+  Star,
 } from "lucide-react";
 import { patientAPI, NormalizedDoctor } from "@/lib/services";
 import { api } from "@/lib/api";
@@ -56,7 +57,7 @@ export default function DoctorsPage() {
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [doctors, setDoctors] = useState<FindDoctors[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
   // Booking dialog state
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] =
@@ -252,6 +253,13 @@ export default function DoctorsPage() {
       setIsBooking(false);
     }
   };
+  const handleApplyFilters = async () => {
+  if (isApplyingFilters) return;
+  setIsApplyingFilters(true);
+  setTimeout(() => {
+    setIsApplyingFilters(false);
+  }, 500);
+};
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -339,9 +347,15 @@ export default function DoctorsPage() {
                 <SelectItem value="fee-desc">Fee High to Low</SelectItem>
               </SelectContent>
             </Select>
-            <Button>
-              <Filter className="h-4 w-4 mr-2" /> Apply
-            </Button>
+            <Button onClick={handleApplyFilters} disabled={isApplyingFilters}>
+            {isApplyingFilters ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+  ) : (
+    <>
+      <Filter className="h-4 w-4 mr-2" /> Apply
+    </>
+  )}
+</Button>
           </CardContent>
         </Card>
 
@@ -376,6 +390,11 @@ export default function DoctorsPage() {
                       </h3>
                       <p className="text-blue-600">{doctor.specialty}</p>
                       <p className="text-sm">{doctor.clinicLocation}</p>
+                      <div className="flex items-center gap-1 mt-1 text-sm text-amber-600">
+                        <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                        <span>{doctor.averageRating.toFixed(1)}</span>
+                        <span className="text-gray-500 dark:text-gray-400">({doctor.totalReviews} reviews)</span>
+                      </div>
                     </div>
                   </div>
 
