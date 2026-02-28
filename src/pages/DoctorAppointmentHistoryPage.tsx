@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -74,9 +74,38 @@ export default function DoctorAppointmentHistoryPage() {
     }
   }, [user]);
 
+  const filterAppointments = useCallback(() => {
+    let filtered = [...appointments];
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(appointment =>
+        appointment.patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.patient.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(appointment => appointment.status === statusFilter);
+    }
+
+    // Date filter
+    if (dateFilter !== 'all') {
+      filtered = filtered.filter(appointment =>
+        appointment.date === dateFilter
+      );
+    }
+
+    // Sort by date (most recent first)
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    setFilteredAppointments(filtered);
+  }, [appointments, searchTerm, statusFilter, dateFilter]);
+
   useEffect(() => {
     filterAppointments();
-  }, [appointments, searchTerm, statusFilter, dateFilter]);
+  }, [filterAppointments]);
 
   const fetchAppointmentHistory = async () => {
     try {

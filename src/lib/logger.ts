@@ -5,7 +5,7 @@
  * - Never logs user objects, tokens, or sensitive auth data
  */
 
-type LogContext = Record<string, any>;
+type LogContext = Record<string, unknown>;
 
 class Logger {
   private isProduction = process.env.NODE_ENV === 'production';

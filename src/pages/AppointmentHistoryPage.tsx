@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
@@ -63,9 +63,31 @@ export default function AppointmentHistoryPage() {
     }
   }, [user]);
 
+  const filterAppointments = useCallback(() => {
+    let filtered = [...appointments];
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(appointment =>
+        appointment.doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(appointment => appointment.status === statusFilter);
+    }
+
+    // Sort by date (most recent first)
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    setFilteredAppointments(filtered);
+  }, [appointments, searchTerm, statusFilter]);
+
   useEffect(() => {
     filterAppointments();
-  }, [appointments, searchTerm, statusFilter]);
+  }, [filterAppointments]);
 
   const fetchAppointmentHistory = async () => {
     try {

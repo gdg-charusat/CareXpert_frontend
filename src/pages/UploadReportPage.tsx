@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -63,7 +63,7 @@ export default function UploadReportPage() {
     }
   };
 
-  const startPolling = (id: string) => {
+  const startPolling = useCallback((id: string) => {
     stopPolling();
 
     let errorCount = 0;
@@ -110,7 +110,7 @@ export default function UploadReportPage() {
         }
       }
     }, 2000);
-  };
+  }, []);
 
   // ✅ Comprehensive cleanup on mount/unmount
   useEffect(() => {
@@ -147,7 +147,7 @@ export default function UploadReportPage() {
       // Clear any pending state updates
       setIsUploading(false);
     };
-  }, []);
+  }, [startPolling]);
 
   // ✅ Also cleanup when file changes
   useEffect(() => {
@@ -335,27 +335,27 @@ export default function UploadReportPage() {
                       <div className="font-semibold mb-2">Abnormal Values</div>
                       <div className="space-y-3">
                         {result.abnormalValues
-                          .map((raw: any, i: number) => {
+                          .map((raw: Record<string, unknown>, i: number) => {
                             const name =
-                              raw.test_name ||
-                              raw.testName ||
-                              raw.parameter ||
+                              (raw.test_name as string) ||
+                              (raw.testName as string) ||
+                              (raw.parameter as string) ||
                               `Result ${i + 1}`;
                             const value =
-                              raw.value ??
-                              raw.measured_value ??
-                              raw.measuredValue;
-                            const unit = raw.unit || raw.units || "";
+                              (raw.value as string | number) ??
+                              (raw.measured_value as string | number) ??
+                              (raw.measuredValue as string | number);
+                            const unit = (raw.unit as string) || (raw.units as string) || "";
                             const normal =
-                              raw.normal_range ||
-                              raw.normalRange ||
-                              raw.reference ||
+                              (raw.normal_range as string) ||
+                              (raw.normalRange as string) ||
+                              (raw.reference as string) ||
                               "";
                             const issue =
-                              raw.issue || raw.reason || raw.flag || "";
+                              (raw.issue as string) || (raw.reason as string) || (raw.flag as string) || "";
                             return { name, value, unit, normal, issue };
                           })
-                          .map((v: any, idx: number) => (
+                          .map((v, idx: number) => (
                             <div
                               key={`${v.name}-${idx}`}
                               className="rounded-lg border border-red-500/20 bg-red-500/5 p-4"
@@ -400,11 +400,11 @@ export default function UploadReportPage() {
                       </div>
                       <ul className="list-disc pl-6 space-y-1">
                         {result.possibleConditions.map(
-                          (c: any, idx: number) => (
+                          (c: string | { condition: string }, idx: number) => (
                             <li key={idx}>
                               {typeof c === "string"
                                 ? c
-                                : c?.condition || JSON.stringify(c)}
+                                : c.condition}
                             </li>
                           )
                         )}
