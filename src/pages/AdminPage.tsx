@@ -37,8 +37,9 @@ export default function AdminPage() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
-  const [_searchQuery, _setSearchQuery] = useState("");
-  const [_filterStatus, _setFilterStatus] = useState("all");
+  // search and filter state removed since they were not yet used
+  // const [_searchQuery, _setSearchQuery] = useState("");
+  // const [_filterStatus, _setFilterStatus] = useState("all");
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "ADMIN")) {

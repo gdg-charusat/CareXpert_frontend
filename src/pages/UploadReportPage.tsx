@@ -13,6 +13,7 @@ import { api } from "@/lib/api";
 import axios from "axios";
 import { Badge } from "../components/ui/badge";
 import { notify } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 interface AbnormalValue {
   name: string;
@@ -97,7 +98,7 @@ export default function UploadReportPage() {
         }
       } catch (err) {
         errorCount++;
-        console.error("Polling error:", err);
+        logger.error("Polling error:", err);
 
         // ✅ Stop after multiple errors
         if (errorCount >= maxErrors) {
