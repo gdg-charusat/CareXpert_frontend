@@ -107,8 +107,6 @@ export function HealthMetricChart({
   const chartData = trendData.dataPoints.map(point => ({
     date: format(new Date(point.date), 'MMM dd'),
     value: point.value,
-    status: point.status,
-    fill: STATUS_COLORS[point.status],
   }));
 
   return (

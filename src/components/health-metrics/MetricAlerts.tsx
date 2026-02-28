@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, AlertTriangle, X } from "lucide-react";
 import { useHealthMetricsStore } from "@/store/healthMetricsStore";
+import { useAuthStore } from "@/store/authstore";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -15,10 +16,14 @@ interface MetricAlertsProps {
 
 export function MetricAlerts({ patientId, compact = false }: MetricAlertsProps) {
   const { alerts, fetchAlerts } = useHealthMetricsStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
-    fetchAlerts(patientId);
-  }, [patientId, fetchAlerts]);
+    // Only doctors and admins can access alerts endpoint
+    if (user?.role === 'DOCTOR' || user?.role === 'ADMIN') {
+      fetchAlerts(patientId);
+    }
+  }, [patientId, fetchAlerts, user?.role]);
 
   // Backend returns all abnormal metrics, no need to filter by dismissed
   const activeAlerts = alerts;

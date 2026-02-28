@@ -74,19 +74,24 @@ export interface PatientHealthMetric {
   metricType: string;
   value: number;
   unit: string;
-  status: MetricStatus;
+  isAbnormal: boolean;
   notes?: string;
   recordedAt: string;
   recordedBy?: string;
   createdAt: string;
   updatedAt: string;
+  recordedByUser?: {
+    id: string;
+    name: string;
+    role: string;
+  };
 }
 
 export interface MetricFilters {
   metricType?: string;
-  status?: MetricStatus;
   startDate?: string;
   endDate?: string;
+  abnormalOnly?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -115,10 +120,10 @@ export interface TrendData {
   average: number;
   min: number;
   max: number;
+  latest: number;
   dataPoints: Array<{
     date: string;
     value: number;
-    status: MetricStatus;
   }>;
 }
 

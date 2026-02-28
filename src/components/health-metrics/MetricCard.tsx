@@ -13,7 +13,8 @@ import {
   Minus,
   AlertCircle
 } from "lucide-react";
-import type { PatientHealthMetric, TrendDirection } from "@/types";
+import type { PatientHealthMetric, TrendDirection, MetricStatus } from "@/types";
+import { getMetricStatus } from "@/lib/healthMetricUtils";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,11 @@ const METRIC_ICONS: Record<string, React.ElementType> = {
   'BMI': Scale,
 };
 
-const STATUS_COLORS = {
+const STATUS_COLORS: Record<MetricStatus, {
+  badge: string;
+  border: string;
+  icon: string;
+}> = {
   NORMAL: {
     badge: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
     border: "border-green-200 dark:border-green-800",
@@ -64,9 +69,9 @@ const STATUS_COLORS = {
 export function MetricCard({ metric, trend, onClick }: MetricCardProps) {
   const Icon = METRIC_ICONS[metric.metricType] || Activity;
   
-  // Determine status with fallback
-  const status = metric.status || 'NORMAL';
-  const colors = STATUS_COLORS[status] || STATUS_COLORS.NORMAL;
+  // Calculate status from metric type and value
+  const status = getMetricStatus(metric.metricType, metric.value);
+  const colors = STATUS_COLORS[status];
   
   const TrendIcon = trend === 'up' ? TrendingUp : 
                     trend === 'down' ? TrendingDown : 
