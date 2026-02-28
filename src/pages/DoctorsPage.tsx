@@ -66,6 +66,7 @@ export default function DoctorsPage() {
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [doctors, setDoctors] = useState<FindDoctors[]>([]);
+
   // Booking dialog state
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<FindDoctors | null>(null);
@@ -207,6 +208,7 @@ export default function DoctorsPage() {
       setIsBooking(false);
     }
   };
+
   const generateTimeSlots = () => {
     const slots = [];
     for (let hour = 9; hour <= 17; hour++) {
@@ -413,12 +415,16 @@ export default function DoctorsPage() {
                         <Heart className="h-4 w-4 mr-2" />
                         Book Appointment
                       </Button>
+
+
+
+
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            ))}
+          ))}
           </div>
         )}
         
