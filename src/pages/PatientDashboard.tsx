@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion } from "framer-motion";
+import ProgressChart from "@/components/ProgressChart";
 
 
 
@@ -27,11 +28,31 @@ export default function PatientDashboard() {
   const isLoading = false; 
 
   
-  useEffect(() => {
-    if (!isLoading && (!user || user.role !== "PATIENT")) {
-      navigate("/auth/login"); 
-    }
-  }, [user, isLoading, navigate]);
+  // TEMPORARY: Disabled for testing ProgressChart
+  // useEffect(() => {
+  //   if (!isLoading && (!user || user.role !== "PATIENT")) {
+  //     navigate("/auth/login"); 
+  //   }
+  // }, [user, isLoading, navigate]);
+
+  // Mock data for testing ProgressChart
+  const weeklyActivityData = [
+    { date: "Mon", activityCount: 34 },
+    { date: "Tue", activityCount: 41 },
+    { date: "Wed", activityCount: 38 },
+    { date: "Thu", activityCount: 52 },
+    { date: "Fri", activityCount: 46 },
+    { date: "Sat", activityCount: 29 },
+    { date: "Sun", activityCount: 33 },
+  ];
+
+  // Test data with mixed formats (tests normalization)
+  const mixedFormatData = [
+    { date: "Week 1", activity: 30 },
+    { day: "Week 2", count: 45 },
+    { date: "Week 3", value: 38 },
+    { date: "Week 4", activityCount: 52 },
+  ];
 
 
   // Show loading state while checking authentication
@@ -44,7 +65,7 @@ export default function PatientDashboard() {
   }
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           {/* Welcome Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -190,6 +211,48 @@ export default function PatientDashboard() {
                 </Card>
               </Link>
             </motion.div>
+          </motion.div>
+
+          {/* Testing ProgressChart Component */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mb-8"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              📊 Activity Analytics (Testing ProgressChart)
+            </h2>
+            
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Chart 1: Standard Format with Reference Line */}
+              <Card>
+                <CardContent className="p-6">
+                  <ProgressChart 
+                    data={weeklyActivityData}
+                    title="Weekly Activity Progress"
+                    color="#3b82f6"
+                    showReferenceLine={true}
+                    referenceValue={40}
+                    referenceLabel="Weekly Target"
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Chart 2: Mixed Format (Tests Normalization) */}
+              <Card>
+                <CardContent className="p-6">
+                  <ProgressChart 
+                    data={mixedFormatData}
+                    title="Monthly Trends (Mixed Format)"
+                    color="#10b981"
+                    showReferenceLine={true}
+                    referenceValue={45}
+                    referenceLabel="Goal"
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </motion.div>
 
           {/* Motivational Quote */}

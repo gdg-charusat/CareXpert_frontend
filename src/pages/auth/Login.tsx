@@ -59,7 +59,7 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newErrors: { email?: string; password?: string } = {};
     const rules = getPasswordRules(password);
 
@@ -113,7 +113,7 @@ export default function Login() {
           </div>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-300">
-            Sign in to your careXpert account
+            Sign in to you    r careXpert account
           </CardDescription>
         </CardHeader>
         <CardContent>
