@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Calendar, Clock, User, MapPin, FileText, Search, Star, Trash2 } from "lucide-react";
+import { Calendar, Clock, User, MapPin, FileText, Search, Star, Trash2 , ChevronRight } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { api } from "@/lib/api";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { notify } from "@/lib/toast";
 import { Input } from "../components/ui/input";
+import ReminderIndicator from "../components/ReminderIndicator";
+import AppointmentCountdown from "../components/AppointmentCountdown";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import {
@@ -38,6 +41,9 @@ type Appointment = {
   createdAt: string;
   updatedAt: string;
   prescriptionId?: string | null;
+  reminderSent: boolean;
+  scheduledReminderTime: string;
+  isReminderScheduled: boolean;
   review?: {
     id: string;
     rating: number;
@@ -82,11 +88,26 @@ export default function AppointmentHistoryPage() {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   const user = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
+  
   useEffect(() => {
-    if (user?.role === "PATIENT") {
-      fetchAppointmentHistory();
+    if (!user) {
+      navigate('/auth/login');
+      return;
     }
-  }, [user]);
+    
+    if (user.role === "DOCTOR") {
+      // Redirect doctors to their appointment history page
+      navigate('/doctor/appointment-history');
+      return;
+    }
+    
+    if (user.role === "PATIENT") {
+      fetchAppointmentHistory();
+    } else {
+      setLoading(false);
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     filterAppointments();
@@ -485,9 +506,9 @@ export default function AppointmentHistoryPage() {
             >
               <Card className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <div className="flex flex-col md:flex-row items-start justify-between mb-4 gap-4">
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
                         <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div>
@@ -499,13 +520,36 @@ export default function AppointmentHistoryPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="flex flex-col md:items-end gap-2 w-full md:w-auto">
                       {getStatusBadge(appointment.status)}
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         Created: {formatDate(appointment.createdAt)}
                       </div>
                     </div>
                   </div>
+
+                  {/* Reminder Indicator */}
+                  {(appointment.reminderSent || appointment.isReminderScheduled) && (
+                    <div className="mb-4">
+                      <ReminderIndicator
+                        reminderSent={appointment.reminderSent}
+                        scheduledReminderTime={appointment.scheduledReminderTime}
+                        appointmentDate={appointment.date}
+                        appointmentTime={appointment.time}
+                      />
+                    </div>
+                  )}
+
+                  {/* Countdown Timer */}
+                  {(appointment.status === 'CONFIRMED' || appointment.status === 'PENDING') && (
+                    <div className="mb-4">
+                      <AppointmentCountdown
+                        appointmentDate={appointment.date}
+                        appointmentTime={appointment.time}
+                        hideIfPast={false}
+                      />
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="flex items-center space-x-2">
@@ -543,7 +587,7 @@ export default function AppointmentHistoryPage() {
                   )}
 
                   {appointment.consultationFee && (
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
                         Consultation Fee:
                       </span>
@@ -552,6 +596,25 @@ export default function AppointmentHistoryPage() {
                       </span>
                     </div>
                   )}
+
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <Button
+                      onClick={() => navigate(`/appointment/${appointment.id}`)}
+                      className="flex-1"
+                    >
+                      View Details
+                      <ChevronRight className="h-4 w-4 ml-2" />
+                    </Button>
+                    {appointment.prescriptionId && (
+                      <Button
+                        variant="secondary"
+                        onClick={() => window.open(`/patient/prescription-pdf/${appointment.prescriptionId}`, '_blank')}
+                        className="flex-1"
+                      >
+                        View Prescription
+                      </Button>
+                    )}
+                  </div>
 
                   {appointment.status === "COMPLETED" && (
                     <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/60">
@@ -581,17 +644,6 @@ export default function AppointmentHistoryPage() {
                           {appointment.review ? "Edit Review" : "Add Review"}
                         </Button>
                       </div>
-                    </div>
-                  )}
-
-                  {appointment.prescriptionId && (
-                    <div className="mt-4">
-                      <Button
-                        variant="secondary"
-                        onClick={() => window.open(`/patient/prescription-pdf/${appointment.prescriptionId}`, '_blank')}
-                      >
-                        View Prescription
-                      </Button>
                     </div>
                   )}
                 </CardContent>
