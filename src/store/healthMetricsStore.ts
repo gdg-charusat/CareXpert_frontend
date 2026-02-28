@@ -1,6 +1,7 @@
 // src/store/healthMetricsStore.ts
 import { create } from "zustand";
 import { healthMetricsAPI } from "@/lib/services";
+import { useAuthStore } from "@/store/authstore";
 import type {
   PatientHealthMetric,
   LatestMetrics,
@@ -110,8 +111,11 @@ export const useHealthMetricsStore = create<HealthMetricsState>((set, get) => ({
       }));
       notify.success("Health metric added successfully");
       
-      // Refresh alerts
-      get().fetchAlerts(patientId);
+      // Refresh alerts (only for doctors)
+      const { user } = useAuthStore.getState();
+      if (user?.role === 'DOCTOR') {
+        get().fetchAlerts(patientId);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to add metric";
       set({ error: message, loading: false });
@@ -153,7 +157,12 @@ export const useHealthMetricsStore = create<HealthMetricsState>((set, get) => ({
       
       // Refresh latest metrics and alerts
       get().fetchLatestMetrics(patientId);
-      get().fetchAlerts(patientId);
+      
+      // Refresh alerts (only for doctors)
+      const { user } = useAuthStore.getState();
+      if (user?.role === 'DOCTOR') {
+        get().fetchAlerts(patientId);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to delete metric";
       set({ error: message, loading: false });

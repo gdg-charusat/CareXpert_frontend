@@ -47,15 +47,17 @@ export function HealthMetricsTable({
     offset: 0,
   });
   const [page, setPage] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'NORMAL' | 'ABNORMAL'>('all');
 
   useEffect(() => {
     fetchMetrics(patientId, filters);
   }, [patientId, filters, fetchMetrics]);
 
   const handleStatusFilter = (status: string) => {
+    setStatusFilter(status as 'all' | 'NORMAL' | 'ABNORMAL');
     setFilters(prev => ({
       ...prev,
-      abnormalOnly: status === 'ABNORMAL' || status === 'CRITICAL' ? true : undefined,
+      abnormalOnly: status === 'ABNORMAL' ? true : undefined,
       offset: 0,
     }));
     setPage(0);
@@ -93,12 +95,17 @@ export function HealthMetricsTable({
     );
   }
 
+  // Filter metrics on the frontend for NORMAL status
+  const filteredMetrics = statusFilter === 'NORMAL'
+    ? metrics.filter(m => getMetricStatus(m.metricType, m.value) === 'NORMAL')
+    : metrics;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex gap-2">
           <Select
-            value={filters.abnormalOnly === undefined ? 'all' : 'ABNORMAL'}
+            value={statusFilter}
             onValueChange={handleStatusFilter}
           >
             <SelectTrigger className="w-[150px]">
@@ -112,7 +119,7 @@ export function HealthMetricsTable({
           </Select>
         </div>
         <div className="text-sm text-muted-foreground">
-          {metrics.length} record{metrics.length !== 1 ? 's' : ''}
+          {filteredMetrics.length} record{filteredMetrics.length !== 1 ? 's' : ''}
         </div>
       </div>
 
@@ -129,7 +136,7 @@ export function HealthMetricsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {metrics.length === 0 ? (
+            {filteredMetrics.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={editable ? 6 : 5}
@@ -139,7 +146,7 @@ export function HealthMetricsTable({
                 </TableCell>
               </TableRow>
             ) : (
-              metrics.map((metric) => {
+              filteredMetrics.map((metric) => {
                 const status = getMetricStatus(metric.metricType, metric.value);
                 return (
                   <TableRow

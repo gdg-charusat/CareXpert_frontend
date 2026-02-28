@@ -41,7 +41,7 @@ export default function HealthMetricsDashboardPage() {
   }
 
   const isDoctor = user?.role === 'DOCTOR';
-  const editable = isDoctor || true; // Patients can edit their own metrics
+  const editable = isDoctor;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
