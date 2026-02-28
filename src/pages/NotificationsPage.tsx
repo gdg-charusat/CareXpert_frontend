@@ -27,23 +27,14 @@ export default function NotificationsPage() {
   useEffect(() => {
     const controller = new AbortController();
 
-    const fetchNotifications = async () => {
-      try {
-        const response = await api.get(
-          `/user/notifications`,
-          { withCredentials: true }
-        );
-        
-        if (response.data.success) {
-          setNotifications(response.data.data.notifications);
-        }
-      } catch (error) {
+
         console.error("Error fetching notifications:", error);
-        notify.error("Failed to fetch notifications");
-      } finally {
-        setLoading(false);
+        notify.error("Failed to load notifications");
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
     // call the fetch function and handle cleanup
     fetchNotifications();

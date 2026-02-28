@@ -309,7 +309,7 @@ export default function AppointmentHistoryPage() {
                 No appointments found
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-center">
-                {appointments.length === 0 
+                {appointments.length === 0
                   ? "You don't have any appointments yet."
                   : "No appointments match your current filters."
                 }

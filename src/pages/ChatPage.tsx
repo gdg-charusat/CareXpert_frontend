@@ -622,7 +622,7 @@ export default function ChatPage() {
     onMessage(handleIncomingMessage);
 
     return () => {
-      offMessage();
+      offMessage(handleIncomingMessage);
     };
   }, [selectedChat, user]);
 
