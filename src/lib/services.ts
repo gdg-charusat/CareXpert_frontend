@@ -445,3 +445,92 @@ export const pharmacyAPI = {
     getPharmacies: (params?: PharmacySearchParams) =>
         api.get<ApiResponse>("/pharmacies", { params }),
 };
+
+// ---------------------------------------------------------------------------
+// Health Metrics (Patient Health Monitoring)
+// ---------------------------------------------------------------------------
+import type {
+  PatientHealthMetric,
+  MetricFilters,
+  MetricsResponse,
+  LatestMetrics,
+  TrendData,
+  MetricAlert,
+  NewMetric,
+} from "@/types";
+
+interface HealthMetricQueryParams extends MetricFilters {
+  period?: '7d' | '30d' | '90d' | '180d' | '1y';
+}
+
+interface TrendParams {
+  metricTypes: string[];
+  period: '7d' | '30d' | '90d' | '180d' | '1y';
+}
+
+export const healthMetricsAPI = {
+  /** GET /patient/:patientId/health-metrics - Get all health metrics for a patient with optional filters */
+  getMetrics: (patientId: string, params?: HealthMetricQueryParams): Promise<MetricsResponse> =>
+    api.get(`/patient/${patientId}/health-metrics`, { params }).then(res => res.data),
+
+  /** GET /patient/:patientId/health-metrics/latest - Get the latest reading for each metric type */
+  getLatestMetrics: (patientId: string): Promise<LatestMetrics> =>
+    api.get(`/patient/${patientId}/health-metrics/latest`).then(res => res.data.data),
+
+  /** GET /patient/:patientId/health-metrics/trends - Get trend data for a specific metric type */
+  getTrends: (patientId: string, params: TrendParams): Promise<Record<string, TrendData>> =>
+    api.get(`/patient/${patientId}/health-metrics/trends`, { params }).then(res => res.data.data),
+
+  /** GET /patient/:patientId/health-metrics/alerts - Get alerts for abnormal metrics */
+  getAlerts: (patientId: string): Promise<MetricAlert[]> =>
+    api.get(`/patient/${patientId}/health-metrics/alerts`).then(res => res.data.data),
+
+  /** POST /patient/:patientId/health-metrics - Create a new health metric */
+  createMetric: (patientId: string, data: NewMetric): Promise<PatientHealthMetric> =>
+    api.post(`/patient/${patientId}/health-metrics`, data).then(res => res.data.data),
+
+  /** PUT /patient/:patientId/health-metrics/:metricId - Update an existing health metric */
+  updateMetric: (patientId: string, metricId: string, data: Partial<NewMetric>): Promise<PatientHealthMetric> =>
+    api.put(`/patient/${patientId}/health-metrics/${metricId}`, data).then(res => res.data.data),
+
+  /** DELETE /patient/:patientId/health-metrics/:metricId - Delete a health metric */
+  deleteMetric: (patientId: string, metricId: string): Promise<void> =>
+    api.delete(`/patient/${patientId}/health-metrics/${metricId}`),
+
+  /** GET /patient/:patientId/health-metrics - Get metric history for a specific type */
+  getMetricHistory: (patientId: string, metricType: string, params?: HealthMetricQueryParams): Promise<MetricsResponse> =>
+    api.get(`/patient/${patientId}/health-metrics`, {
+      params: { ...params, metricType }
+    }).then(res => res.data),
+};
+
+// ---------------------------------------------------------------------------
+// Patient Profile
+// ---------------------------------------------------------------------------
+export interface AuthenticatedProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  profilePicture?: string;
+  patient?: {
+    id: string;
+  };
+  doctor?: {
+    id: string;
+    specialty: string;
+    clinicLocation: string;
+  };
+}
+
+export const profileAPI = {
+  /** GET /user/authenticated-profile - Get the authenticated user's profile including patient/doctor ID */
+  getAuthenticatedProfile: (): Promise<AuthenticatedProfile> =>
+    api.get('/user/authenticated-profile').then(res => res.data.data),
+
+  /** Helper: Get patient ID for the authenticated user (returns null if user is not a patient) */
+  getPatientId: async (): Promise<string | null> => {
+    const profile = await profileAPI.getAuthenticatedProfile();
+    return profile.patient?.id || null;
+  },
+};

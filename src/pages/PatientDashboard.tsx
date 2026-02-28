@@ -1,5 +1,5 @@
 // src/pages/PatientDashboard.tsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion } from "framer-motion";
+import { HealthMetricsSummary } from "@/components/health-metrics";
+import { profileAPI } from "@/lib/services";
 import ProgressChart from "@/components/ProgressChart";
 
 
@@ -23,6 +25,13 @@ import ProgressChart from "@/components/ProgressChart";
 export default function PatientDashboard() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const [patientId, setPatientId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.role === 'PATIENT') {
+      profileAPI.getPatientId().then(setPatientId);
+    }
+  }, [user]);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   useEffect(() => {
@@ -199,6 +208,7 @@ export default function PatientDashboard() {
             </motion.div>
           </motion.div>
 
+          {/* Health Metrics Section */}
           {/* Activity Analytics */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -248,6 +258,16 @@ export default function PatientDashboard() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="mb-8"
           >
+            {patientId && <HealthMetricsSummary patientId={patientId} maxItems={4} />}
+          </motion.div>
+
+          {/* Motivational Quote */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mb-8"
+          >
             <Card className="bg-gray-50 dark:bg-gray-800 border-0">
               <CardContent className="p-8 text-center">
                 <blockquote className="text-lg text-gray-700 dark:text-gray-300 italic">
@@ -261,7 +281,7 @@ export default function PatientDashboard() {
       <motion.div
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
         className="fixed bottom-6 right-6 z-40"
       >
         <Link to="/chat">
