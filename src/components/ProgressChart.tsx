@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { useTheme } from "@/context/theme-context";
+import { useTheme } from "@/context/useTheme";
 
 // ==========================================
 // TYPES & INTERFACES
