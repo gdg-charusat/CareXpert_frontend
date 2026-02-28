@@ -12,7 +12,8 @@ import {
   User,
   X,
   Bell,
-  MessageCircle
+  MessageCircle,
+  Star
 } from "lucide-react";
 import { useAuthStore } from "@/store/authstore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -71,6 +72,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onToggle }: SidebarProps)
         { href: "/doctor/appointment-history", label: "Appointment History", icon: Clock },
         { href: "/doctor/prescriptions", label: "Prescriptions", icon: Pill },
         { href: "/doctor/reports", label: "Patient Reports", icon: FileText },
+        { href: "/doctor/reviews", label: "My Reviews", icon: Star },
         { href: "/chat", label: "Chat", icon: MessageCircle },
         { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount },
         { href: "/profile", label: "Profile", icon: User },
@@ -87,6 +89,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onToggle }: SidebarProps)
         { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount },
         { href: "/pharmacy", label: "Pharmacy Near Me", icon: MapPin },
         { href: "/appointment-history", label: "Appointment History", icon: Clock },
+        { href: "/my-reviews", label: "My Reviews", icon: Star },
         { href: "/profile", label: "Profile", icon: User },
       ];
     }
