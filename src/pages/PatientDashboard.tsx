@@ -1,5 +1,6 @@
 // src/pages/PatientDashboard.tsx
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -20,7 +21,15 @@ import ProgressChart from "@/components/ProgressChart";
 
 
 export default function PatientDashboard() {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  useEffect(() => {
+    if (!isLoading && (!user || user.role !== "PATIENT")) {
+      navigate("/auth/login");
+    }
+  }, [user, isLoading, navigate]);
 
   // Mock data for ProgressChart
   const weeklyActivityData = [
