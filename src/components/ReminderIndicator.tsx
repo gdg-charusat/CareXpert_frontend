@@ -18,6 +18,32 @@ export default function ReminderIndicator({
   size = "md",
   compact = false,
 }: ReminderIndicatorProps) {
+  const buildAppointmentDateTime = (dateValue: string, timeValue: string) => {
+    const parsedDate = new Date(dateValue);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return parsedDate;
+    }
+
+    const [hoursPart, minutesPart] = (timeValue || "").split(":");
+    const hours = Number(hoursPart);
+    const minutes = Number(minutesPart);
+
+    if (
+      Number.isInteger(hours) &&
+      Number.isInteger(minutes) &&
+      hours >= 0 &&
+      hours <= 23 &&
+      minutes >= 0 &&
+      minutes <= 59
+    ) {
+      const mergedDateTime = new Date(parsedDate);
+      mergedDateTime.setHours(hours, minutes, 0, 0);
+      return mergedDateTime;
+    }
+
+    return parsedDate;
+  };
+
   const textSizeMap = {
     sm: "text-xs",
     md: "text-sm",
@@ -39,7 +65,10 @@ export default function ReminderIndicator({
 
   // Calculate if reminder will be sent within 48 hours
   const now = new Date();
-  const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+  const appointmentDateTime = buildAppointmentDateTime(
+    appointmentDate,
+    appointmentTime
+  );
   const scheduledTime = scheduledReminderTime ? new Date(scheduledReminderTime) : null;
   const timeUntilReminder = scheduledTime ? scheduledTime.getTime() - now.getTime() : 0;
   const willBeSentSoon = timeUntilReminder > 0 && timeUntilReminder < 48 * 60 * 60 * 1000;

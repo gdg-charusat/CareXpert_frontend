@@ -54,13 +54,21 @@ export default function AppointmentDetailPage() {
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   const user = useAuthStore((state) => state.user);
+  const authLoading = useAuthStore((state) => state.isLoading);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.role === "PATIENT" && appointmentId) {
-      fetchAppointmentDetail();
+    if (authLoading) {
+      return;
     }
-  }, [user, appointmentId]);
+
+    if (!appointmentId || user?.role !== "PATIENT") {
+      setLoading(false);
+      return;
+    }
+
+    fetchAppointmentDetail();
+  }, [authLoading, user, appointmentId]);
 
   const fetchAppointmentDetail = async () => {
     try {

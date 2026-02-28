@@ -114,7 +114,7 @@ export default function EnhancedAppointmentTimeline({
                   )}
 
                   {/* Special messages */}
-                  {stage.id === "appointment" && appointmentDate && appointmentTime && (
+                  {stage.id === "upcoming" && appointmentDate && appointmentTime && (
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                       Scheduled for {format(new Date(`${appointmentDate}T${appointmentTime}`), "EEEE, MMMM d, yyyy 'at' h:mm a")}
                     </p>
