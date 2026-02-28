@@ -15,9 +15,9 @@ import {
 import { useAuthStore } from "@/store/authstore";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Input } from "../components/ui/input";
+import { notify } from "@/lib/toast";
 import {
   Select,
   SelectContent,
@@ -91,9 +91,9 @@ export default function DoctorAppointmentHistoryPage() {
     } catch (error) {
       console.error("Error fetching appointment history:", error);
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(error.response.data?.message || "Failed to fetch appointment history");
+        notify.error(error.response.data?.message || "Failed to fetch appointment history");
       } else {
-        toast.error("Failed to fetch appointment history");
+        notify.error("Failed to fetch appointment history");
       }
     } finally {
       setLoading(false);
@@ -120,22 +120,23 @@ export default function DoctorAppointmentHistoryPage() {
     if (dateFilter !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+
       filtered = filtered.filter(appointment => {
         const appointmentDate = new Date(appointment.date);
-        
+
         switch (dateFilter) {
           case 'today':
             return appointmentDate.toDateString() === today.toDateString();
-          case 'thisWeek':
+          case 'thisWeek': {
             const weekStart = new Date(today);
             weekStart.setDate(today.getDate() - today.getDay());
             const weekEnd = new Date(weekStart);
             weekEnd.setDate(weekStart.getDate() + 6);
             return appointmentDate >= weekStart && appointmentDate <= weekEnd;
+          }
           case 'thisMonth':
-            return appointmentDate.getMonth() === now.getMonth() && 
-                   appointmentDate.getFullYear() === now.getFullYear();
+            return appointmentDate.getMonth() === now.getMonth() &&
+              appointmentDate.getFullYear() === now.getFullYear();
           case 'past':
             return appointmentDate < today;
           case 'upcoming':
@@ -162,7 +163,7 @@ export default function DoctorAppointmentHistoryPage() {
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
-    
+
     return (
       <Badge variant={config.variant} className={config.color}>
         {config.label}
@@ -341,7 +342,7 @@ export default function DoctorAppointmentHistoryPage() {
                 No appointments found
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-center">
-                {appointments.length === 0 
+                {appointments.length === 0
                   ? "You don't have any appointments yet."
                   : "No appointments match your current filters."
                 }

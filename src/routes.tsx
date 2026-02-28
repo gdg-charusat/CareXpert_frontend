@@ -13,6 +13,8 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AppointmentManagementPage = lazy(() => import("./pages/AppointmentManagementPage"));
 const DoctorAppointmentsPage = lazy(() => import("./pages/DoctorAppointmentsPage"));
 const DoctorAppointmentHistoryPage = lazy(() => import("./pages/DoctorAppointmentHistoryPage"));
+const DoctorPrescriptionsPage = lazy(() => import("./pages/DoctorPrescriptionsPage"));
+const DoctorReportsPage = lazy(() => import("./pages/DoctorReportsPage"));
 const PrescriptionsPage = lazy(() => import("./pages/PrescriptionsPage"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const DoctorPendingRequestsPage = lazy(() => import("./pages/DoctorPendingRequestsPage"));
@@ -26,6 +28,8 @@ const UploadReportPage = lazy(() => import("./pages/UploadReportPage"));
 const AppointmentHistoryPage = lazy(() => import("./pages/AppointmentHistoryPage"));
 const AppointmentStatusPage = lazy(() => import("./pages/AppointmentStatusPage"));
 const PharmacyPage = lazy(() => import("./pages/PharmacyPage"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
@@ -39,6 +43,7 @@ const PageLoader = () => (
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
+ 
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
@@ -52,6 +57,8 @@ export default function AppRoutes() {
         <Route path="/" element={<Layout><HomePage /></Layout>} />
         <Route path="/about" element={<Layout><AboutPage /></Layout>} />
         <Route path="/auth/*" element={<AuthPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/dashboard/*" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route path="patient" element={<PatientDashboard />} />
@@ -66,6 +73,12 @@ export default function AppRoutes() {
         </Route>
         <Route path="/doctor/appointment-history" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<DoctorAppointmentHistoryPage />} />
+        </Route>
+        <Route path="/doctor/prescriptions" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route index element={<DoctorPrescriptionsPage />} />
+        </Route>
+        <Route path="/doctor/reports" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route index element={<DoctorReportsPage />} />
         </Route>
         <Route path="/prescriptions" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<PrescriptionsPage />} />
