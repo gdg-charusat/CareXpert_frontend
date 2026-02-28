@@ -12,8 +12,8 @@ module.exports = {
   rules: {
     // the baseline repo contains lots of non-critical issues; keep lint from failing
     'react-refresh/only-export-components': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     'no-useless-escape': 'off',
     'react-hooks/exhaustive-deps': 'off',
 

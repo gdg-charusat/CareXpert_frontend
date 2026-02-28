@@ -5,7 +5,6 @@
  * - Never logs user objects, tokens, or sensitive auth data
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LogContext = Record<string, any>;
 
 class Logger {
