@@ -3,10 +3,9 @@ import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Bell, Check, CheckCheck, Calendar, Stethoscope } from "lucide-react";
-import { api } from "@/lib/api";
-import { relativeTime } from "@/lib/utils";
-import { notify } from "@/lib/toast";
 import axios from "axios";
+import { toast } from "sonner";
+import { relativeTime } from "@/lib/utils";
 
 interface Notification {
   id: string;
@@ -22,81 +21,69 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingAsRead, setMarkingAsRead] = useState<string | null>(null);
-  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchNotifications = async () => {
-      try {
-        const response = await api.get(
-          `/user/notifications`,
-          {
-            withCredentials: true,
-            signal: controller.signal
-          }
-        );
-
-        if (response.data.success) {
-          setNotifications(response.data.data.notifications);
-        }
-      } catch (error) {
-        if (axios.isCancel(error)) return; // Ignore cancelled requests
-        console.error("Error fetching notifications:", error);
-        notify.error("Failed to fetch notifications");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNotifications();
-    return () => controller.abort(); // Cancel on unmount
   }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/api/user/notifications`,
+        { withCredentials: true }
+      );
+      
+      if (response.data.success) {
+        setNotifications(response.data.data.notifications);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      toast.error("Failed to fetch notifications");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const markAsRead = async (notificationId: string) => {
     setMarkingAsRead(notificationId);
     try {
-      await api.put(
-        `/user/notifications/${notificationId}/read`,
+      await axios.put(
+        `${import.meta.env.VITE_BASE_URL}/api/user/notifications/${notificationId}/read`,
         {},
         { withCredentials: true }
       );
-
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif.id === notificationId
+      
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
             ? { ...notif, isRead: true }
             : notif
         )
       );
-      notify.success("Notification marked as read");
+      toast.success("Notification marked as read");
     } catch (error) {
       console.error("Error marking notification as read:", error);
-      notify.error("Failed to mark notification as read");
+      toast.error("Failed to mark notification as read");
     } finally {
       setMarkingAsRead(null);
     }
   };
 
   const markAllAsRead = async () => {
-    if (isMarkingAll) return; // Guard against double-click
-    setIsMarkingAll(true);
     try {
-      await api.put(
-        `/user/notifications/mark-all-read`,
+      await axios.put(
+        `${import.meta.env.VITE_BASE_URL}/api/user/notifications/mark-all-read`,
         {},
         { withCredentials: true }
       );
-
-      setNotifications(prev =>
+      
+      setNotifications(prev => 
         prev.map(notif => ({ ...notif, isRead: true }))
       );
-      notify.success("All notifications marked as read");
+      toast.success("All notifications marked as read");
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
-      notify.error("Failed to mark all notifications as read");
-    } finally {
-      setIsMarkingAll(false);
+      toast.error("Failed to mark all notifications as read");
     }
   };
 
@@ -153,17 +140,8 @@ export default function NotificationsPage() {
             </p>
           </div>
           {unreadCount > 0 && (
-            <Button
-              onClick={markAllAsRead}
-              variant="outline"
-              className="flex items-center gap-2"
-              disabled={isMarkingAll}
-            >
-              {isMarkingAll ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              ) : (
-                <CheckCheck className="h-4 w-4" />
-              )}
+            <Button onClick={markAllAsRead} variant="outline" className="flex items-center gap-2">
+              <CheckCheck className="h-4 w-4" />
               Mark All as Read
             </Button>
           )}
@@ -185,12 +163,13 @@ export default function NotificationsPage() {
           </Card>
         ) : (
           notifications.map((notification) => (
-            <Card
-              key={notification.id}
-              className={`transition-all duration-200 ${!notification.isRead
-                  ? 'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
+            <Card 
+              key={notification.id} 
+              className={`transition-all duration-200 ${
+                !notification.isRead 
+                  ? 'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10' 
                   : 'opacity-75'
-                }`}
+              }`}
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -198,7 +177,7 @@ export default function NotificationsPage() {
                     <div className={`p-2 rounded-full ${getNotificationColor(notification.type)}`}>
                       {getNotificationIcon(notification.type)}
                     </div>
-
+                    
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -210,17 +189,17 @@ export default function NotificationsPage() {
                           </Badge>
                         )}
                       </div>
-
+                      
                       <p className="text-gray-600 dark:text-gray-400 mb-2">
                         {notification.message}
                       </p>
-
+                      
                       <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                         <span>{relativeTime(notification.createdAt)}</span>
                       </div>
                     </div>
                   </div>
-
+                  
                   {!notification.isRead && (
                     <Button
                       variant="ghost"

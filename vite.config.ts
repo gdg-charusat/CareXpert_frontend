@@ -22,21 +22,4 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Split large vendor libraries into separate chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-avatar', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          'video-sdk': ['@videosdk.live/react-sdk'],
-          'chart-vendor': ['recharts'],
-        },
-      },
-    },
-    // Optimize chunk size
-    chunkSizeWarningLimit: 1000,
-    // Enable minification with esbuild (faster and included by default)
-    minify: 'esbuild',
-  },
 })

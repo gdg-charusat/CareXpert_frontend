@@ -11,10 +11,17 @@ export const sanitizeText = (text: string): string => {
 
 export const sanitizeImageUrl = (url: string): string => {
   if (!url) return '';
+  
+  // Allow relative paths (start with / or ./ or ../)
+  if (url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) {
+    return url;
+  }
+  
   try {
     const parsed = new URL(url);
     return ['http:', 'https:'].includes(parsed.protocol) ? url : '/placeholder.svg';
   } catch {
-    return '/placeholder.svg';
+    // If URL parsing fails, treat as relative path
+    return url;
   }
 };
