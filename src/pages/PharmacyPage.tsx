@@ -163,7 +163,7 @@ export default function PharmacyPage() {
         setPharmacies([]);
       }
     } catch (err) {
-      logger.error("Failed to fetch pharmacies:", err);
+      logger.error("Failed to fetch pharmacies:", { error: err });
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data?.message || "Failed to load pharmacies. Please try again.");
       } else {
@@ -194,7 +194,7 @@ export default function PharmacyPage() {
         fetchPharmacies(latitude, longitude);
       },
       (error) => {
-        logger.warn("Geolocation error:", error.message);
+        logger.warn("Geolocation error:", { message: error.message });
         let status: "denied" | "unavailable" = "unavailable";
         let message = "Unable to access location. Showing all pharmacies.";
 
