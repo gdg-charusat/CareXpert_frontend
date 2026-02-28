@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -63,35 +63,7 @@ export default function UploadReportPage() {
     }
   };
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_REPORT_STATE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as {
-          reportId?: string;
-          status?: string;
-        };
-        if (parsed?.reportId) {
-          setReportId(parsed.reportId);
-          setStatus(parsed.status === "PROCESSING" ? "PROCESSING" : "IDLE");
-          startPolling(parsed.reportId);
-        }
-      }
-
-      const last = localStorage.getItem(LS_LAST_RESULT_KEY);
-      if (last) {
-        const parsedLast = JSON.parse(last);
-        if (parsedLast && parsedLast.id) {
-          setResult(parsedLast);
-          setStatus(parsedLast.status || "COMPLETED");
-        }
-      }
-    } catch { }
-
-    return () => stopPolling();
-  }, []);
-
-  const startPolling = (id: string) => {
+  const startPolling = useCallback((id: string) => {
     stopPolling();
 
     let errorCount = 0;
@@ -138,11 +110,9 @@ export default function UploadReportPage() {
         }
       }
     }, 2000);
-  };
+  }, []);
 
-  // ✅ Comprehensive cleanup on mount/unmount
   useEffect(() => {
-    // Load saved state
     try {
       const saved = localStorage.getItem(LS_REPORT_STATE_KEY);
       if (saved) {
@@ -165,16 +135,9 @@ export default function UploadReportPage() {
           setStatus(parsedLast.status || "COMPLETED");
         }
       }
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
 
-    // ✅ Always cleanup on unmount
-    return () => {
-      stopPolling();
-      // Clear any pending state updates
-      setIsUploading(false);
-    };
+    return () => stopPolling();
   }, [startPolling]);
 
   // ✅ Also cleanup when file changes
