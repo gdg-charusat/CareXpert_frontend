@@ -113,7 +113,7 @@ export default function Login() {
           </div>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-300">
-            Sign in to you    r careXpert account
+            Sign in to your CareXpert account
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -39,10 +39,9 @@ const PageLoader = () => (
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
-  // TEMPORARY: Auth disabled for testing ProgressChart
-  // if (!user) {
-  //   return <Navigate to="/auth" replace />;
-  // }
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
   return <>{children}</>;
 }
 

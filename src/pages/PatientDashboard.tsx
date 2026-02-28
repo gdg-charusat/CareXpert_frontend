@@ -1,6 +1,5 @@
 // src/pages/PatientDashboard.tsx
-import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -21,21 +20,9 @@ import ProgressChart from "@/components/ProgressChart";
 
 
 export default function PatientDashboard() {
-  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
 
- 
-  const isLoading = false; 
-
-  
-  // TEMPORARY: Disabled for testing ProgressChart
-  // useEffect(() => {
-  //   if (!isLoading && (!user || user.role !== "PATIENT")) {
-  //     navigate("/auth/login"); 
-  //   }
-  // }, [user, isLoading, navigate]);
-
-  // Mock data for testing ProgressChart
+  // Mock data for ProgressChart
   const weeklyActivityData = [
     { date: "Mon", activityCount: 34 },
     { date: "Tue", activityCount: 41 },
@@ -53,16 +40,6 @@ export default function PatientDashboard() {
     { date: "Week 3", value: 38 },
     { date: "Week 4", activityCount: 52 },
   ];
-
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
@@ -213,7 +190,7 @@ export default function PatientDashboard() {
             </motion.div>
           </motion.div>
 
-          {/* Testing ProgressChart Component */}
+          {/* Activity Analytics */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -221,11 +198,11 @@ export default function PatientDashboard() {
             className="mb-8"
           >
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              📊 Activity Analytics (Testing ProgressChart)
+              Activity Analytics
             </h2>
             
             <div className="grid lg:grid-cols-2 gap-6">
-              {/* Chart 1: Standard Format with Reference Line */}
+              {/* Chart 1: Weekly Activity Progress */}
               <Card>
                 <CardContent className="p-6">
                   <ProgressChart 
@@ -239,12 +216,12 @@ export default function PatientDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Chart 2: Mixed Format (Tests Normalization) */}
+              {/* Chart 2: Monthly Trends */}
               <Card>
                 <CardContent className="p-6">
                   <ProgressChart 
                     data={mixedFormatData}
-                    title="Monthly Trends (Mixed Format)"
+                    title="Monthly Trends"
                     color="#10b981"
                     showReferenceLine={true}
                     referenceValue={45}
