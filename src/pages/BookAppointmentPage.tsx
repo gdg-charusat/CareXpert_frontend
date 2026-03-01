@@ -30,12 +30,16 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Textarea } from "../components/ui/textarea";
+
+import { MapPin, Clock, Star, Video, User } from "lucide-react";
+import { toast } from "sonner";
+
 import { MapPin, Clock, Star, Video, User,Loader2 } from "lucide-react";
+
 import { api } from "@/lib/api";
 import { patientAPI, NormalizedDoctor } from "@/lib/services";
 import axios from "axios";
 import { useAuthStore } from "@/store/authstore";
-import { notify } from "@/lib/toast";
 
 /**
  * Zod Schema for Appointment Booking Form
@@ -110,10 +114,14 @@ export default function BookAppointmentPage() {
           if (foundDoctor) {
             setDoctor(foundDoctor);
           } else {
-            notify.error("Doctor not found");
+            toast.error("Doctor not found");
             navigate("/doctors");
           }
         }
+
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to fetch doctor details");
+
       } catch (err: unknown) {
         if (axios.isAxiosError(err) && err.response) {
           notify.error(err.response.data?.message || "Failed to fetch doctor details");
@@ -122,6 +130,7 @@ export default function BookAppointmentPage() {
         } else {
           notify.error("Failed to fetch doctor details");
         }
+
         navigate("/doctors");
       } finally {
         setLoading(false);
@@ -146,14 +155,14 @@ export default function BookAppointmentPage() {
       const res = await api.post(`/patient/book-direct-appointment`, data);
 
       if (res.data.success) {
-        notify.success("Appointment request sent successfully! You will be notified once the doctor responds.");
+        toast.success("Appointment request sent successfully! You will be notified once the doctor responds.");
         navigate("/dashboard/patient");
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        notify.error(err.response.data?.message || "Failed to book appointment");
+        toast.error(err.response.data?.message || "Failed to book appointment");
       } else {
-        notify.error("An unexpected error occurred");
+        toast.error("An unexpected error occurred");
       }
     } finally {
       setBooking(false);
@@ -217,7 +226,7 @@ export default function BookAppointmentPage() {
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Doctor Info */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-2 max-w-md mx-auto w-full">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
